@@ -19,7 +19,8 @@
     "runtime:prepare": "node scripts/prepare-python.mjs",
     "acceptance": "build/singer-github/bin/python scripts/installed-acceptance.py",
     "acceptance:files": "python3 scripts/files-acceptance.py",
-    "package:retail": "python3 scripts/package-retail.py"
+    "package:retail": "python3 scripts/package-retail.py",
+    "acceptance:azure-blob": "build/singer-github/bin/python scripts/azure-blob-acceptance.py"
   },
   "devDependencies": {
     "ingestron": "0.13.2",

@@ -71,3 +71,17 @@ base64 text in Git and decoded into the training zip; hashes verify the original
 bytes. Files 1.0.0 was not installable from its public tree and is superseded by
 1.0.1. Keep that tag immutable and excluded from the qualified catalogue. Candidate
 acceptance installs the complete repository tree to catch this boundary.
+
+## Azure Blob retail training
+
+Run `pnpm acceptance:azure-blob` and `python3 scripts/package-azure-retail.py`.
+The installed test uses loopback transport with all five formats, conditional-read
+and authentication failures, review/approval and recovery. Test-only transport
+code never enters runtime bundles. After a qualified `azure-blob-1.0.0` tag,
+attach `build/release/azure-blob-retail-1.0.0.zip` and repeat with
+`INGESTRON_TEST_PUBLIC_SOURCE=1`. This release reuses core 0.12.1 and local 0.4.1;
+its explicit install reference also works with CLI 0.14.0. It has no short CLI alias
+yet. Existing public GitHub/files bundles must remain byte-identical.
+
+Live Labs reads are separate, owner-authorised evidence; no cloud credentials or
+private endpoints belong in public qualification fixtures.

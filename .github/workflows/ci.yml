@@ -20,4 +20,5 @@ jobs:
       - run: git diff --exit-code -- connectors
       - run: pnpm acceptance
       - run: pnpm acceptance:files
+      - run: pnpm acceptance:azure-blob
       - run: pnpm package:retail
