@@ -7,7 +7,7 @@ WORK=ROOT/'build/files-acceptance'
 if WORK.exists():shutil.rmtree(WORK)
 WORK.mkdir(parents=True)
 PUBLIC=os.environ.get('INGESTRON_TEST_PUBLIC_SOURCE')=='1'
-ARCHIVE=Path(os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE',str(ROOT/'build/release/retail-files-1.0.0.zip')))
+ARCHIVE=Path(os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE',str(ROOT/'build/release/retail-files-1.0.1.zip')))
 if not os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE'):
  subprocess.run(['python3',str(ROOT/'scripts/package-retail.py')],cwd=ROOT,check=True)
 records=[]
@@ -20,14 +20,18 @@ def command(args,cwd,ok=True):
 def cli(project,*args,ok=True):return command(['node',str(CLI),'--no-input',*args],project,ok)
 with tempfile.TemporaryDirectory() as tmp:
  origin=Path(tmp)
- shutil.copytree(ROOT/'connectors/files',origin/'connectors/files')
- for args in [['git','init','-q'],['git','add','.'],['git','-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','fixture'],['git','tag','files-1.0.0']]:command(args,origin)
+ # Install the entire candidate tree: binary/non-package fixtures must not hide packaging failures.
+ for name in subprocess.check_output(['git','ls-files','--cached','--others','--exclude-standard'],cwd=ROOT,text=True).splitlines():
+  path=ROOT/name
+  if path.is_file():
+   target=origin/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(path,target)
+ for args in [['git','init','-q'],['git','add','.'],['git','-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','fixture'],['git','tag','files-1.0.1']]:command(args,origin)
  for fmt in ['csv','tsv','json','jsonl','parquet']:
   project=WORK/fmt;project.mkdir()
   with zipfile.ZipFile(ARCHIVE) as archive: archive.extractall(project)
   command(['python3','setup.py','--format',fmt],project)
   cli(project,'plugin','install','ingestron/provider-local@0.4.1')
-  cli(project,'plugin','install','ingestron/connectors/connectors/files/connector.yaml@1.0.0','--tag-prefix','files-',* ([] if PUBLIC else ['--from-git',str(origin)]))
+  cli(project,'plugin','install','ingestron/connectors/connectors/files/connector.yaml@1.0.1','--tag-prefix','files-',* ([] if PUBLIC else ['--from-git',str(origin)]))
   cli(project,'check');cli(project,'build');cli(project,'runtime','prepare')
   cli(project,'run','--action','discover');cli(project,'run','--action','review')
   cli(project,'run','--run-id','unapproved',ok=False)
@@ -50,4 +54,4 @@ with tempfile.TemporaryDirectory() as tmp:
    first=files[0];saved=first.read_bytes();first.write_bytes(b'changed')
    cli(project,'run','--retry','retail-001',ok=False);first.write_bytes(saved)
   print(fmt+' installed retail snapshots and retry passed',flush=True)
-(WORK/'evidence.json').write_text(json.dumps({'passed':True,'publicSource':PUBLIC,'cli':json.loads((CLI.parents[3]/'package.json').read_text())['version'],'core':'0.12.1','provider':'0.4.1','files':'1.0.0','formats':['csv','tsv','json','jsonl','parquet'],'rowsPerSelectedTable':3,'orderValue':'61.95','unapprovedRejected':True,'malformedRejected':True,'schemaDriftRejected':True,'failedRunRecovered':True,'tamperRejected':True,'cloudAccess':False},indent=2)+'\n')
+(WORK/'evidence.json').write_text(json.dumps({'passed':True,'publicSource':PUBLIC,'cli':json.loads((CLI.parents[3]/'package.json').read_text())['version'],'core':'0.12.1','provider':'0.4.1','files':'1.0.1','formats':['csv','tsv','json','jsonl','parquet'],'rowsPerSelectedTable':3,'orderValue':'61.95','unapprovedRejected':True,'malformedRejected':True,'schemaDriftRejected':True,'failedRunRecovered':True,'tamperRejected':True,'cloudAccess':False},indent=2)+'\n')

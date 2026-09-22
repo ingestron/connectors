@@ -60,8 +60,14 @@ For a provider candidate, `INGESTRON_TEST_PROVIDER` selects a local tagged Git c
 ## Files and retail training
 
 Run `pnpm acceptance:files` and `pnpm package:retail`. The files source tag is
-`files-1.0.0`; attach `build/release/retail-files-1.0.0.zip` to that release after
+`files-1.0.1`; attach `build/release/retail-files-1.0.1.zip` to that release after
 qualification. `INGESTRON_TEST_PUBLIC_SOURCE=1 pnpm acceptance:files` verifies
 the public tag. The immutable zip contains a pinned fixture subset and its licence,
 not private demo infrastructure. Keep fixture bytes unchanged; verify provenance
 before packaging. CSV, TSV, JSON, JSONL and Parquet all pass the same retail checks.
+
+Source repositories must remain UTF-8 text for core 0.12.1. Parquet fixtures are
+base64 text in Git and decoded into the training zip; hashes verify the original
+bytes. Files 1.0.0 was not installable from its public tree and is superseded by
+1.0.1. Keep that tag immutable and excluded from the qualified catalogue. Candidate
+acceptance installs the complete repository tree to catch this boundary.

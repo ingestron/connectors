@@ -1,3 +1,5 @@
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -61,4 +63,30 @@ test("official catalogue contains only qualified exact releases and stable ident
       for (const v of r.coreVersions) assert.match(v, /^\d+\.\d+\.\d+$/);
     }
   }
+});
+
+test("the entire Git package tree satisfies the current text-only host boundary", () => {
+  const names = execFileSync(
+    "git",
+    ["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+    { encoding: "utf8" },
+  )
+    .split("\0")
+    .filter(Boolean);
+  let total = 0;
+  for (const name of new Set(names)) {
+    if (!existsSync(name)) continue;
+    const bytes = readFileSync(name);
+    total += bytes.length;
+    assert.ok(!bytes.includes(0), name);
+    assert.equal(
+      Buffer.from(new TextDecoder("utf-8", { fatal: true }).decode(bytes))
+        .length,
+      bytes.length,
+      name,
+    );
+    assert.ok(bytes.length <= 2 * 1024 * 1024, name);
+  }
+  assert.ok(names.length <= 1024);
+  assert.ok(total <= 10 * 1024 * 1024);
 });
