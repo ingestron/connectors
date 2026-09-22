@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 from contextlib import contextmanager
 requests=[]
+observations=[]
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*args): pass
     def do_POST(self):
@@ -17,22 +18,33 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps({'data':{'repo0':{'nameWithOwner':'demo/repo','databaseId':1},'rateLimit':{'cost':1}}}).encode())
     def do_GET(self):
         url=urlparse(self.path);requests.append(self.path)
-        if url.path in ('/repos/demo/repo/issues','/repositories/1/issues'):
+        observations.append({'path':url.path,'authorised':bool(self.headers.get('Authorization'))})
+        scenario=self.server.scenario
+        if isinstance(scenario,dict):scenario=scenario["mode"]
+        status = 401 if self.headers.get('Authorization') == 'Bearer invalid-fixture' else {'missing':404,'forbidden':403,'rate':429}.get(scenario)
+        if scenario == 'interrupted' and 'after' in parse_qs(url.query): status=503
+        if status:
+            self.send_response(status)
+            if status==429:self.send_header('Retry-After','60')
+            self.send_header('Content-Type','application/json');self.end_headers();self.wfile.write(b'{"message":"synthetic"}');return
+        if url.path in ('/repos/'+self.server.repository+'/issues','/repositories/1/issues'):
             page='2' if 'after' in parse_qs(url.query) else '1'
-            value=[{'id':int(page),'number':int(page),'title':'Issue '+page,'state':'open','type':None,'body':None,'updated_at':'2026-01-01T00:00:00Z'}]
+            value=[] if scenario == 'empty' else [{'id':int(page),'number':int(page),'title':'Issue '+page,'state':'open','type':None,'body':None,'updated_at':'2026-01-01T00:00:00Z'}]
             self.send_response(200)
-            if page=='1': self.send_header('Link',f'<http://127.0.0.1:{self.server.server_port}/repos/demo/repo/issues?after=next>; rel="next"')
+            if page=='1' and scenario != 'empty': self.send_header('Link',f'<http://127.0.0.1:{self.server.server_port}/repos/{self.server.repository}/issues?after=next>; rel="next"')
         elif url.path=='/rate_limit':
             value={};self.send_response(200)
-        elif url.path=='/repos/demo/repo':
-            value={'id':1,'name':'repo','full_name':'demo/repo','owner':{'login':'demo'}};self.send_response(200)
+        elif url.path=='/repos/'+self.server.repository:
+            value={'id':1,'name':self.server.repository.split('/')[1],'full_name':self.server.repository,'owner':{'login':self.server.repository.split('/')[0]}};self.send_response(200)
         else:
             value={'error':'Unexpected synthetic request'};self.send_response(400)
         self.send_header('Content-Type','application/json');self.end_headers();self.wfile.write(json.dumps(value).encode())
 
 @contextmanager
-def github_fixture(site_packages):
+def github_fixture(site_packages, scenario="normal", repository="demo/repo"):
     server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+    server.scenario=scenario
+    server.repository=repository
     thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
     # Test-only transport interposition catches the upstream hardcoded rate-limit URL.
     # It is never included in a prepared runtime or installed upstream package.
@@ -59,7 +71,7 @@ def github_fixture(site_packages):
     socket.socket.connect=local
     """).replace('PORT',str(server.server_port)))
     try:
-        requests.clear()
+        requests.clear();observations.clear()
         yield requests
     finally:
         site.unlink(missing_ok=True)

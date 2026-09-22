@@ -20,7 +20,7 @@
     "acceptance": "build/singer-github/bin/python scripts/installed-acceptance.py"
   },
   "devDependencies": {
-    "ingestron": "0.12.1",
+    "ingestron": "0.13.1",
     "prettier": "3.9.6",
     "yaml": "2.9.0"
   },

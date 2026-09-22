@@ -2,8 +2,8 @@ apiVersion: ingestron.project/v1
 id: github_issues
 providers:
   packages:
-    local: ingestron/provider-local@0.4.0
-    github: ingestron/connectors/connectors/github/connector.yaml@1.32.1
+    local: ingestron/provider-local@0.4.1
+    github: ingestron/connectors/connectors/github/connector.yaml@1.33.0
   configurations:
     local:
       package: local
@@ -23,9 +23,7 @@ connections:
     sourceId: github_issues
     tenantId: demo
     settings:
-      auth_token:
-        $secret:
-          env: INGESTRON_GITHUB_TOKEN
+      authentication: anonymous
       repositories:
         - demo/repo
 flows:

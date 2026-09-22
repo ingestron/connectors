@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: github
-version: 1.32.1
+version: 1.33.0
 description: github customer-operated full snapshot connector
 connector: singer:github@1.29.2
 documentation: https://github.com/ingestron/connectors/blob/main/docs/github.md
@@ -15,12 +15,17 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/github/runtime.json
-  sha256: bd1abf61006ba861f3feee6eb2ac1b5618eacca43207f69c01441282b7ea592b
+  sha256: c0a4e95a9d29667a60c6bc0895d17f6bfbc1fb86627e9db6d613fbad1aaa26c1
   contract: ingestron.snapshot/python/v1
 definition:
   settingsSchema:
     type: object
     properties:
+      authentication:
+        type: string
+        enum:
+          - anonymous
+          - token
       auth_token:
         type: object
         properties:
@@ -44,7 +49,6 @@ definition:
         minItems: 1
         maxItems: 10
     required:
-      - auth_token
       - repositories
     additionalProperties: false
   selectionSchema:
@@ -87,6 +91,6 @@ execution:
   local:
     modes:
       - local
-    evidence:
-      Local loopback HTTP qualification; no live GitHub or cloud execution
-      claim; local provider installed-package qualification
+    evidence: Synthetic REST/authentication/failure qualification and bounded
+      anonymous public repository read; no performance guarantee; local provider
+      installed-package qualification

@@ -1,42 +1,34 @@
 # Ingestron connectors
 
-Versioned source packages for reviewed Ingestron ingestion. Install the source you
-need alongside an execution provider; sources do not bundle the CLI or platform
-providers.
+Versioned source packages for reviewed ingestion. Install a connector alongside an
+execution provider; neither the CLI nor compute providers are bundled here.
 
-| Package       | Supported route                                   | Qualification                                                                        |
-| ------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| GitHub 1.32.1 | GitHub.com issues → local Parquet, full snapshots | Installed CLI/core/provider, unmodified upstream tap against synthetic loopback HTTP |
-
-Version 1.32.1 corrects a Linux dependency missing from 1.32.0. Use 1.32.1 for
-new installations; published tags are immutable.
-
-Use Node 22, Ingestron CLI 0.12.1/core 0.12.0, local provider 0.4.0 and Python 3.12 on
-macOS/Linux. GitHub Enterprise, other streams, incremental sync, cloud execution
-and performance guarantees are outside this preview.
-
-Start with the [GitHub walkthrough](docs/github.md). It includes an executable
-synthetic test with exact expected rows; no GitHub credentials are needed for that
-route. The live-source procedure requires your own authorised repository and token
-and has not been independently qualified against the live GitHub API.
+GitHub 1.33.0 reads GitHub.com issues into local Parquet snapshots. It supports
+anonymous public reads and explicit token authentication. The pinned Meltano issue
+reader supplies schemas and parsing; an Ingestron adapter uses REST for repository
+lookup and fails on inaccessible repositories or rejected credentials.
 
 ```sh
-ingestron plugin install ingestron/provider-local@0.4.0 --cache-only
-ingestron plugin install ingestron/connectors/connectors/github/connector.yaml@1.32.1 --tag-prefix github- --cache-only
+ingestron plugin install local@0.4.1
+ingestron plugin install github@1.33.0
 ```
 
-Use these commands inside the example project. Each connector has its own exact
-manifest version and tag prefix. Installing GitHub does not install other sources.
-Python dependencies download only during explicit runtime preparation.
+Start with [the public-data tutorial](https://docs.ingestron.io/docs/tutorials/github-to-parquet).
+It needs no account or token. See [GitHub configuration](docs/github.md) for limits
+and authenticated access. Use CLI 0.13.1 or newer with core 0.12.1, local provider
+0.4.1 and a prepared Python 3.12 environment on macOS/Linux. CLI 0.13.2 improves
+setup guidance and terminal summaries but is not required for anonymous execution.
 
-Original code is Apache-2.0, licensed by Otrera Limited. Upstream connector and
-Python dependency terms/notices remain separate. See [LICENSE](LICENSE),
-[NOTICE](NOTICE) and [release instructions](docs/release.md).
+Synthetic tests cover authentication, pagination, empty results, rate limits,
+partial failure and immutable output/retry. A bounded anonymous live run on the
+public Ingestron CLI repository also passed; this is not independent-user or
+large-volume performance evidence. GitHub Enterprise, other output streams,
+incremental sync and cloud execution remain outside this release.
 
-For development, run `pnpm install --frozen-lockfile`, `pnpm runtime:prepare`,
-`pnpm validate`, and `pnpm acceptance`. See [adding sources](docs/adding-connectors.md).
+For development, use Node 22 and run `pnpm install --frozen-lockfile`,
+`pnpm runtime:prepare`, `pnpm validate` and `pnpm acceptance`.
+See [adding sources](docs/adding-connectors.md) and [release instructions](docs/release.md).
 
-With CLI 0.13.0 or newer, `ingestron plugin install github` selects a qualified
-release from [the official catalogue](catalogue.json); `plugin install local`
-installs the execution provider. Both commands cache packages without modifying
-project configuration. Earlier CLI versions use the explicit references above.
+Original code is Apache-2.0, licensed by Otrera Limited. See [LICENSE](LICENSE) and
+[NOTICE](NOTICE). Upstream Python packages retain their own terms and notices.
+Published source tags are immutable; the catalogue preserves older releases.
