@@ -1,0 +1,32 @@
+{
+  "name": "@ingestron/connectors",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22 <23"
+  },
+  "packageManager": "pnpm@10.15.0",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/*.test.mjs",
+    "runtime:test": "build/singer-github/bin/python -m unittest discover -s test/runtime -v",
+    "format:check": "prettier --check .",
+    "docs:check": "node scripts/docs-check.mjs",
+    "secrets:check": "node scripts/secrets.mjs",
+    "validate": "pnpm format:check && pnpm build && pnpm test && pnpm runtime:test && pnpm docs:check && pnpm secrets:check",
+    "runtime:prepare": "node scripts/prepare-python.mjs",
+    "acceptance": "build/singer-github/bin/python scripts/installed-acceptance.py"
+  },
+  "devDependencies": {
+    "ingestron": "0.12.1",
+    "prettier": "3.9.6",
+    "yaml": "2.9.0"
+  },
+  "description": "Independently versioned source packages for Ingestron.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ingestron/connectors.git"
+  }
+}

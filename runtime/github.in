@@ -1,0 +1,5 @@
+meltanolabs-tap-github==1.29.2
+singer-sdk==0.54.5
+pyarrow==23.0.1
+setuptools==80.9.0
+wheel==0.45.1

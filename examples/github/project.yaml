@@ -1,0 +1,64 @@
+apiVersion: ingestron.project/v1
+id: github_issues
+providers:
+  packages:
+    local: ingestron/provider-local@0.4.0
+    github: ingestron/connectors/connectors/github/connector.yaml@1.32.0
+  configurations:
+    local:
+      package: local
+      binding: runtime
+defaults:
+  provider: local
+environments:
+  dev:
+    apiVersion: ingestron.environment/v1
+    environment: dev
+    bindings:
+      runtime:
+        kind: local
+connections:
+  github:
+    package: github
+    sourceId: github_issues
+    tenantId: demo
+    settings:
+      auth_token:
+        $secret:
+          env: INGESTRON_GITHUB_TOKEN
+      repositories:
+        - demo/repo
+flows:
+  - apiVersion: ingestron.flow/v1
+    kind: ingestion
+    id: issues_local
+    provider: local
+    ingestion:
+      connection: github
+      timeoutSeconds: 120
+      execution:
+        mode: local
+    tables:
+      issues:
+        source:
+          stream: issues
+        contract:
+          apiVersion: v3.1.0
+          kind: DataContract
+          id: github-issues
+          name: GitHub issues
+          version: 1.0.0
+          status: draft
+          schema:
+            - name: issues
+              logicalType: object
+              physicalType: table
+              properties:
+                - name: id
+                  logicalType: integer
+                  physicalType: BIGINT
+                  required: true
+                - name: title
+                  logicalType: string
+                  physicalType: STRING
+                  required: true

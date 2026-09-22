@@ -1,0 +1,92 @@
+apiVersion: ingestron.connector/v1
+id: github
+version: 1.32.0
+description: github customer-operated full snapshot connector
+connector: singer:github@1.29.2
+documentation: https://github.com/ingestron/connectors/blob/main/docs/github.md
+upstream:
+  ecosystem: singer
+  variant: meltanolabs
+  package: meltanolabs-tap-github
+  version: 1.29.2
+  repository: https://github.com/MeltanoLabs/tap-github
+  licence: Apache-2.0
+  licenceFile: connectors/github/UPSTREAM-LICENSE.txt
+  licenceStatus: evidenced
+runtime:
+  path: connectors/github/runtime.json
+  sha256: 39b8d544d351ab9e9758c70e01d9977ee2f0b5647858612c198adb362908b873
+  contract: ingestron.snapshot/python/v1
+definition:
+  settingsSchema:
+    type: object
+    properties:
+      auth_token:
+        type: object
+        properties:
+          $secret:
+            type: object
+            properties:
+              env:
+                type: string
+                minLength: 1
+            required:
+              - env
+            additionalProperties: false
+        required:
+          - $secret
+        additionalProperties: false
+      repositories:
+        type: array
+        items:
+          type: string
+          minLength: 3
+        minItems: 1
+        maxItems: 10
+    required:
+      - auth_token
+      - repositories
+    additionalProperties: false
+  selectionSchema:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        fields:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - integer
+                  - string
+                  - boolean
+                  - number
+                  - decimal
+                  - json
+              nullable:
+                type: boolean
+              precision:
+                type: integer
+              scale:
+                type: integer
+            required:
+              - type
+              - nullable
+            additionalProperties: false
+      required:
+        - name
+        - fields
+      additionalProperties: false
+execution:
+  local:
+    modes:
+      - local
+    evidence:
+      Local loopback HTTP qualification; no live GitHub or cloud execution
+      claim; local provider installed-package qualification

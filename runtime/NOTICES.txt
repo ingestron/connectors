@@ -1,0 +1,7 @@
+Ingestron connector runtime
+Copyright Otrera Limited. Licensed under Apache-2.0; see LICENSE.txt.
+
+This runtime invokes separately installed MeltanoLabs tap-github 1.29.2,
+licensed under Apache-2.0; see UPSTREAM-LICENSE.txt. No upstream executable
+is bundled. Retain installed dependency notices when redistributing environments.
+Use singer_inventory.py requirements.lock.txt to inventory installed distributions.

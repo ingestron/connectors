@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+*.tgz
+__pycache__/
+*.py[cod]
+.venv/
+build/
+.downloads/
+
+.cli-host/
+
+.pytest_cache/
