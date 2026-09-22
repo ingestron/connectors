@@ -40,8 +40,9 @@ independent-user evidence separately; one does not establish another.
 
 During host-release qualification only, `INGESTRON_TEST_CLI` can select an explicit
 installed CLI executable from a reviewed archive. Record that override as candidate
-evidence; it does not establish npm availability. Normal CI uses the pinned registry
-dependency and no override.
+evidence; it does not establish npm availability. The gate records actual installed
+CLI/core/Node versions and verifies the CLI uses its exact declared core. Normal CI
+uses the pinned registry dependency and no override.
 
 ## Official short names
 
