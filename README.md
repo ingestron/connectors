@@ -6,7 +6,10 @@ providers.
 
 | Package       | Supported route                                   | Qualification                                                                        |
 | ------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| GitHub 1.32.0 | GitHub.com issues → local Parquet, full snapshots | Installed CLI/core/provider, unmodified upstream tap against synthetic loopback HTTP |
+| GitHub 1.32.1 | GitHub.com issues → local Parquet, full snapshots | Installed CLI/core/provider, unmodified upstream tap against synthetic loopback HTTP |
+
+Version 1.32.1 corrects a Linux dependency missing from 1.32.0. Use 1.32.1 for
+new installations; published tags are immutable.
 
 Use Node 22, Ingestron CLI 0.12.1/core 0.12.0, local provider 0.4.0 and Python 3.12 on
 macOS/Linux. GitHub Enterprise, other streams, incremental sync, cloud execution
@@ -19,7 +22,7 @@ and has not been independently qualified against the live GitHub API.
 
 ```sh
 ingestron plugin install ingestron/provider-local@0.4.0 --cache-only
-ingestron plugin install ingestron/connectors/connectors/github/connector.yaml@1.32.0 --tag-prefix github- --cache-only
+ingestron plugin install ingestron/connectors/connectors/github/connector.yaml@1.32.1 --tag-prefix github- --cache-only
 ```
 
 Use these commands inside the example project. Each connector has its own exact

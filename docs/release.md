@@ -22,12 +22,12 @@ creates an independent managed environment. Test transport hooks are outside
 hashed source bundles and are never shipped in `connectors/*/runtime.json`.
 
 Each source manifest has its own version, selected in `runtime/connectors.json`.
-GitHub 1.32.0 is tagged `github-1.32.0`; installation uses `--tag-prefix github-`.
+GitHub 1.32.1 is tagged `github-1.32.1`; installation uses `--tag-prefix github-`.
 Never move published tags. package.json is private development tooling, not an
 npm package to publish. `ingestron@0.12.1` is a pinned development/test dependency.
 
 To update Python dependencies, change the explicit requirements input deliberately
-and run `uv pip compile runtime/github.in --python-version 3.12 --generate-hashes
+and run `uv pip compile runtime/github.in --python-version 3.12 --universal --generate-hashes
 --output-file runtime/github.lock`. Review all changes and installed notices,
 rebuild source assets, and rerun both gates. The exact upstream source licence is
 retained at `runtime/github.license.txt` and in the generated source bundle.

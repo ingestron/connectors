@@ -6,7 +6,7 @@
     "version": "1.29.2",
     "executable": "tap-github",
     "prepared": true,
-    "packageVersion": "1.32.0",
+    "packageVersion": "1.32.1",
     "supportedStreams": ["issues"],
     "evidence": "Local loopback HTTP qualification; no live GitHub or cloud execution claim"
   }
