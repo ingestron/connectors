@@ -3,7 +3,7 @@ id: github_issues
 providers:
   packages:
     local: ingestron/provider-local@0.4.0
-    github: ingestron/connectors/connectors/github/connector.yaml@1.32.0
+    github: ingestron/connectors/connectors/github/connector.yaml@1.32.1
   configurations:
     local:
       package: local

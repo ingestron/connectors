@@ -11,7 +11,7 @@ Prerequisites: Git, Node 22, pnpm 10.15.0 and Python 3.12 (on PATH or discoverab
 through uv). Work in a disposable checkout:
 
 ```sh
-git clone --branch github-1.32.0 https://github.com/ingestron/connectors.git
+git clone --branch github-1.32.1 https://github.com/ingestron/connectors.git
 cd connectors
 pnpm install --frozen-lockfile
 pnpm runtime:prepare
@@ -64,7 +64,7 @@ working directory accordingly.
 
 ```sh
 ingestron plugin install ingestron/provider-local@0.4.0 --cache-only
-ingestron plugin install ingestron/connectors/connectors/github/connector.yaml@1.32.0 --tag-prefix github- --cache-only
+ingestron plugin install ingestron/connectors/connectors/github/connector.yaml@1.32.1 --tag-prefix github- --cache-only
 ingestron check
 ingestron build
 ingestron runtime prepare

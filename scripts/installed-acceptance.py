@@ -16,7 +16,7 @@ PROJECT = ROOT / 'build/installed-acceptance'
 shutil.rmtree(PROJECT, ignore_errors=True)
 PROJECT.mkdir(parents=True)
 CLI = Path(os.environ.get('INGESTRON_TEST_CLI', str(ROOT / 'node_modules/ingestron/build/cli/cli/index.js'))).resolve()
-SOURCE = 'ingestron/connectors/connectors/github/connector.yaml@1.32.0'
+SOURCE = 'ingestron/connectors/connectors/github/connector.yaml@1.32.1'
 assert subprocess.check_output(['node', str(CLI), '--version'], text=True).strip() == '0.12.1', 'Install qualified CLI 0.12.1 (or supply its installed archive via INGESTRON_TEST_CLI)' 
 
 
@@ -34,7 +34,7 @@ with tempfile.TemporaryDirectory(prefix='source-origin-') as temp:
     subprocess.run(['git','init','-q',str(origin)],check=True)
     subprocess.run(['git','-C',str(origin),'add','.'],check=True)
     subprocess.run(['git','-C',str(origin),'-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','fixture'],check=True)
-    subprocess.run(['git','-C',str(origin),'tag','github-1.32.0'],check=True)
+    subprocess.run(['git','-C',str(origin),'tag','github-1.32.1'],check=True)
     shutil.copyfile(ROOT / 'examples/github/project.yaml', PROJECT / 'project.yaml')
     call('plugin','install','ingestron/provider-local@0.4.0','--cache-only')
     options=[] if os.environ.get('INGESTRON_TEST_PUBLIC_SOURCE') == '1' else ['--from-git',str(origin)]
@@ -73,6 +73,6 @@ with tempfile.TemporaryDirectory(prefix='source-origin-') as temp:
         files[0].write_bytes(output)
         with (PROJECT/'project.yaml').open('a') as file: file.write('\n# stale\n')
         call('run','--retry','issues-001',ok=False)
-    evidence={'passed':True,'cli':'0.12.1','core':'0.12.0','provider':'0.4.0','source':'1.32.0','transport':'loopback synthetic HTTP','rows':rows,'pagination':True,'unapprovedRejected':True,'sourceFreeRetry':True,'tamperRejected':True,'staleRejected':True,'liveGitHub':False}
+    evidence={'passed':True,'cli':'0.12.1','core':'0.12.0','provider':'0.4.0','source':'1.32.1','transport':'loopback synthetic HTTP','rows':rows,'pagination':True,'unapprovedRejected':True,'sourceFreeRetry':True,'tamperRejected':True,'staleRejected':True,'liveGitHub':False}
     (PROJECT/'evidence.json').write_text(json.dumps(evidence,indent=2)+'\n')
     print('Installed GitHub connector: pagination, reviewed Parquet, source-free retry, tamper/stale rejection passed')
