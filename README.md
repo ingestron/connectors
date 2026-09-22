@@ -7,6 +7,10 @@ Files 1.0.1 reads local CSV, TSV, JSON, JSONL and Parquet. Try the
 [retail training project](examples/retail/README.md), or read the
 [file configuration guide](docs/files.md). No source credentials are needed.
 
+Azure Blob 1.0.0 reads the same formats from one selected object, including ADLS
+Gen2 files through the Blob endpoint. Execution stays local. See
+[Azure Blob configuration](docs/azure-blob.md) for SAS authentication and limits.
+
 GitHub 1.33.0 reads GitHub.com issues into local Parquet snapshots. It supports
 anonymous public reads and explicit token authentication. The pinned Meltano issue
 reader supplies schemas and parsing; an Ingestron adapter uses REST for repository

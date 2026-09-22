@@ -1,0 +1,114 @@
+apiVersion: ingestron.connector/v1
+id: azure-blob
+version: 1.0.0
+description: Reviewed local snapshots from one Azure Blob or ADLS Gen2 file
+connector: singer:azure-blob@23.0.1
+documentation: https://github.com/ingestron/connectors/blob/main/docs/azure-blob.md
+upstream:
+  ecosystem: singer
+  variant: ingestron
+  package: pyarrow
+  version: 23.0.1
+  repository: https://github.com/apache/arrow
+  licence: Apache-2.0
+  licenceFile: connectors/azure-blob/UPSTREAM-LICENSE.txt
+  licenceStatus: evidenced
+runtime:
+  path: connectors/azure-blob/runtime.json
+  sha256: 8277398b36774f17aadde6fe64555d8ea304ae288d4ab534aab7fcd7cbea976c
+  contract: ingestron.snapshot/python/v1
+definition:
+  settingsSchema:
+    type: object
+    properties:
+      account:
+        type: string
+        minLength: 3
+        maxLength: 24
+      container:
+        type: string
+        minLength: 3
+        maxLength: 63
+      blob:
+        type: string
+        minLength: 1
+        maxLength: 1024
+      sas_token:
+        type: object
+        properties:
+          $secret:
+            type: object
+            properties:
+              env: &a1
+                type: string
+                minLength: 1
+            required:
+              - env
+            additionalProperties: false
+        required:
+          - $secret
+        additionalProperties: false
+      format:
+        type: string
+        enum:
+          - csv
+          - tsv
+          - json
+          - jsonl
+          - parquet
+      types:
+        type: object
+        additionalProperties:
+          type: string
+          enum:
+            - string
+            - integer
+            - decimal
+            - number
+            - boolean
+    required:
+      - account
+      - container
+      - blob
+      - sas_token
+      - format
+    additionalProperties: false
+  selectionSchema:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        name: *a1
+        fields:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - integer
+                  - string
+                  - boolean
+                  - number
+                  - decimal
+                  - json
+              nullable:
+                type: boolean
+              precision:
+                type: integer
+              scale:
+                type: integer
+            required:
+              - type
+              - nullable
+            additionalProperties: false
+      required:
+        - name
+        - fields
+      additionalProperties: false
+execution:
+  local:
+    modes:
+      - local
+    evidence: Bounded Azure Blob read into local snapshots; source-only HTTPS SAS access
