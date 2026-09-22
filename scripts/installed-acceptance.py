@@ -17,7 +17,23 @@ shutil.rmtree(PROJECT, ignore_errors=True)
 PROJECT.mkdir(parents=True)
 CLI = Path(os.environ.get('INGESTRON_TEST_CLI', str(ROOT / 'node_modules/ingestron/build/cli/cli/index.js'))).resolve()
 SOURCE = 'ingestron/connectors/connectors/github/connector.yaml@1.32.1'
-assert subprocess.check_output(['node', str(CLI), '--version'], text=True).strip() == '0.12.1', 'Install qualified CLI 0.12.1 (or supply its installed archive via INGESTRON_TEST_CLI)' 
+def installed_package(path, name):
+    for parent in path.parents:
+        manifest = parent / 'package.json'
+        if manifest.is_file():
+            value = json.loads(manifest.read_text())
+            if value.get('name') == name:
+                return value
+    raise AssertionError(f'Cannot find installed package {name}')
+
+cli_package = installed_package(CLI, 'ingestron')
+core_entry = Path(subprocess.check_output(['node', '--conditions=import', '-e', "console.log(require('node:module').createRequire(process.argv[1]).resolve('@ingestron/core'))", str(CLI)], text=True).strip())
+core_package = installed_package(core_entry, '@ingestron/core')
+assert subprocess.check_output(['node', str(CLI), '--version'], text=True).strip() == cli_package['version']
+assert core_package['version'] == cli_package['dependencies']['@ingestron/core'], 'CLI must use its exact declared core version'
+if 'INGESTRON_TEST_CLI' not in os.environ:
+    assert cli_package['version'] == json.loads((ROOT / 'package.json').read_text())['devDependencies']['ingestron'], 'Install the pinned registry CLI'
+
 
 
 def call(*args, ok=True):
@@ -73,6 +89,6 @@ with tempfile.TemporaryDirectory(prefix='source-origin-') as temp:
         files[0].write_bytes(output)
         with (PROJECT/'project.yaml').open('a') as file: file.write('\n# stale\n')
         call('run','--retry','issues-001',ok=False)
-    evidence={'passed':True,'cli':'0.12.1','core':'0.12.0','provider':'0.4.0','source':'1.32.1','transport':'loopback synthetic HTTP','rows':rows,'pagination':True,'unapprovedRejected':True,'sourceFreeRetry':True,'tamperRejected':True,'staleRejected':True,'liveGitHub':False}
+    evidence={'passed':True,'cli':cli_package['version'],'core':core_package['version'],'node':subprocess.check_output(['node','--version'],text=True).strip(),'provider':'0.4.0','source':'1.32.1','transport':'loopback synthetic HTTP','rows':rows,'pagination':True,'unapprovedRejected':True,'sourceFreeRetry':True,'tamperRejected':True,'staleRejected':True,'liveGitHub':False}
     (PROJECT/'evidence.json').write_text(json.dumps(evidence,indent=2)+'\n')
     print('Installed GitHub connector: pagination, reviewed Parquet, source-free retry, tamper/stale rejection passed')
