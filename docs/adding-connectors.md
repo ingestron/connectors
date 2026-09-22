@@ -19,3 +19,10 @@ Use synthetic source data to check reviewed selection, data types, credentials,
 failure, retries, schema drift and actual stored output. A mocked protocol is
 useful evidence but not proof of live source behaviour. Retain reviewed contracts
 and output ownership; never silently change the selected execution implementation.
+
+The files bundle maps the existing snapshot workflow to `snapshot_runtime.py` and
+uses `files_runtime.py` as the provider's fixed `singer_runtime.py` entry point.
+Only the source reader is replaced; review, provenance and commit code are reused.
+The `singer:` identity denotes the v1 wire contract, not an installed upstream tap.
+Its runtime identity uses the pinned Arrow version; the files package has its own
+release version. A future native provider must declare a separate qualified path.

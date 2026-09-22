@@ -24,7 +24,7 @@ hashed source bundles and are never shipped in `connectors/*/runtime.json`.
 Each source manifest has its own version, selected in `runtime/connectors.json`.
 GitHub 1.33.0 is tagged `github-1.33.0`; installation uses `--tag-prefix github-`.
 Never move published tags. package.json is private development tooling, not an
-npm package to publish. `ingestron@0.13.1` is a pinned development/test dependency.
+npm package to publish. `ingestron@0.13.2` is a pinned development/test dependency.
 
 To update Python dependencies, change the explicit requirements input deliberately
 and run `uv pip compile runtime/github.in --python-version 3.12 --universal --generate-hashes
@@ -56,3 +56,12 @@ entries and never change repository/path identities to redirect an existing alia
 The CLI filters compatible releases and stores exact version/commit/file locks.
 
 For a provider candidate, `INGESTRON_TEST_PROVIDER` selects a local tagged Git checkout. Record this separately from public-package evidence.
+
+## Files and retail training
+
+Run `pnpm acceptance:files` and `pnpm package:retail`. The files source tag is
+`files-1.0.0`; attach `build/release/retail-files-1.0.0.zip` to that release after
+qualification. `INGESTRON_TEST_PUBLIC_SOURCE=1 pnpm acceptance:files` verifies
+the public tag. The immutable zip contains a pinned fixture subset and its licence,
+not private demo infrastructure. Keep fixture bytes unchanged; verify provenance
+before packaging. CSV, TSV, JSON, JSONL and Parquet all pass the same retail checks.

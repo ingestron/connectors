@@ -11,3 +11,5 @@ build/
 .cli-host/
 
 .pytest_cache/
+
+/examples/retail/project.yaml

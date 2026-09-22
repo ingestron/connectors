@@ -17,10 +17,12 @@
     "secrets:check": "node scripts/secrets.mjs",
     "validate": "pnpm format:check && pnpm build && pnpm test && pnpm runtime:test && pnpm docs:check && pnpm secrets:check",
     "runtime:prepare": "node scripts/prepare-python.mjs",
-    "acceptance": "build/singer-github/bin/python scripts/installed-acceptance.py"
+    "acceptance": "build/singer-github/bin/python scripts/installed-acceptance.py",
+    "acceptance:files": "python3 scripts/files-acceptance.py",
+    "package:retail": "python3 scripts/package-retail.py"
   },
   "devDependencies": {
-    "ingestron": "0.13.1",
+    "ingestron": "0.13.2",
     "prettier": "3.9.6",
     "yaml": "2.9.0"
   },

@@ -7,7 +7,7 @@ import { settings } from "../src/settings.mjs";
 import { conforms, runtimeContract } from "../src/connection-contract.mjs";
 const sha = (v) => createHash("sha256").update(v).digest("hex");
 test("released source assets bind schema, code, requirements and licence to one digest", () => {
-  for (const source of ["github"]) {
+  for (const source of ["github", "files"]) {
     const m = parse(
       readFileSync(`connectors/${source}/connector.yaml`, "utf8"),
     );

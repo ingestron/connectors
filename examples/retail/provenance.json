@@ -1,0 +1,33 @@
+{
+  "dataset": "Fictional NZ retail v1",
+  "owner": "Otrera Limited",
+  "license": "Apache-2.0",
+  "sourceRevision": "0a457f7c8b230f7270842be4e89701060379d68e",
+  "files": {
+    "csv/customers.csv": "e73c45509190ce5bcfd2051ad5ec02b9a47d7e8eed65bff06e217a3e47aee779",
+    "csv/products.csv": "39078ce0a6165c1e443e7031ad201dc9a0db5ce9df5779bf6d223893c1673064",
+    "csv/orders.csv": "3d6f22a62e534d1db8a1cc8279254e887eb9aa5bb8e7dd8fa803a66b11de9ad1",
+    "csv/inventory.csv": "c9ba33fed44de9958f62d03fe47ae58c932e8b43941fbbee0362af4d94ad357c",
+    "csv/shipments.csv": "d1aba20cd128a023f58764eb695b038cde4da30d43a945cb5b18f74d633c67f1",
+    "tsv/customers.tsv": "1911330842ce4f93cf680992cae94036e95fd550e011903e4ca3f9ac9db85d91",
+    "tsv/products.tsv": "1560ed1354f33fbb0fb306e6190dc4cdcd5570e814c21a3b6b94b428e96ec644",
+    "tsv/orders.tsv": "81a44b2e28df3b1676e493d9d724829e0823149d462f02c3582b48fb9d9537c2",
+    "tsv/inventory.tsv": "0653fa94afc1034a563c52c45529fed83680cd09428f72d37990be16e39fb2cb",
+    "tsv/shipments.tsv": "61a3e3b39569cdb63eeff7c9078ec953f7903594ffb8819de6ffc84d671dd85e",
+    "json/customers.json": "241488856d3350650a824289f91309538445bea85d792b7e677faa7a58c37382",
+    "json/products.json": "fffae43a1ada95dd12f047fa628ea6be3a46baea0cd396ac195349bad785472c",
+    "json/orders.json": "93e5752a4fd0e9e8cb840d7378661b301dc3b29cdf31cda8dd32e140ee274165",
+    "json/inventory.json": "703f3f9bc8936a95236a3a2ac444a88c09d9b10f5e29e47e6621d7bf9f07c45d",
+    "json/shipments.json": "6dde4fb54e014e1f35b51c5e0d79d513def98244cee25c41a83c99450dd403eb",
+    "jsonl/customers.jsonl": "061db5700b3a8ace8cf957d913730d8bfcdeb47dabca3ad8a461eadb09815642",
+    "jsonl/products.jsonl": "51592df2e966252c965ea91b36aade69b125c5223bab5b9c2e87d21ea49e1a42",
+    "jsonl/orders.jsonl": "454ab445588404e9c3b88bf361da9eab1bd9fdba6f22fae6b27ee86925476f6f",
+    "jsonl/inventory.jsonl": "1c83d732da31d818fb9b39872d77136cb9886c34601d94aed73f8c3ab4b140d2",
+    "jsonl/shipments.jsonl": "68e6119c10cb762349ed415589c57677a78925b3ed1da21579fe09563062a1b3",
+    "parquet/customers.parquet": "327bcc1140f7b83d38b95c43b8edb06c8e609a194d16a51d975e06a816d0a00d",
+    "parquet/products.parquet": "5c74da3ddfaee2e8c0d84b1a13a6ca50f789a6131427feaac45d238469a1777b",
+    "parquet/orders.parquet": "f9c425b476f5e517c543a030baf08d64b9b04b22a507f997141bae6446735561",
+    "parquet/inventory.parquet": "9b59c0addd399445d4c21c82b501c400f48c1ee68655e5aaa95ca776c300a668",
+    "parquet/shipments.parquet": "ef78b030e8191c9e1951f83666acb1085598ecc7afe86861758c7ed079c9eed3"
+  }
+}

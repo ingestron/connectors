@@ -1,0 +1,11 @@
+{
+  "counts": {
+    "customers": 3,
+    "products": 3,
+    "orders": 3,
+    "inventory": 3,
+    "shipments": 2
+  },
+  "orderValue": "61.95",
+  "quantity": 7
+}

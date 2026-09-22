@@ -3,6 +3,10 @@
 Versioned source packages for reviewed ingestion. Install a connector alongside an
 execution provider; neither the CLI nor compute providers are bundled here.
 
+Files 1.0.0 reads local CSV, TSV, JSON, JSONL and Parquet. Try the
+[retail training project](examples/retail/README.md), or read the
+[file configuration guide](docs/files.md). No source credentials are needed.
+
 GitHub 1.33.0 reads GitHub.com issues into local Parquet snapshots. It supports
 anonymous public reads and explicit token authentication. The pinned Meltano issue
 reader supplies schemas and parsing; an Ingestron adapter uses REST for repository
