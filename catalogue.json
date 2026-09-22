@@ -41,6 +41,17 @@
           "coreVersions": ["0.12.1"]
         }
       ]
+    },
+    "azure-blob": {
+      "repository": "ingestron/connectors",
+      "path": "connectors/azure-blob/connector.yaml",
+      "tagPrefix": "azure-blob-",
+      "releases": [
+        {
+          "version": "1.0.0",
+          "coreVersions": ["0.12.1"]
+        }
+      ]
     }
   }
 }
