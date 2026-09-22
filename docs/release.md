@@ -42,3 +42,14 @@ During host-release qualification only, `INGESTRON_TEST_CLI` can select an expli
 installed CLI executable from a reviewed archive. Record that override as candidate
 evidence; it does not establish npm availability. Normal CI uses the pinned registry
 dependency and no override.
+
+## Official short names
+
+`catalogue.json` is shared metadata for application adapters, not a package registry
+service. CLI 0.13.0 introduces `plugin install github` and `plugin install local`;
+older CLIs retain the full-reference commands above. Catalogue changes require no
+source-runtime tag. Add a stable release only after its immutable source tag exists
+and installed CLI/core/provider acceptance passes. Record the exact core versions
+qualified; do not infer compatibility with future core versions. Preserve prior
+entries and never change repository/path identities to redirect an existing alias.
+The CLI filters compatible releases and stores exact version/commit/file locks.

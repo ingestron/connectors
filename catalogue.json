@@ -1,0 +1,27 @@
+{
+  "apiVersion": "ingestron.catalogue/v1",
+  "plugins": {
+    "github": {
+      "repository": "ingestron/connectors",
+      "path": "connectors/github/connector.yaml",
+      "tagPrefix": "github-",
+      "releases": [
+        {
+          "version": "1.32.1",
+          "coreVersions": ["0.12.0"]
+        }
+      ]
+    },
+    "local": {
+      "repository": "ingestron/provider-local",
+      "path": "plugin/provider.yaml",
+      "tagPrefix": "",
+      "releases": [
+        {
+          "version": "0.4.0",
+          "coreVersions": ["0.12.0"]
+        }
+      ]
+    }
+  }
+}
