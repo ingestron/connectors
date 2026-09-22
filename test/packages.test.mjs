@@ -39,3 +39,26 @@ test("source-owned bounds and credential references reject invalid configuration
     false,
   );
 });
+
+test("official catalogue contains only qualified exact releases and stable identities", () => {
+  const c = JSON.parse(readFileSync("catalogue.json", "utf8"));
+  assert.equal(c.apiVersion, "ingestron.catalogue/v1");
+  assert.deepEqual(Object.keys(c.plugins).sort(), ["github", "local"]);
+  assert.equal(c.plugins.github.repository, "ingestron/connectors");
+  assert.equal(c.plugins.github.path, "connectors/github/connector.yaml");
+  assert.equal(c.plugins.github.tagPrefix, "github-");
+  assert.equal(c.plugins.local.repository, "ingestron/provider-local");
+  assert.equal(c.plugins.local.path, "plugin/provider.yaml");
+  assert.equal(c.plugins.local.tagPrefix, "");
+  for (const p of Object.values(c.plugins)) {
+    assert.equal(
+      new Set(p.releases.map((r) => r.version)).size,
+      p.releases.length,
+    );
+    for (const r of p.releases) {
+      assert.match(r.version, /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
+      assert.ok(r.coreVersions.length);
+      for (const v of r.coreVersions) assert.match(v, /^\d+\.\d+\.\d+$/);
+    }
+  }
+});

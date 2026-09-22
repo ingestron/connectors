@@ -35,3 +35,8 @@ Python dependency terms/notices remain separate. See [LICENSE](LICENSE),
 
 For development, run `pnpm install --frozen-lockfile`, `pnpm runtime:prepare`,
 `pnpm validate`, and `pnpm acceptance`. See [adding sources](docs/adding-connectors.md).
+
+With CLI 0.13.0 or newer, `ingestron plugin install github` selects a qualified
+release from [the official catalogue](catalogue.json); `plugin install local`
+installs the execution provider. Both commands cache packages without modifying
+project configuration. Earlier CLI versions use the explicit references above.

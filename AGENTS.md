@@ -6,8 +6,9 @@ core owns shared host contracts. Do not add a source registry to core or provide
 
 Original code is Apache-2.0, licensed by Otrera Limited; preserve upstream terms.
 The public GitHub package is local-only. Keep other sources/platform support out
-of public manifests until qualified. Use exact explicit manifest references and
-independent immutable source tags. Preserve old private history in its archive.
+of public manifests until qualified. Publish exact explicit manifest references and independent immutable source tags.
+The small catalogue.json maps official CLI/MCP aliases to qualified releases and
+exact supported core versions; only add entries after installed compatibility gates. Preserve old private history in its archive.
 
 Use scoped codex/ branches, Node 22, pnpm 10.15.0 and Python 3.12. Run pnpm validate
 and installed-package acceptance. Never use customer data or credentials in tests.
