@@ -13,7 +13,7 @@ git diff --exit-code -- connectors
 Validation covers deterministic bundles and digests, runtime identity, ODCS review,
 secret references, strict conversions, process failure/timeout and local recovery.
 Acceptance uses the actual npm CLI/core and Git-installed local provider with an
-unmodified upstream GitHub tap against loopback-only synthetic HTTP. It verifies
+upstream issue reader with the Ingestron REST/auth adapter against loopback-only synthetic HTTP. It verifies
 pagination, Parquet rows, approval, source-free retry, receipt status and rejection
 of changed outputs/projects. No real credentials or live source access are used.
 
@@ -22,9 +22,9 @@ creates an independent managed environment. Test transport hooks are outside
 hashed source bundles and are never shipped in `connectors/*/runtime.json`.
 
 Each source manifest has its own version, selected in `runtime/connectors.json`.
-GitHub 1.32.1 is tagged `github-1.32.1`; installation uses `--tag-prefix github-`.
+GitHub 1.33.0 is tagged `github-1.33.0`; installation uses `--tag-prefix github-`.
 Never move published tags. package.json is private development tooling, not an
-npm package to publish. `ingestron@0.12.1` is a pinned development/test dependency.
+npm package to publish. `ingestron@0.13.1` is a pinned development/test dependency.
 
 To update Python dependencies, change the explicit requirements input deliberately
 and run `uv pip compile runtime/github.in --python-version 3.12 --universal --generate-hashes
@@ -54,3 +54,5 @@ and installed CLI/core/provider acceptance passes. Record the exact core version
 qualified; do not infer compatibility with future core versions. Preserve prior
 entries and never change repository/path identities to redirect an existing alias.
 The CLI filters compatible releases and stores exact version/commit/file locks.
+
+For a provider candidate, `INGESTRON_TEST_PROVIDER` selects a local tagged Git checkout. Record this separately from public-package evidence.

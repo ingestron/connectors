@@ -6,8 +6,8 @@
     "version": "1.29.2",
     "executable": "tap-github",
     "prepared": true,
-    "packageVersion": "1.32.1",
+    "packageVersion": "1.33.0",
     "supportedStreams": ["issues"],
-    "evidence": "Local loopback HTTP qualification; no live GitHub or cloud execution claim"
+    "evidence": "Synthetic REST/authentication/failure qualification and bounded anonymous public repository read; no performance guarantee"
   }
 ]

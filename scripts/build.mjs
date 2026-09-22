@@ -10,6 +10,7 @@ import {
 const sha = (v) => createHash("sha256").update(v).digest("hex");
 const singerFiles = [
   "singer_bridge.py",
+  "github_tap.py",
   "singer_runtime.py",
   "singer_inventory.py",
   "connectors.json",

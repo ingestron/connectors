@@ -14,7 +14,21 @@ import threading
 from decimal import Decimal
 from singer_bridge import canonical, digest, file_digest, safe_name, arrow_type, snapshot
 
-VERSION = '0.3.0'
+VERSION = '0.4.0'
+
+ERRORS = {
+ 'GITHUB_AUTH': 'GitHub rejected the supplied token; check or replace it. No anonymous fallback was attempted.',
+ 'GITHUB_FORBIDDEN': 'GitHub denied access; check repository permissions or retry after any secondary rate limit.',
+ 'GITHUB_NOT_FOUND': 'GitHub repository not found or not accessible; check owner/name and permissions.',
+ 'GITHUB_RATE_LIMIT': 'GitHub rate limit reached. Wait before retrying or configure an authorised token for a higher allowance.',
+ 'GITHUB_UNAVAILABLE': 'GitHub is temporarily unavailable; retry later.',
+ 'GITHUB_RESPONSE': 'GitHub returned an unsupported response or redirect; check the current repository name.',
+ 'GITHUB_NETWORK': 'Cannot reach GitHub; check network access and retry.',
+}
+class SourceError(ValueError):
+    def __init__(self, code):
+        self.code = code
+        super().__init__(ERRORS[code])
 CATALOGUE = json.loads(Path(__file__).with_name('connectors.json').read_text())
 CONNECTORS = {row['id']:(row['package'],row['version'],row['executable'],row['licence'])
               for row in CATALOGUE if row['prepared']}
@@ -104,6 +118,9 @@ def tap_output(executable, source_config, catalog, timeout, discover=False, prot
         config_path.write_text(canonical(source_config)); config_path.chmod(0o600)
         check(protocol == 'singer', 'Unsupported connector protocol')
         args = [str(executable), '--config', str(config_path)]
+        error_path = directory / 'error.json'
+        if Path(executable).name == 'tap-github':
+            args = [sys.executable, str(Path(__file__).with_name('github_tap.py')), '--ingestron-error-file', str(error_path), '--config', str(config_path)]
         if discover:
             args += ['--discover']
         else:
@@ -130,6 +147,9 @@ def tap_output(executable, source_config, catalog, timeout, discover=False, prot
                 yield line
             code = process.wait()
             check(not expired.is_set(), 'Upstream timeout')
+            if code != 0 and error_path.exists():
+                error = json.loads(error_path.read_text()).get('code')
+                if error in ERRORS: raise SourceError(error)
             check(code == 0, 'Upstream process failed; diagnostics withheld')
         finally:
             timer.cancel()
@@ -166,7 +186,14 @@ def source_config(config):
     check(not any(k in value for k in ('stream_maps','stream_map_config','flattening_enabled','flattening_max_depth')), 'Tap transformations are not supported')
     if config['connector'].startswith('github@'):
         check(value.get('api_url_base', 'https://api.github.com') == 'https://api.github.com', 'This variant is GitHub.com only; authentication has a hardcoded public endpoint')
-        check(isinstance(value.get('auth_token'), str) and value['auth_token'] and not any(value.get(k) for k in ('auth_app_keys','org_auth_app_keys')), 'GitHub preview requires a personal access token')
+        mode = value.pop('authentication', 'token' if 'auth_token' in value else 'anonymous')
+        check(mode in ('anonymous','token'), 'Choose anonymous or token authentication')
+        check(not any(value.get(k) for k in ('auth_app_keys','org_auth_app_keys')), 'GitHub App authentication is not supported')
+        if mode == 'anonymous':
+            check('auth_token' not in value, 'Anonymous mode cannot include auth_token; choose token mode or remove the secret reference')
+        else:
+            check(isinstance(value.get('auth_token'), str) and bool(value['auth_token'].strip()), 'Token mode requires a non-empty auth_token secret')
+        check(isinstance(value.get('repositories'), list) and value['repositories'] and all(isinstance(r,str) and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9_.-]+',r) and r.split('/')[1] not in ('.','..') for r in value['repositories']), 'Use repository names in owner/repository form')
         value['skip_parent_streams'] = True
     return value
 
@@ -343,6 +370,9 @@ def main():
         # Never overwrite an existing discovery/review file silently.
         with Path(args.output).open('x') as target: target.write(canonical(result)+'\n')
         print(canonical({'status':'Succeeded','applied':False}))
+    except SourceError as error:
+        print(canonical({'status':'Failed','errorCode':error.code,'error':ERRORS[error.code]}))
+        raise SystemExit(1) from None
     except Exception:
         print(canonical({'status':'Failed','error':'Connector operation failed. Check configuration, frozen runtime, review, source access and committed output; upstream details withheld.'}))
         raise SystemExit(1) from None
