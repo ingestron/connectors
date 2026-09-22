@@ -30,6 +30,17 @@
           "coreVersions": ["0.12.1"]
         }
       ]
+    },
+    "files": {
+      "repository": "ingestron/connectors",
+      "path": "connectors/files/connector.yaml",
+      "tagPrefix": "files-",
+      "releases": [
+        {
+          "version": "1.0.1",
+          "coreVersions": ["0.12.1"]
+        }
+      ]
     }
   }
 }
