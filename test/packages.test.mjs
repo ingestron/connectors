@@ -45,7 +45,7 @@ test("source-owned bounds and credential references reject invalid configuration
 test("official catalogue contains only qualified exact releases and stable identities", () => {
   const c = JSON.parse(readFileSync("catalogue.json", "utf8"));
   assert.equal(c.apiVersion, "ingestron.catalogue/v1");
-  assert.deepEqual(Object.keys(c.plugins).sort(), ["github", "local"]);
+  assert.deepEqual(Object.keys(c.plugins).sort(), ["files", "github", "local"]);
   assert.equal(c.plugins.github.repository, "ingestron/connectors");
   assert.equal(c.plugins.github.path, "connectors/github/connector.yaml");
   assert.equal(c.plugins.github.tagPrefix, "github-");
