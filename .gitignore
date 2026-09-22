@@ -13,3 +13,5 @@ build/
 .pytest_cache/
 
 /examples/retail/project.yaml
+
+/examples/retail/data/parquet/*.parquet

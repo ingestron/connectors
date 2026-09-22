@@ -15,7 +15,7 @@ In a fresh copy of this directory:
 ```sh
 python3 setup.py
 ingestron plugin install local@0.4.1
-ingestron plugin install ingestron/connectors/connectors/files/connector.yaml@1.0.0 --tag-prefix files-
+ingestron plugin install ingestron/connectors/connectors/files/connector.yaml@1.0.1 --tag-prefix files-
 ingestron check
 ingestron build
 ingestron runtime prepare

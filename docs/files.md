@@ -1,13 +1,13 @@
 # Read local files
 
-Files 1.0.0 reads one explicitly configured local file per connection. Choose CSV,
+Files 1.0.1 reads one explicitly configured local file per connection. Choose CSV,
 TSV, a JSON array, JSON Lines or Parquet. It produces reviewed full snapshots with
 the local provider; it does not watch directories or apply incremental changes.
 
 Install the source using its exact reference:
 
 ```sh
-ingestron plugin install ingestron/connectors/connectors/files/connector.yaml@1.0.0 --tag-prefix files-
+ingestron plugin install ingestron/connectors/connectors/files/connector.yaml@1.0.1 --tag-prefix files-
 ```
 
 Use the [retail project](../examples/retail/README.md) to try all five formats.

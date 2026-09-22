@@ -3,7 +3,7 @@ id: retail_files
 providers:
   packages:
     local: ingestron/provider-local@0.4.1
-    files: ingestron/connectors/connectors/files/connector.yaml@1.0.0
+    files: ingestron/connectors/connectors/files/connector.yaml@1.0.1
   configurations:
     local:
       package: local
@@ -74,7 +74,7 @@ flows:
           kind: DataContract
           id: retail-customers
           name: Retail customers
-          version: 1.0.0
+          version: 1.0.1
           status: draft
           schema:
             - name: customers
@@ -115,7 +115,7 @@ flows:
           kind: DataContract
           id: retail-products
           name: Retail products
-          version: 1.0.0
+          version: 1.0.1
           status: draft
           schema:
             - name: products
@@ -156,7 +156,7 @@ flows:
           kind: DataContract
           id: retail-orders
           name: Retail orders
-          version: 1.0.0
+          version: 1.0.1
           status: draft
           schema:
             - name: orders

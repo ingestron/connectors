@@ -3,7 +3,7 @@
 Versioned source packages for reviewed ingestion. Install a connector alongside an
 execution provider; neither the CLI nor compute providers are bundled here.
 
-Files 1.0.0 reads local CSV, TSV, JSON, JSONL and Parquet. Try the
+Files 1.0.1 reads local CSV, TSV, JSON, JSONL and Parquet. Try the
 [retail training project](examples/retail/README.md), or read the
 [file configuration guide](docs/files.md). No source credentials are needed.
 
