@@ -1,0 +1,3 @@
+{"customer_id": "C001", "name": "Demo Harbour Café", "city": "Auckland", "email": null}
+{"customer_id": "C002", "name": "Demo \"Corner\", Store", "city": "Wellington", "email": "corner@example.invalid"}
+{"customer_id": "C003", "name": "Demo Alpine\nMarket", "city": "Queenstown", "email": "alpine@example.invalid"}

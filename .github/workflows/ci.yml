@@ -19,3 +19,5 @@ jobs:
       - run: pnpm validate
       - run: git diff --exit-code -- connectors
       - run: pnpm acceptance
+      - run: pnpm acceptance:files
+      - run: pnpm package:retail

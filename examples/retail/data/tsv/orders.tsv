@@ -1,0 +1,4 @@
+order_id	customer_id	product_id	quantity	order_date
+1001	C001	1	2	2026-09-01
+1002	C002	2	1	2026-09-01
+1003	C003	3	4	2026-09-02

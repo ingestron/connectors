@@ -8,8 +8,8 @@ importers:
   .:
     devDependencies:
       ingestron:
-        specifier: 0.13.1
-        version: 0.13.1(zod@4.5.4)
+        specifier: 0.13.2
+        version: 0.13.2(zod@4.5.4)
       prettier:
         specifier: 3.9.6
         version: 3.9.6
@@ -439,10 +439,10 @@ packages:
       }
     engines: { node: ">=0.10.0" }
 
-  ingestron@0.13.1:
+  ingestron@0.13.2:
     resolution:
       {
-        integrity: sha512-257U5jDsMSYgVCcvOy0gZEx1LxpFdAOniePlJkTmlTVcttRRDQaI9Le395D/OJI3YkY0c1eaxKQuQKED9pqipw==,
+        integrity: sha512-T6lTrrJ+9XSzsYVaEc7dUkJrjmUd1pSemk87BjDIJfbqU8AKPkMCVH6Q2ZXK81kUjvj5SLqcLgRKh17yeKRATg==,
       }
     engines: { node: ">=22.12.0" }
     hasBin: true
@@ -1100,7 +1100,7 @@ snapshots:
     dependencies:
       safer-buffer: 2.1.2
 
-  ingestron@0.13.1(zod@4.5.4):
+  ingestron@0.13.2(zod@4.5.4):
     dependencies:
       "@clack/prompts": 1.7.0
       "@ingestron/core": 0.12.1

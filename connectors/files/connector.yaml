@@ -1,0 +1,88 @@
+apiVersion: ingestron.connector/v1
+id: files
+version: 1.0.0
+description: Reviewed snapshots from local CSV, TSV, JSON, JSONL and Parquet files
+connector: singer:files@23.0.1
+documentation: https://github.com/ingestron/connectors/blob/main/docs/files.md
+upstream:
+  ecosystem: singer
+  variant: ingestron
+  package: pyarrow
+  version: 23.0.1
+  repository: https://github.com/apache/arrow
+  licence: Apache-2.0
+  licenceFile: connectors/files/UPSTREAM-LICENSE.txt
+  licenceStatus: evidenced
+runtime:
+  path: connectors/files/runtime.json
+  sha256: 7eb572deb767ac15393281d0be19d5b1efb031ab60940d8b8ee316790751284d
+  contract: ingestron.snapshot/python/v1
+definition:
+  settingsSchema:
+    type: object
+    properties:
+      path: &a1
+        type: string
+        minLength: 1
+      format:
+        type: string
+        enum:
+          - csv
+          - tsv
+          - json
+          - jsonl
+          - parquet
+      types:
+        type: object
+        additionalProperties:
+          type: string
+          enum:
+            - string
+            - integer
+            - decimal
+            - number
+            - boolean
+    required:
+      - path
+      - format
+    additionalProperties: false
+  selectionSchema:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        name: *a1
+        fields:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - integer
+                  - string
+                  - boolean
+                  - number
+                  - decimal
+                  - json
+              nullable:
+                type: boolean
+              precision:
+                type: integer
+              scale:
+                type: integer
+            required:
+              - type
+              - nullable
+            additionalProperties: false
+      required:
+        - name
+        - fields
+      additionalProperties: false
+execution:
+  local:
+    modes:
+      - local
+    evidence: Bounded local file snapshot; release qualification records format,
+      review, rejection and retry checks

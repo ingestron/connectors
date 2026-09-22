@@ -1,3 +1,4 @@
 node_modules/
 build/
 connectors/*/runtime.json
+examples/retail/data/
