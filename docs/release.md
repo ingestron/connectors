@@ -74,6 +74,8 @@ connection, discovery, review, stored Parquet rows and rejection of a later
 file failure without a partial commit. Use the `files-1.1.0` source tag only after this
 installed-package gate and the normal component gate pass. Keep the 1.0.1
 retail archive and tag unchanged; its acceptance uses the public 1.0.1 tag.
+After tagging, repeat with `INGESTRON_TEST_PUBLIC_SOURCE=1` to install the
+immutable public source tree before adding 1.1.0 to the shortcut catalogue.
 
 Source repositories must remain UTF-8 text for core 0.12.1. Parquet fixtures are
 base64 text in Git and decoded into the training zip; hashes verify the original

@@ -12,6 +12,7 @@ from decimal import Decimal
 
 ROOT = Path(__file__).resolve().parents[1]
 CLI = Path(os.environ.get('INGESTRON_TEST_CLI', ROOT / 'node_modules/ingestron/build/cli/cli/index.js')).resolve()
+PUBLIC = os.environ.get('INGESTRON_TEST_PUBLIC_SOURCE') == '1'
 WORK = ROOT / 'build/files-table-acceptance'
 shutil.rmtree(WORK, ignore_errors=True)
 WORK.mkdir(parents=True)
@@ -104,7 +105,7 @@ with tempfile.TemporaryDirectory(prefix='files-candidate-') as temporary:
         command(args, origin)
     cli('provider', 'install', 'ingestron/provider-local@0.4.1')
     cli('connector', 'install', 'ingestron/connectors/connectors/files/connector.yaml@1.1.0',
-        '--tag-prefix', 'files-', '--from-git', str(origin))
+        '--tag-prefix', 'files-', *([] if PUBLIC else ['--from-git', str(origin)]))
     cli('check')
     cli('build')
     cli('runtime', 'prepare')
@@ -134,6 +135,6 @@ with tempfile.TemporaryDirectory(prefix='files-candidate-') as temporary:
                 'provider': '0.4.1', 'files': '1.1.0', 'tables': list(tables),
                 'formats': ['csv', 'tsv', 'json', 'jsonl', 'parquet'],
                 'rowsPerTable': 1, 'laterFileFailureRejected': True,
-                'failedRunRecovered': True, 'cloudAccess': False}
+                'failedRunRecovered': True, 'publicSource': PUBLIC, 'cloudAccess': False}
     (WORK / 'evidence.json').write_text(json.dumps(evidence, indent=2) + '\n')
     print('Installed ten-file snapshot across five formats and ODCS-derived parser types passed')
