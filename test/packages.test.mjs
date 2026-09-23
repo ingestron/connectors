@@ -97,6 +97,7 @@ test("official catalogue contains only qualified exact releases and stable ident
     "files",
     "github",
     "local",
+    "sql-server",
   ]);
   assert.equal(c.plugins.github.repository, "ingestron/connectors");
   assert.equal(c.plugins.github.path, "connectors/github/connector.yaml");

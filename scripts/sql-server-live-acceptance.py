@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CLI = Path(os.environ.get('INGESTRON_TEST_CLI', str(ROOT / 'node_modules/ingestron/build/cli/cli/index.js'))).resolve()
 HANDOUT = Path(os.environ['INGESTRON_SQL_HANDOUT'])
 WORK = ROOT / 'build/sql-server-live'
+PUBLIC = os.environ.get('INGESTRON_TEST_PUBLIC_SOURCE') == '1'
 if WORK.exists(): shutil.rmtree(WORK)
 WORK.mkdir(parents=True)
 private = json.loads(HANDOUT.read_text())['sql']
@@ -50,7 +51,7 @@ with tempfile.TemporaryDirectory() as tmp:
     (WORK / 'project.yaml').write_text(text)
     cli('plugin', 'install', 'ingestron/provider-local@0.4.1')
     cli('plugin', 'install', 'ingestron/connectors/connectors/sql-server/connector.yaml@1.0.0',
-        '--tag-prefix', 'sql-server-', '--from-git', str(origin))
+        '--tag-prefix', 'sql-server-', *([] if PUBLIC else ['--from-git', str(origin)]))
     cli('check')
     cli('build')
     cli('runtime', 'prepare')
@@ -71,7 +72,7 @@ with tempfile.TemporaryDirectory() as tmp:
     cli('run', '--retry', 'northwind-001')
     assert hashlib.sha256(outputs[0].read_bytes()).hexdigest() == digest
     with (WORK / 'evidence.json').open('w') as f:
-        json.dump({'passed': True, 'rows': result['rows'], 'priceType': result['priceType'],
+        json.dump({'passed': True, 'publicSource': PUBLIC, 'rows': result['rows'], 'priceType': result['priceType'],
                    'unapprovedRejected': True, 'retryVerified': True, 'auth': 'sql-password',
                    'source': 'private Northwind; no rows or credentials stored in Git'}, f, indent=2)
 print('Installed SQL Server source and local provider accepted read-only Northwind snapshot')

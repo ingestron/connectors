@@ -52,6 +52,17 @@
           "coreVersions": ["0.12.1"]
         }
       ]
+    },
+    "sql-server": {
+      "repository": "ingestron/connectors",
+      "path": "connectors/sql-server/connector.yaml",
+      "tagPrefix": "sql-server-",
+      "releases": [
+        {
+          "version": "1.0.0",
+          "coreVersions": ["0.12.1"]
+        }
+      ]
     }
   }
 }
