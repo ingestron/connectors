@@ -8,8 +8,8 @@ importers:
   .:
     devDependencies:
       ingestron:
-        specifier: 0.14.1
-        version: 0.14.1(zod@4.5.4)
+        specifier: 0.15.1
+        version: 0.15.1(zod@4.6.5)
       prettier:
         specifier: 3.9.6
         version: 3.9.6
@@ -41,10 +41,10 @@ packages:
     peerDependencies:
       hono: ^4
 
-  "@ingestron/core@0.12.1":
+  "@ingestron/core@0.12.4":
     resolution:
       {
-        integrity: sha512-+bt6bWSr0bIu42nERNNw43CKDqCTI3h8BIGWgoeMjaQwyflc02OF1950abaSDG1cS9D5tbmpbP2ipxGkJvFQeA==,
+        integrity: sha512-Y9bpKJemIL8RFrPKgqwLQWz+vKbTbVbQSUPDWok37CPnAxyjCAjHcMarjuB0sfGqYMIWYF0qFDJiBGPcaKXgvw==,
       }
     engines: { node: ">=22.12.0" }
 
@@ -439,10 +439,10 @@ packages:
       }
     engines: { node: ">=0.10.0" }
 
-  ingestron@0.14.1:
+  ingestron@0.15.1:
     resolution:
       {
-        integrity: sha512-BQ/cXNJbgdA8D8GWoRBAuTIY/kLgNdBwbXZ/d6biiBhsYF2tDE9aFov2qOQiC0OBTpM5QELIsGKpeu1CGl96IA==,
+        integrity: sha512-sGLiPiUAfRttQ8ti7xKN8L6ModKk5vyB0K7Aev4bR/gMj+Xx4KIafxgofDL+VrZgKoiN8RztgZtH94dUFy7xWg==,
       }
     engines: { node: ">=22.12.0" }
     hasBin: true
@@ -793,6 +793,14 @@ packages:
     engines: { node: ">= 14.6" }
     hasBin: true
 
+  yaml@2.9.1:
+    resolution:
+      {
+        integrity: sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==,
+      }
+    engines: { node: ">= 14.6" }
+    hasBin: true
+
   zod-to-json-schema@3.25.2:
     resolution:
       {
@@ -801,10 +809,10 @@ packages:
     peerDependencies:
       zod: ^3.25.28 || ^4
 
-  zod@4.5.4:
+  zod@4.6.5:
     resolution:
       {
-        integrity: sha512-sC95tT5iHHH9gtpj6A81kh+NEaRAUFN+qlUPDUbRfOMvNf5QCBqsb3WgvnpVtK5Y+4UfA6KqufotuTvMGiTlsA==,
+        integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==,
       }
 
 snapshots:
@@ -824,14 +832,14 @@ snapshots:
     dependencies:
       hono: 4.13.8
 
-  "@ingestron/core@0.12.1":
+  "@ingestron/core@0.12.4":
     dependencies:
       "@lezer/python": 1.1.19
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
       quickjs-emscripten: 0.32.0
-      yaml: 2.9.0
-      zod: 4.5.4
+      yaml: 2.9.1
+      zod: 4.6.5
 
   "@jitl/quickjs-ffi-types@0.32.0": {}
 
@@ -867,7 +875,7 @@ snapshots:
       "@lezer/highlight": 1.2.3
       "@lezer/lr": 1.4.10
 
-  "@modelcontextprotocol/sdk@1.30.0(zod@4.5.4)":
+  "@modelcontextprotocol/sdk@1.30.0(zod@4.6.5)":
     dependencies:
       "@hono/node-server": 2.1.1(hono@4.13.8)
       ajv: 8.20.0
@@ -884,8 +892,8 @@ snapshots:
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
-      zod: 4.5.4
-      zod-to-json-schema: 3.25.2(zod@4.5.4)
+      zod: 4.6.5
+      zod-to-json-schema: 3.25.2(zod@4.6.5)
     transitivePeerDependencies:
       - supports-color
 
@@ -1100,11 +1108,11 @@ snapshots:
     dependencies:
       safer-buffer: 2.1.2
 
-  ingestron@0.14.1(zod@4.5.4):
+  ingestron@0.15.1(zod@4.6.5):
     dependencies:
       "@clack/prompts": 1.7.0
-      "@ingestron/core": 0.12.1
-      "@modelcontextprotocol/sdk": 1.30.0(zod@4.5.4)
+      "@ingestron/core": 0.12.4
+      "@modelcontextprotocol/sdk": 1.30.0(zod@4.6.5)
       commander: 15.0.0
       yaml: 2.9.0
     transitivePeerDependencies:
@@ -1298,8 +1306,10 @@ snapshots:
 
   yaml@2.9.0: {}
 
-  zod-to-json-schema@3.25.2(zod@4.5.4):
-    dependencies:
-      zod: 4.5.4
+  yaml@2.9.1: {}
 
-  zod@4.5.4: {}
+  zod-to-json-schema@3.25.2(zod@4.6.5):
+    dependencies:
+      zod: 4.6.5
+
+  zod@4.6.5: {}

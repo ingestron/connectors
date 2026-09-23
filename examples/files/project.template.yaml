@@ -1,0 +1,82 @@
+apiVersion: ingestron.project/v1
+id: two_local_files
+packages:
+  local: local@0.4.1
+  files: files@1.1.0
+providers:
+  configurations:
+    local:
+      package: local
+      binding: runtime
+defaults:
+  provider: local
+environments:
+  dev:
+    apiVersion: ingestron.environment/v1
+    environment: dev
+    bindings:
+      runtime:
+        kind: local
+connections:
+  local_files:
+    package: files
+    sourceId: retail
+    tenantId: training
+    settings: {}
+flows:
+  - apiVersion: ingestron.flow/v1
+    kind: ingestion
+    id: retail_files_local
+    provider: local
+    ingestion:
+      connection: local_files
+      execution: { mode: local }
+    tables:
+      customers:
+        source:
+          path: __CUSTOMERS_CSV_ABSOLUTE_PATH__
+          format: csv
+        contract:
+          apiVersion: v3.1.0
+          kind: DataContract
+          id: file-customers
+          name: File customers
+          version: 1.0.0
+          status: draft
+          schema:
+            - name: customers
+              logicalType: object
+              physicalType: table
+              properties:
+                - name: customer_id
+                  logicalType: integer
+                  physicalType: BIGINT
+                  required: true
+                - name: name
+                  logicalType: string
+                  physicalType: STRING
+                  required: true
+      orders:
+        source:
+          path: __ORDERS_CSV_ABSOLUTE_PATH__
+          format: csv
+        contract:
+          apiVersion: v3.1.0
+          kind: DataContract
+          id: file-orders
+          name: File orders
+          version: 1.0.0
+          status: draft
+          schema:
+            - name: orders
+              logicalType: object
+              physicalType: table
+              properties:
+                - name: order_id
+                  logicalType: integer
+                  physicalType: BIGINT
+                  required: true
+                - name: amount
+                  logicalType: number
+                  physicalType: DECIMAL(10,2)
+                  required: true

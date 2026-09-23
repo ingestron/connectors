@@ -33,6 +33,27 @@ test("released source assets bind schema, code, requirements and licence to one 
   }
 });
 test("source-owned bounds and credential references reject invalid configuration", () => {
+  const files = parse(readFileSync("connectors/files/connector.yaml", "utf8"));
+  assert.equal(conforms(files.definition.settingsSchema, {}), true);
+  assert.equal(
+    conforms(files.definition.settingsSchema, { path: "/data/orders.csv" }),
+    false,
+  );
+  assert.equal(
+    conforms(files.definition.tableSourceSchema, {
+      path: "/data/orders.csv",
+      format: "csv",
+    }),
+    true,
+  );
+  assert.equal(
+    conforms(files.definition.tableSourceSchema, {
+      path: "/data/orders.csv",
+      format: "csv",
+      types: { amount: "decimal" },
+    }),
+    false,
+  );
   assert.equal(
     conforms(settings["singer:github@1.29.2"], {
       auth_token: "plaintext",

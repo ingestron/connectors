@@ -6,7 +6,9 @@ CLI=Path(os.environ.get('INGESTRON_TEST_CLI',str(ROOT/'node_modules/ingestron/bu
 WORK=ROOT/'build/files-acceptance'
 if WORK.exists():shutil.rmtree(WORK)
 WORK.mkdir(parents=True)
-PUBLIC=os.environ.get('INGESTRON_TEST_PUBLIC_SOURCE')=='1'
+# Files 1.0.1 is immutable; the checkout now builds 1.1.0. Qualify the old
+# retail download against its actual public tag, never a local retag of HEAD.
+PUBLIC=True
 ARCHIVE=Path(os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE',str(ROOT/'build/release/retail-files-1.0.1.zip')))
 if not os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE'):
  subprocess.run(['python3',str(ROOT/'scripts/package-retail.py')],cwd=ROOT,check=True)

@@ -19,12 +19,13 @@
     "runtime:prepare": "node scripts/prepare-python.mjs",
     "acceptance": "build/singer-github/bin/python scripts/installed-acceptance.py",
     "acceptance:files": "python3 scripts/files-acceptance.py",
+    "acceptance:files:tables": "build/singer-github/bin/python scripts/files-table-acceptance.py",
     "package:retail": "python3 scripts/package-retail.py",
     "acceptance:azure-blob": "build/singer-github/bin/python scripts/azure-blob-acceptance.py",
     "acceptance:sql-server:live": "python3 scripts/sql-server-live-acceptance.py"
   },
   "devDependencies": {
-    "ingestron": "0.14.1",
+    "ingestron": "0.15.1",
     "prettier": "3.9.6",
     "yaml": "2.9.0"
   },
