@@ -1,4 +1,4 @@
-"""Exercise two contracted local files through installed core, CLI and provider."""
+"""Exercise ten contracted local files through installed core, CLI and provider."""
 from pathlib import Path
 import json
 import os
@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import yaml
+import pyarrow as arrow
 import pyarrow.parquet as parquet
 from decimal import Decimal
 
@@ -30,14 +31,49 @@ def cli(*args):
 
 
 def contract(name, properties):
-    return {'apiVersion': 'v3.1.0', 'kind': 'DataContract', 'id': f'file-{name}',
+    return {'apiVersion': 'v3.1.0', 'kind': 'DataContract', 'id': f'file-{name.replace("_", "-")}',
             'name': f'File {name}', 'version': '1.0.0', 'status': 'draft',
             'schema': [{'name': name, 'logicalType': 'object', 'physicalType': 'table',
                         'properties': properties}]}
 
 
-(PROJECT / 'customers.csv').write_text('customer_id,name\n1,Ada\n')
-(PROJECT / 'orders.csv').write_text('order_id,amount\n1001,12.50\n')
+customer_columns = [
+    {'name': 'customer_id', 'logicalType': 'integer', 'physicalType': 'BIGINT', 'required': True},
+    {'name': 'name', 'logicalType': 'string', 'physicalType': 'STRING', 'required': True},
+]
+order_columns = [
+    {'name': 'order_id', 'logicalType': 'integer', 'physicalType': 'BIGINT', 'required': True},
+    {'name': 'amount', 'logicalType': 'number', 'physicalType': 'DECIMAL(10,2)', 'required': True},
+]
+expected_rows = {
+    'customers': [{'customer_id': 1, 'name': 'Ada'}],
+    'orders': [{'order_id': 1001, 'amount': Decimal('12.50')}],
+}
+tables = {}
+for fmt in ['csv', 'tsv', 'json', 'jsonl', 'parquet']:
+    customers = PROJECT / f'customers.{fmt}'
+    orders = PROJECT / f'orders.{fmt}'
+    if fmt in ('csv', 'tsv'):
+        separator = ',' if fmt == 'csv' else '\t'
+        customers.write_text(f'customer_id{separator}name\n1{separator}Ada\n')
+        orders.write_text(f'order_id{separator}amount\n1001{separator}12.50\n')
+    elif fmt == 'json':
+        customers.write_text('[{"customer_id":1,"name":"Ada"}]')
+        orders.write_text('[{"order_id":1001,"amount":12.50}]')
+    elif fmt == 'jsonl':
+        customers.write_text('{"customer_id":1,"name":"Ada"}\n')
+        orders.write_text('{"order_id":1001,"amount":12.50}\n')
+    else:
+        parquet.write_table(arrow.table({'customer_id': [1], 'name': ['Ada']}), customers)
+        parquet.write_table(arrow.table({'order_id': [1001],
+                                         'amount': arrow.array([Decimal('12.50')],
+                                                               type=arrow.decimal128(10, 2))}), orders)
+    for name, path, columns in [('customers', customers, customer_columns),
+                                ('orders', orders, order_columns)]:
+        table = f'{name}_{fmt}'
+        tables[table] = {'source': {'path': str(path.resolve()), 'format': fmt},
+                         'contract': contract(table, columns)}
+
 project = {
     'apiVersion': 'ingestron.project/v1', 'id': 'files_multitable',
     'packages': {'local': 'local@0.4.1', 'files': 'files@1.1.0'},
@@ -50,22 +86,7 @@ project = {
     'flows': [{'apiVersion': 'ingestron.flow/v1', 'kind': 'ingestion',
                'id': 'retail_files_local', 'provider': 'local',
                'ingestion': {'connection': 'retail', 'execution': {'mode': 'local'}},
-               'tables': {
-                   'customers': {'source': {'path': str((PROJECT / 'customers.csv').resolve()),
-                                            'format': 'csv'},
-                                 'contract': contract('customers', [
-                                     {'name': 'customer_id', 'logicalType': 'integer',
-                                      'physicalType': 'BIGINT', 'required': True},
-                                     {'name': 'name', 'logicalType': 'string',
-                                      'physicalType': 'STRING', 'required': True}])},
-                   'orders': {'source': {'path': str((PROJECT / 'orders.csv').resolve()),
-                                         'format': 'csv'},
-                              'contract': contract('orders', [
-                                  {'name': 'order_id', 'logicalType': 'integer',
-                                   'physicalType': 'BIGINT', 'required': True},
-                                  {'name': 'amount', 'logicalType': 'number',
-                                   'physicalType': 'DECIMAL(10,2)', 'required': True}])},
-               }}],
+               'tables': tables}],
 }
 (PROJECT / 'project.yaml').write_text(yaml.safe_dump(project, sort_keys=False))
 
@@ -92,14 +113,14 @@ with tempfile.TemporaryDirectory(prefix='files-candidate-') as temporary:
     cli('run', '--action', 'approve')
     run = cli('run', '--run-id', 'files-001')
     assert {table['stream']: table['rows'] for table in run['result']['result']['flows'][0]['tables']} == {
-        'customers': 1, 'orders': 1}, run
+        name: 1 for name in tables}, run
     snapshots = {path.stem: parquet.read_table(path).to_pylist()
                  for path in (PROJECT / 'build/generated/data').rglob('*.parquet')}
-    assert snapshots == {'customers': [{'customer_id': 1, 'name': 'Ada'}],
-                         'orders': [{'order_id': 1001, 'amount': Decimal('12.50')}]}, snapshots
+    assert snapshots == {table: expected_rows[table.split('_')[0]] for table in tables}, snapshots
     evidence = {'passed': True, 'cli': json.loads((CLI.parents[3] / 'package.json').read_text())['version'],
                 'core': json.loads((CLI.parents[3] / 'package.json').read_text())['dependencies']['@ingestron/core'],
-                'provider': '0.4.1', 'files': '1.1.0', 'tables': ['customers', 'orders'],
+                'provider': '0.4.1', 'files': '1.1.0', 'tables': list(tables),
+                'formats': ['csv', 'tsv', 'json', 'jsonl', 'parquet'],
                 'rowsPerTable': 1, 'cloudAccess': False}
     (WORK / 'evidence.json').write_text(json.dumps(evidence, indent=2) + '\n')
-    print('Installed two-file snapshot and ODCS-derived parser types passed')
+    print('Installed ten-file snapshot across five formats and ODCS-derived parser types passed')
