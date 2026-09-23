@@ -1,0 +1,77 @@
+apiVersion: ingestron.project/v1
+id: sql_server_sample
+providers:
+  packages:
+    local: ingestron/provider-local@0.4.1
+    sql-server: ingestron/connectors/connectors/sql-server/connector.yaml@1.0.0
+  configurations:
+    local:
+      package: local
+      binding: runtime
+defaults:
+  provider: local
+environments:
+  dev:
+    apiVersion: ingestron.environment/v1
+    environment: dev
+    bindings:
+      runtime:
+        kind: local
+connections:
+  products:
+    package: sql-server
+    sourceId: sql_products
+    tenantId: training
+    settings:
+      object:
+        schema: dbo
+        table: Products
+        columns: [ProductID, ProductName, UnitPrice]
+      connection:
+        server: __SQL_SERVER__
+        database: __SQL_DATABASE__
+        port: __SQL_PORT__
+        authentication:
+          method: sql-password
+          username: __SQL_USERNAME__
+          password:
+            $secret:
+              env: SQL_READER_PASSWORD
+flows:
+  - apiVersion: ingestron.flow/v1
+    kind: ingestion
+    id: products_local
+    provider: local
+    ingestion:
+      connection: products
+      timeoutSeconds: 180
+      execution:
+        mode: local
+    tables:
+      products:
+        source:
+          stream: records
+        contract:
+          apiVersion: v3.1.0
+          kind: DataContract
+          id: sql-products
+          name: SQL products
+          version: 1.0.0
+          status: draft
+          schema:
+            - name: products
+              logicalType: object
+              physicalType: table
+              properties:
+                - name: ProductID
+                  logicalType: integer
+                  physicalType: BIGINT
+                  required: true
+                - name: ProductName
+                  logicalType: string
+                  physicalType: STRING
+                  required: true
+                - name: UnitPrice
+                  logicalType: number
+                  physicalType: DECIMAL(19,4)
+                  required: false

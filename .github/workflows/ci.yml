@@ -17,6 +17,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm runtime:prepare
       - run: pnpm validate
+      - run: python -m venv build/sql-server
+      - run: build/sql-server/bin/python -m pip install --require-hashes --index-url https://pypi.org/simple -r runtime/sql-server.lock
+      - run: build/sql-server/bin/python -c 'import mssql_python, pyarrow; print("SQL driver and Arrow import passed")'
+      - run: build/sql-server/bin/python -m unittest test.runtime.test_sql_server -v
       - run: git diff --exit-code -- connectors
       - run: pnpm acceptance
       - run: pnpm acceptance:files
