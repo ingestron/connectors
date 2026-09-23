@@ -22,13 +22,13 @@ reader supplies schemas and parsing; an Ingestron adapter uses REST for reposito
 lookup and fails on inaccessible repositories or rejected credentials.
 
 ```sh
-ingestron plugin install local@0.4.1
-ingestron plugin install github@1.33.0
+ingestron provider install local@0.4.1
+ingestron connector install github@1.33.0
 ```
 
 Start with [the public-data tutorial](https://docs.ingestron.io/docs/tutorials/github-to-parquet).
 It needs no account or token. See [GitHub configuration](docs/github.md) for limits
-and authenticated access. Use CLI 0.14.1 with core 0.12.1, local provider 0.4.1
+and authenticated access. Use CLI 0.15.0 with core 0.12.2, local provider 0.4.1
 and a prepared Python 3.12 environment on macOS/Linux for the current connector
 set.
 

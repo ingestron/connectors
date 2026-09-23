@@ -5,7 +5,7 @@ Read the three tables into separate Parquet snapshots, then verify an order valu
 of NZD 61.95. The inspection script calculates that check locally; the connector
 itself does not join or transform tables.
 
-Use CLI 0.13.2 or later, core 0.12.1 and local provider 0.4.1, Git, Python 3.12
+Use CLI 0.15.0 with core 0.12.2 and local provider 0.4.1, Git, Python 3.12
 and the files connector. No cloud account or credential is needed. Follow the
 [installation guide](https://docs.ingestron.io/docs/start/installation) for Python
 preparation. First preparation downloads locked dependencies.
@@ -14,8 +14,8 @@ In a fresh copy of this directory:
 
 ```sh
 python3 setup.py
-ingestron plugin install local@0.4.1
-ingestron plugin install ingestron/connectors/connectors/files/connector.yaml@1.0.1 --tag-prefix files-
+ingestron provider install local@0.4.1
+ingestron connector install files@1.0.1
 ingestron check
 ingestron build
 ingestron runtime prepare

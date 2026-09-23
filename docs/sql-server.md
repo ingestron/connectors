@@ -10,7 +10,7 @@ database.
 Install the exact source release with:
 
 ```sh
-ingestron plugin install ingestron/connectors/connectors/sql-server/connector.yaml@1.0.0 --tag-prefix sql-server-
+ingestron connector install sql-server@1.0.0
 ```
 
 Use a separate account with `SELECT` permission on the chosen table and enough
@@ -48,6 +48,23 @@ local execution. Passwords and client secrets must be environment references;
 they are resolved only when the local provider runs. Do not put their values in
 YAML. The execution identity is part of the reviewed build, so changing the
 connection or auth method requires a rebuild and review.
+
+The table contract can be an existing ODCS file instead of an inline definition:
+
+```yaml
+tables:
+  products:
+    source:
+      stream: records
+    contract:
+      $resolve: ./contracts/products.odcs.yaml
+```
+
+If your project has an installed model pack, `contract: {$model: pack:dataset}`
+selects one of its reviewed definitions with core 0.12.2 or later. The contract
+must describe the columns selected by `object.columns`; remove that filter to
+read a complete table contract. The stand-alone example selects three columns
+and includes a small draft contract so it works without a separate model pack.
 
 Supported local authentication settings:
 

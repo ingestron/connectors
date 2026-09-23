@@ -4,10 +4,10 @@ Files 1.0.1 reads one explicitly configured local file per connection. Choose CS
 TSV, a JSON array, JSON Lines or Parquet. It produces reviewed full snapshots with
 the local provider; it does not watch directories or apply incremental changes.
 
-Install the source using its exact reference:
+Install the exact connector release:
 
 ```sh
-ingestron plugin install ingestron/connectors/connectors/files/connector.yaml@1.0.1 --tag-prefix files-
+ingestron connector install files@1.0.1
 ```
 
 Use the [retail project](../examples/retail/README.md) to try all five formats.
