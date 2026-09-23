@@ -25,7 +25,7 @@
     "acceptance:sql-server:live": "python3 scripts/sql-server-live-acceptance.py"
   },
   "devDependencies": {
-    "ingestron": "0.14.1",
+    "ingestron": "0.15.1",
     "prettier": "3.9.6",
     "yaml": "2.9.0"
   },
