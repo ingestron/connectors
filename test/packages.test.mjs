@@ -106,6 +106,10 @@ test("official catalogue contains only qualified exact releases and stable ident
   assert.equal(c.plugins.local.path, "plugin/provider.yaml");
   assert.equal(c.plugins.local.tagPrefix, "");
   for (const p of Object.values(c.plugins)) {
+    assert.ok(
+      p.releases.at(-1).coreVersions.includes("0.12.2"),
+      "Every latest official shortcut must be qualified with the current core",
+    );
     assert.equal(
       new Set(p.releases.map((r) => r.version)).size,
       p.releases.length,
