@@ -24,7 +24,8 @@ hashed source bundles and are never shipped in `connectors/*/runtime.json`.
 Each source manifest has its own version, selected in `runtime/connectors.json`.
 GitHub 1.33.0 is tagged `github-1.33.0`; installation uses `--tag-prefix github-`.
 Never move published tags. package.json is private development tooling, not an
-npm package to publish. `ingestron@0.14.1` is a pinned development/test dependency.
+npm package to publish. Its pinned `ingestron` dependency sets the CLI/core pair
+used by normal CI; release gates must use the version declared there.
 
 To update Python dependencies, change the explicit requirements input deliberately
 and run `uv pip compile runtime/github.in --python-version 3.12 --universal --generate-hashes
@@ -67,9 +68,10 @@ not private demo infrastructure. Keep fixture bytes unchanged; verify provenance
 before packaging. CSV, TSV, JSON, JSONL and Parquet all pass the same retail checks.
 
 Files 1.1.0 moves the file path and format to each flow table and derives parsing
-types from the table's ODCS contract. Run `pnpm acceptance:files:tables` with a
-CLI that pins core 0.12.4 to check ten files across all five formats through one
-connection, discovery, review and stored Parquet rows. Use the `files-1.1.0` source tag only after this
+types from the table's ODCS contract. Run `pnpm acceptance:files:tables` with
+CLI 0.15.1/core 0.12.4 to check ten files across all five formats through one
+connection, discovery, review, stored Parquet rows and rejection of a later
+file failure without a partial commit. Use the `files-1.1.0` source tag only after this
 installed-package gate and the normal component gate pass. Keep the 1.0.1
 retail archive and tag unchanged; its acceptance uses the public 1.0.1 tag.
 
@@ -95,11 +97,12 @@ private endpoints belong in public qualification fixtures.
 
 ## SQL Server / Azure SQL
 
-SQL Server 1.0.0 is one-table, read-only local execution. The source release tag
-is `sql-server-1.0.0`. The source selector (`object.schema`, `object.table`,
-optional `object.columns`) is separate from the local `connection` block; do not
-declare an ADF or Databricks execution capability until a provider actually binds
-its native connection and passes installed acceptance.
+SQL Server 1.1.0 reads several tables through one reusable connection. Its source
+tag is `sql-server-1.1.0`; each flow table selects `source.schema` and
+`source.table`, and its ODCS contract selects columns. SQL Server 1.0.0 remains
+the immutable one-table release. Do not declare an ADF or Databricks execution
+capability until a provider binds its native connection and passes installed
+acceptance.
 
 The generated bundle pins `mssql-python` 1.15.0, the `mssql-python-odbc` binary
 18.6.2.1, Azure Identity and the existing Arrow runtime. Install the SQL lock in
@@ -111,10 +114,8 @@ runtime image.
 
 Run `pnpm validate` and the Linux CI lock-install gate. The optional owner-approved
 read-only Northwind test is `INGESTRON_SQL_HANDOUT=/absolute/private/connections.json
-pnpm acceptance:sql-server:live`. It installs this exact candidate through the
-published CLI/core and provider-local packages, verifies approval, exact decimal
-output and retry. Its generated project, source output and local transcript are
-ignored under `build/`. Record SQL password as the only live-qualified auth mode;
-the three Entra modes have schema/connection construction tests but await live
-identity qualification. After tag publication, repeat installation from the
-public tag before adding `sql-server` to the official shortcut catalogue.
+pnpm acceptance:sql-server:live`. It verifies approval, exact decimal output and
+retry. Its generated project, source output and local transcript are ignored under
+`build/`. SQL password was live-qualified with 1.0.0; the 1.1.0 multi-table path
+has installed synthetic acceptance but awaits a live read. The three Entra modes
+have schema/connection construction tests but await live identity qualification.

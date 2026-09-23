@@ -117,10 +117,23 @@ with tempfile.TemporaryDirectory(prefix='files-candidate-') as temporary:
     snapshots = {path.stem: parquet.read_table(path).to_pylist()
                  for path in (PROJECT / 'build/generated/data').rglob('*.parquet')}
     assert snapshots == {table: expected_rows[table.split('_')[0]] for table in tables}, snapshots
+    later_file = PROJECT / 'orders.parquet'
+    original = later_file.read_bytes()
+    later_file.write_bytes(b'not a parquet file')
+    failed = subprocess.run(
+        ['node', str(CLI), '--project', str(PROJECT), '--json', '--no-input',
+         'run', '--run-id', 'files-later-input-failure'],
+        cwd=PROJECT, capture_output=True, text=True, timeout=1200,
+    )
+    assert failed.returncode != 0, failed.stdout
+    assert not list((PROJECT / 'build/generated/data').rglob('files-later-input-failure/commit.json'))
+    later_file.write_bytes(original)
+    cli('run', '--retry', 'files-later-input-failure')
     evidence = {'passed': True, 'cli': json.loads((CLI.parents[3] / 'package.json').read_text())['version'],
                 'core': json.loads((CLI.parents[3] / 'package.json').read_text())['dependencies']['@ingestron/core'],
                 'provider': '0.4.1', 'files': '1.1.0', 'tables': list(tables),
                 'formats': ['csv', 'tsv', 'json', 'jsonl', 'parquet'],
-                'rowsPerTable': 1, 'cloudAccess': False}
+                'rowsPerTable': 1, 'laterFileFailureRejected': True,
+                'failedRunRecovered': True, 'cloudAccess': False}
     (WORK / 'evidence.json').write_text(json.dumps(evidence, indent=2) + '\n')
     print('Installed ten-file snapshot across five formats and ODCS-derived parser types passed')
