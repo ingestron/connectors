@@ -66,6 +66,13 @@ the public tag. The immutable zip contains a pinned fixture subset and its licen
 not private demo infrastructure. Keep fixture bytes unchanged; verify provenance
 before packaging. CSV, TSV, JSON, JSONL and Parquet all pass the same retail checks.
 
+Files 1.1.0 moves the file path and format to each flow table and derives parsing
+types from the table's ODCS contract. Run `pnpm acceptance:files:tables` with a
+CLI that pins core 0.12.4 to check two files through one connection, discovery,
+review and stored Parquet rows. Use the `files-1.1.0` source tag only after this
+installed-package gate and the normal component gate pass. Keep the 1.0.1
+retail archive and tag unchanged; its acceptance uses the public 1.0.1 tag.
+
 Source repositories must remain UTF-8 text for core 0.12.1. Parquet fixtures are
 base64 text in Git and decoded into the training zip; hashes verify the original
 bytes. Files 1.0.0 was not installable from its public tree and is superseded by
