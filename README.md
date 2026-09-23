@@ -11,9 +11,11 @@ Azure Blob 1.0.0 reads the same formats from one selected object, including ADLS
 Gen2 files through the Blob endpoint. Execution stays local. See
 [Azure Blob configuration](docs/azure-blob.md) for SAS authentication and limits.
 
-SQL Server 1.0.0 reads a selected SQL Server or Azure SQL table through the local
-provider. It has SQL password and three Microsoft Entra configuration modes;
-SQL password is the live-qualified mode. See the [SQL Server guide](docs/sql-server.md)
+SQL Server 1.1.0 reads several selected SQL Server or Azure SQL tables through
+one reusable connection with the local provider. ODCS contracts select columns.
+It has SQL password and three Microsoft Entra configuration modes. SQL password
+was live-qualified on the previous one-table release; the new multi-table path
+has synthetic and installed-build evidence. See the [SQL Server guide](docs/sql-server.md)
 for the connection choices, type limits and exact install command.
 
 GitHub 1.33.0 reads GitHub.com issues into local Parquet snapshots. It supports
@@ -28,7 +30,7 @@ ingestron connector install github@1.33.0
 
 Start with [the public-data tutorial](https://docs.ingestron.io/docs/tutorials/github-to-parquet).
 It needs no account or token. See [GitHub configuration](docs/github.md) for limits
-and authenticated access. Use CLI 0.15.0 with core 0.12.2, local provider 0.4.1
+and authenticated access. Use CLI 0.15.1 with core 0.12.4, local provider 0.4.1
 and a prepared Python 3.12 environment on macOS/Linux for the current connector
 set.
 

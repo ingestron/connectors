@@ -23,17 +23,13 @@ const entraServicePrincipal = object({
   client_secret: secret,
 });
 
-// Object selection is independent of the local connection. ADF and Databricks
-// can bind this source intent to their own native connection objects later.
+// The connection is reusable across tables; each flow table selects its own
+// physical object and receives its columns from the reviewed ODCS contract.
+export const sqlServerTableSource = object({
+  schema: identifier,
+  table: identifier,
+});
 export const sqlServerSettings = object({
-  object: object(
-    {
-      schema: identifier,
-      table: identifier,
-      columns: { type: "array", items: identifier, minItems: 1, maxItems: 500 },
-    },
-    ["schema", "table"],
-  ),
   connection: object(
     {
       server: { type: "string", minLength: 1, maxLength: 253 },

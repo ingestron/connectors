@@ -44,7 +44,6 @@ test("source-owned bounds and credential references reject invalid configuration
     readFileSync("connectors/sql-server/connector.yaml", "utf8"),
   );
   const base = {
-    object: { schema: "dbo", table: "Products" },
     connection: {
       server: "example.database.windows.net",
       database: "northwind",
@@ -56,6 +55,21 @@ test("source-owned bounds and credential references reject invalid configuration
     },
   };
   assert.equal(conforms(sql.definition.settingsSchema, base), true);
+  assert.equal(
+    conforms(sql.definition.tableSourceSchema, {
+      schema: "dbo",
+      table: "Products",
+    }),
+    true,
+  );
+  assert.equal(
+    conforms(sql.definition.tableSourceSchema, {
+      schema: "dbo",
+      table: "Products",
+      columns: ["ProductID"],
+    }),
+    false,
+  );
   assert.equal(
     conforms(sql.definition.settingsSchema, {
       ...base,
@@ -107,7 +121,7 @@ test("official catalogue contains only qualified exact releases and stable ident
   assert.equal(c.plugins.local.tagPrefix, "");
   for (const p of Object.values(c.plugins)) {
     assert.ok(
-      p.releases.at(-1).coreVersions.includes("0.12.2"),
+      p.releases.at(-1).coreVersions.includes("0.12.4"),
       "Every latest official shortcut must be qualified with the current core",
     );
     assert.equal(

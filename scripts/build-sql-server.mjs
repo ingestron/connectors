@@ -2,7 +2,10 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { stringify } from "yaml";
 import { format } from "prettier";
-import { sqlServerSettings } from "../src/sql-server-settings.mjs";
+import {
+  sqlServerSettings,
+  sqlServerTableSource,
+} from "../src/sql-server-settings.mjs";
 import {
   selectionSchema,
   runtimeContract,
@@ -13,7 +16,6 @@ const read = (p) => readFileSync(p, "utf8");
 const dir = "connectors/sql-server";
 const files = {
   "singer_runtime.py": read("runtime/sql_server_runtime.py"),
-  "files_runtime.py": read("runtime/files_runtime.py"),
   "sql_server_reader.py": read("runtime/sql_server_reader.py"),
   "snapshot_runtime.py": read("runtime/singer_runtime.py"),
   "files_reader.py": read("runtime/files_reader.py"),
@@ -27,7 +29,7 @@ const files = {
       licence: "MIT (Python driver); ODBC binary has separate Microsoft terms",
       executable: "sql-server",
       prepared: true,
-      supportedStreams: ["records"],
+      supportedStreams: [],
     },
   ]),
   "settings.schema.json": JSON.stringify(sqlServerSettings),
@@ -56,9 +58,9 @@ writeFileSync(dir + "/UPSTREAM-LICENSE.txt", files["UPSTREAM-LICENSE.txt"]);
 const manifest = {
   apiVersion: "ingestron.connector/v1",
   id: "sql-server",
-  version: "1.0.0",
+  version: "1.1.0",
   description:
-    "Reviewed local snapshots from one SQL Server or Azure SQL table",
+    "Reviewed local snapshots from multiple SQL Server or Azure SQL tables",
   connector: "singer:sql-server@1.15.0",
   documentation:
     "https://github.com/ingestron/connectors/blob/main/docs/sql-server.md",
@@ -77,7 +79,11 @@ const manifest = {
     sha256: sha(content),
     contract: runtimeContract,
   },
-  definition: { settingsSchema: sqlServerSettings, selectionSchema },
+  definition: {
+    settingsSchema: sqlServerSettings,
+    selectionSchema,
+    tableSourceSchema: sqlServerTableSource,
+  },
   execution: {
     local: {
       modes: ["local"],

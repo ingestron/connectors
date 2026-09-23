@@ -2,9 +2,16 @@ from pathlib import Path
 import sys
 import unittest
 from decimal import Decimal
+from unittest.mock import patch
+import json
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "runtime"))
 from sql_server_reader import scan, connection_string, quote, MAX_ROWS
+import singer_runtime
+original_runtime = (singer_runtime.source_config, singer_runtime.tap_output, singer_runtime.review)
+sys.modules["snapshot_runtime"] = singer_runtime
+import sql_server_runtime as runtime
+singer_runtime.source_config, singer_runtime.tap_output, singer_runtime.review = original_runtime
 
 
 class Cursor:
@@ -47,6 +54,41 @@ def settings(method="sql-password"):
 
 
 class SqlServer(unittest.TestCase):
+    def test_multi_table_binding_and_reviewed_streams(self):
+        project = {"tables": {
+            "products": {"source": {"schema": "dbo", "table": "Products", "stream": "products"},
+                         "columns": [{"name": "ProductID"}]},
+            "orders": {"source": {"schema": "sales", "table": "Orders", "stream": "orders"},
+                       "columns": [{"name": "OrderID"}]},
+        }}
+        config = {"sourceSettings": {"connection": {"server": "example.database.windows.net"}},
+                  "projectLock": project}
+        source = runtime.source_config(config)
+        self.assertEqual(source["objects"]["products"],
+                         {"schema": "dbo", "table": "Products", "columns": ["ProductID"]})
+        self.assertEqual(source["objects"]["orders"]["columns"], ["OrderID"])
+        schema = {"type": "object", "properties": {"id": {"type": ["integer"]}}}
+        def fake_scan(settings, emit=None):
+            if emit: emit({"id": 1 if settings["object"]["table"] == "Products" else 2})
+            return schema, 1 if emit else 0
+        with patch.object(runtime, "scan", side_effect=fake_scan) as scanned:
+            catalog = json.loads(b"".join(runtime.sql_output(None, source, None, 10, True)))
+            self.assertEqual([s["tap_stream_id"] for s in catalog["streams"]],
+                             ["products", "orders"])
+            for stream in catalog["streams"]:
+                stream["metadata"] = [{"breadcrumb": [], "metadata": {"selected": True}}]
+            output = b"".join(runtime.sql_output(None, source, catalog, 10)).decode().splitlines()
+            self.assertEqual([json.loads(line)["stream"] for line in output],
+                             ["products", "orders", "products", "orders"])
+            self.assertEqual(scanned.call_count, 4)
+        with self.assertRaisesRegex(ValueError, "Review every table"):
+            runtime.sql_review({"catalog": catalog}, {"products": {}})
+        project["tables"]["orders"]["source"]["table"] = "Other"
+        with self.assertRaisesRegex(ValueError, "stream identity"):
+            runtime.source_config({**config, "projectLock": {"tables": {"orders": {
+                **project["tables"]["orders"],
+                "source": {**project["tables"]["orders"]["source"], "stream": "wrong"}}}}})
+
     def test_auth_modes_and_secret_escaping(self):
         sql = connection_string(settings()["connection"])
         self.assertIn("PWD={a}};pwd}}}", sql)
