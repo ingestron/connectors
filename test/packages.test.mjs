@@ -9,7 +9,7 @@ import { settings } from "../src/settings.mjs";
 import { conforms, runtimeContract } from "../src/connection-contract.mjs";
 const sha = (v) => createHash("sha256").update(v).digest("hex");
 test("released source assets bind schema, code, requirements and licence to one digest", () => {
-  for (const source of ["github", "files", "azure-blob"]) {
+  for (const source of ["github", "files", "azure-blob", "sql-server"]) {
     const m = parse(
       readFileSync(`connectors/${source}/connector.yaml`, "utf8"),
     );
@@ -40,6 +40,53 @@ test("source-owned bounds and credential references reject invalid configuration
     }),
     false,
   );
+  const sql = parse(
+    readFileSync("connectors/sql-server/connector.yaml", "utf8"),
+  );
+  const base = {
+    object: { schema: "dbo", table: "Products" },
+    connection: {
+      server: "example.database.windows.net",
+      database: "northwind",
+      authentication: {
+        method: "sql-password",
+        username: "reader",
+        password: { $secret: { env: "SQL_READER_PASSWORD" } },
+      },
+    },
+  };
+  assert.equal(conforms(sql.definition.settingsSchema, base), true);
+  assert.equal(
+    conforms(sql.definition.settingsSchema, {
+      ...base,
+      connection: {
+        ...base.connection,
+        authentication: {
+          method: "sql-password",
+          username: "reader",
+          password: "plaintext",
+        },
+      },
+    }),
+    false,
+  );
+  for (const authentication of [
+    { method: "entra-default" },
+    { method: "entra-managed-identity" },
+    {
+      method: "entra-service-principal",
+      client_id: "id",
+      client_secret: { $secret: { env: "SQL_CLIENT_SECRET" } },
+    },
+  ]) {
+    assert.equal(
+      conforms(sql.definition.settingsSchema, {
+        ...base,
+        connection: { ...base.connection, authentication },
+      }),
+      true,
+    );
+  }
 });
 
 test("official catalogue contains only qualified exact releases and stable identities", () => {

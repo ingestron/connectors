@@ -24,7 +24,7 @@ hashed source bundles and are never shipped in `connectors/*/runtime.json`.
 Each source manifest has its own version, selected in `runtime/connectors.json`.
 GitHub 1.33.0 is tagged `github-1.33.0`; installation uses `--tag-prefix github-`.
 Never move published tags. package.json is private development tooling, not an
-npm package to publish. `ingestron@0.13.2` is a pinned development/test dependency.
+npm package to publish. `ingestron@0.14.1` is a pinned development/test dependency.
 
 To update Python dependencies, change the explicit requirements input deliberately
 and run `uv pip compile runtime/github.in --python-version 3.12 --universal --generate-hashes
@@ -85,3 +85,29 @@ yet. Existing public GitHub/files bundles must remain byte-identical.
 
 Live Labs reads are separate, owner-authorised evidence; no cloud credentials or
 private endpoints belong in public qualification fixtures.
+
+## SQL Server / Azure SQL
+
+SQL Server 1.0.0 is one-table, read-only local execution. The source release tag
+is `sql-server-1.0.0`. The source selector (`object.schema`, `object.table`,
+optional `object.columns`) is separate from the local `connection` block; do not
+declare an ADF or Databricks execution capability until a provider actually binds
+its native connection and passes installed acceptance.
+
+The generated bundle pins `mssql-python` 1.15.0, the `mssql-python-odbc` binary
+18.6.2.1, Azure Identity and the existing Arrow runtime. Install the SQL lock in
+an independent Python 3.12 environment with `--require-hashes` on macOS and
+Linux; import both driver and Arrow. Retain the MIT driver licence and note that
+the ODBC binary has separate Microsoft terms. This source repo does not bundle
+that binary. Review its terms and installed notices before redistributing a
+runtime image.
+
+Run `pnpm validate` and the Linux CI lock-install gate. The optional owner-approved
+read-only Northwind test is `INGESTRON_SQL_HANDOUT=/absolute/private/connections.json
+pnpm acceptance:sql-server:live`. It installs this exact candidate through the
+published CLI/core and provider-local packages, verifies approval, exact decimal
+output and retry. Its generated project, source output and local transcript are
+ignored under `build/`. Record SQL password as the only live-qualified auth mode;
+the three Entra modes have schema/connection construction tests but await live
+identity qualification. After tag publication, repeat installation from the
+public tag before adding `sql-server` to the official shortcut catalogue.

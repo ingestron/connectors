@@ -1,0 +1,162 @@
+apiVersion: ingestron.connector/v1
+id: sql-server
+version: 1.0.0
+description: Reviewed local snapshots from one SQL Server or Azure SQL table
+connector: singer:sql-server@1.15.0
+documentation: https://github.com/ingestron/connectors/blob/main/docs/sql-server.md
+upstream:
+  ecosystem: singer
+  variant: ingestron
+  package: mssql-python
+  version: 1.15.0
+  repository: https://github.com/microsoft/mssql-python
+  licence: MIT (driver); bundled ODBC binary under Microsoft terms
+  licenceFile: connectors/sql-server/UPSTREAM-LICENSE.txt
+  licenceStatus: evidenced
+runtime:
+  path: connectors/sql-server/runtime.json
+  sha256: 9f502a9468e16ae5314804d9b38343c4b5f3d5113e3c77588528b855b2d811a7
+  contract: ingestron.snapshot/python/v1
+definition:
+  settingsSchema:
+    type: object
+    properties:
+      object:
+        type: object
+        properties:
+          schema: &a1
+            type: string
+            minLength: 1
+            maxLength: 128
+          table: *a1
+          columns:
+            type: array
+            items: *a1
+            minItems: 1
+            maxItems: 500
+        required:
+          - schema
+          - table
+        additionalProperties: false
+      connection:
+        type: object
+        properties:
+          server:
+            type: string
+            minLength: 1
+            maxLength: 253
+          database: *a1
+          port:
+            type: integer
+            minimum: 1
+            maximum: 65535
+          authentication:
+            oneOf:
+              - type: object
+                properties:
+                  method:
+                    type: string
+                    enum:
+                      - sql-password
+                  username: *a1
+                  password: &a2
+                    type: object
+                    properties:
+                      $secret:
+                        type: object
+                        properties:
+                          env: &a3
+                            type: string
+                            minLength: 1
+                        required:
+                          - env
+                        additionalProperties: false
+                    required:
+                      - $secret
+                    additionalProperties: false
+                required:
+                  - method
+                  - username
+                  - password
+                additionalProperties: false
+              - type: object
+                properties:
+                  method:
+                    type: string
+                    enum:
+                      - entra-default
+                required:
+                  - method
+                additionalProperties: false
+              - type: object
+                properties:
+                  method:
+                    type: string
+                    enum:
+                      - entra-managed-identity
+                  client_id: *a1
+                required:
+                  - method
+                additionalProperties: false
+              - type: object
+                properties:
+                  method:
+                    type: string
+                    enum:
+                      - entra-service-principal
+                  client_id: *a1
+                  client_secret: *a2
+                required:
+                  - method
+                  - client_id
+                  - client_secret
+                additionalProperties: false
+        required:
+          - server
+          - database
+          - authentication
+        additionalProperties: false
+    required:
+      - object
+      - connection
+    additionalProperties: false
+  selectionSchema:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        name: *a3
+        fields:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - integer
+                  - string
+                  - boolean
+                  - number
+                  - decimal
+                  - json
+              nullable:
+                type: boolean
+              precision:
+                type: integer
+              scale:
+                type: integer
+            required:
+              - type
+              - nullable
+            additionalProperties: false
+      required:
+        - name
+        - fields
+      additionalProperties: false
+execution:
+  local:
+    modes:
+      - local
+    evidence: Bounded read-only table snapshot; SQL password live Northwind
+      qualification and synthetic authentication/negative-path checks

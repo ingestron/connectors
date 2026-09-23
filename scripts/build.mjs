@@ -112,6 +112,7 @@ for (const entry of singerCatalogue.filter((e) => e.prepared)) {
 
 await import("./build-files.mjs");
 await import("./build-azure-blob.mjs");
+await import("./build-sql-server.mjs");
 
 if (process.env.GITHUB_REF_TYPE === "tag") {
   const tag = process.env.GITHUB_REF_NAME;
@@ -119,7 +120,9 @@ if (process.env.GITHUB_REF_TYPE === "tag") {
     if (tag !== "v" + JSON.parse(readFileSync("package.json")).version)
       throw Error("Runtime tag mismatch");
   } else {
-    const match = /^(github|files|azure-blob)-(\d+\.\d+\.\d+)$/.exec(tag);
+    const match = /^(github|files|azure-blob|sql-server)-(\d+\.\d+\.\d+)$/.exec(
+      tag,
+    );
     if (!match) throw Error("Unknown source tag");
     const { parse } = await import("yaml");
     if (
