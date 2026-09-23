@@ -42,7 +42,7 @@ with tempfile.TemporaryDirectory() as tmp:
             shutil.copyfile(path, target)
     for args in [['git', 'init', '-q'], ['git', 'add', '.'],
                  ['git', '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'fixture'],
-                 ['git', 'tag', 'sql-server-1.0.0']]:
+                 ['git', 'tag', 'sql-server-1.1.0']]:
         command(args, origin)
     text = (ROOT / 'examples/sql-server/project.template.yaml').read_text()
     for placeholder, value in {'__SQL_SERVER__': private['server'], '__SQL_DATABASE__': private['database'],
@@ -50,7 +50,7 @@ with tempfile.TemporaryDirectory() as tmp:
         text = text.replace(placeholder, json.dumps(value))
     (WORK / 'project.yaml').write_text(text)
     cli('plugin', 'install', 'ingestron/provider-local@0.4.1')
-    cli('plugin', 'install', 'ingestron/connectors/connectors/sql-server/connector.yaml@1.0.0',
+    cli('plugin', 'install', 'ingestron/connectors/connectors/sql-server/connector.yaml@1.1.0',
         '--tag-prefix', 'sql-server-', *([] if PUBLIC else ['--from-git', str(origin)]))
     cli('check')
     cli('build')
@@ -60,7 +60,7 @@ with tempfile.TemporaryDirectory() as tmp:
     cli('run', '--run-id', 'unapproved', ok=False)
     cli('run', '--action', 'approve')
     cli('run', '--run-id', 'northwind-001')
-    outputs = list((WORK / 'build/generated/data').rglob('records.parquet'))
+    outputs = list((WORK / 'build/generated/data').rglob('products.parquet'))
     assert len(outputs) == 1
     from subprocess import check_output
     runtime = next((WORK / '.ingestron/runtimes').glob('*/bin/python'))

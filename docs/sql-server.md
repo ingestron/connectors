@@ -1,36 +1,36 @@
 # SQL Server and Azure SQL tables
 
-The SQL Server source reads one named table into a reviewed local snapshot. It
+The SQL Server source reads named tables into reviewed local snapshots. It
 works with SQL Server and Azure SQL Database when the machine running Ingestron
-can reach the database. Choose a schema, table and optionally a list of columns.
-The connector reads table metadata during discovery, then reads the rows after
-you approve the ODCS contract. It does not run arbitrary SQL or write to the
-database.
+can reach the database. One connection can serve several tables in the same
+ingestion flow. Select each physical schema and table under `flow.tables`; the
+ODCS data contract selects its columns. The connector reads table metadata
+during discovery, then reads rows after you approve the contracts. It does not
+run arbitrary SQL or write to the database.
 
 Install the exact source release with:
 
 ```sh
-ingestron connector install sql-server@1.0.0
+ingestron connector install sql-server@1.1.0
 ```
 
-Use a separate account with `SELECT` permission on the chosen table and enough
+Use a separate account with `SELECT` permission on the chosen tables and enough
 metadata visibility to discover its columns. Give the local machine network
 access to the server. The connector requires TLS with certificate validation; it
 does not accept a raw connection string or a certificate-bypass setting.
 
-One project's connection settings look like this:
+Add the packages, connection and flow tables to your project:
 
 ```yaml
+packages:
+  local: local@0.4.1
+  sql-server: sql-server@1.1.0
 connections:
-  products:
+  northwind:
     package: sql-server
-    sourceId: northwind_products
+    sourceId: northwind
     tenantId: training
     settings:
-      object:
-        schema: dbo
-        table: Products
-        columns: [ProductID, ProductName, UnitPrice]
       connection:
         server: example.database.windows.net
         database: northwind
@@ -41,13 +41,31 @@ connections:
           password:
             $secret:
               env: SQL_READER_PASSWORD
+flows:
+  - apiVersion: ingestron.flow/v1
+    kind: ingestion
+    id: northwind_local
+    provider: local
+    ingestion:
+      connection: northwind
+      execution: { mode: local }
+    tables:
+      products:
+        source: { schema: dbo, table: Products }
+        contract: { $resolve: ./contracts/products.odcs.yaml }
+      orders:
+        source: { schema: dbo, table: Orders }
+        contract: { $resolve: ./contracts/orders.odcs.yaml }
 ```
 
-The `object` block is the source choice. The `connection` block binds it to
-local execution. Passwords and client secrets must be environment references;
+The `connection` block describes the database and local authentication. Each
+table's `source` names one physical SQL table. Passwords and client secrets must
+be environment references;
 they are resolved only when the local provider runs. Do not put their values in
 YAML. The execution identity is part of the reviewed build, so changing the
-connection or auth method requires a rebuild and review.
+connection, a table source or its contract requires a rebuild and review. Short
+package names resolve only when the exact release is installed in
+`packages.lock.yaml`; that lock retains the full repository, commit and hashes.
 
 The table contract can be an existing ODCS file instead of an inline definition:
 
@@ -55,16 +73,17 @@ The table contract can be an existing ODCS file instead of an inline definition:
 tables:
   products:
     source:
-      stream: records
+      schema: dbo
+      table: Products
     contract:
       $resolve: ./contracts/products.odcs.yaml
 ```
 
 If your project has an installed model pack, `contract: {$model: pack:dataset}`
-selects one of its reviewed definitions with core 0.12.2 or later. The contract
-must describe the columns selected by `object.columns`; remove that filter to
-read a complete table contract. The stand-alone example selects three columns
-and includes a small draft contract so it works without a separate model pack.
+selects one of its reviewed definitions. The contract must describe every column
+you want to read; the SQL connector does not have a second column list. The
+[stand-alone example](../examples/sql-server/project.template.yaml) selects three
+product columns and includes a small draft contract.
 
 Supported local authentication settings:
 
@@ -86,14 +105,14 @@ The source supports integers, booleans, decimal/money, floating-point, text,
 uniqueidentifier and SQL date/time types. Dates and times become ISO text in the
 current ODCS/local-snapshot boundary. For decimal or money fields, review an
 exact `DECIMAL(precision,scale)` contract so values stay exact. Binary, spatial,
-hierarchy, `sql_variant` and other unsupported types fail discovery; use
-`columns` to choose the fields you need. Column names selected into an ODCS table
+hierarchy, `sql_variant` and other unsupported types fail discovery if selected
+in a contract. Use the contract to choose supported fields. Column names selected into an ODCS table
 must be valid Ingestron field names (`A-Z`, `a-z`, digits and underscores,
 starting with a letter or underscore). Physical SQL table names may include
 spaces and closing brackets.
 
-This preview reads up to one million rows, in batches of 1,000, and rejects a
-larger table after the limit. A row is capped at 2 MB by the local runtime.
+This preview reads up to one million rows per table, in batches of 1,000, and
+rejects a larger table after the limit. A row is capped at 2 MB by the local runtime.
 Discovery and execution are separate reads. A later execution can see changed
 values; it checks column schema but does not promise a transactionally consistent
 or ordered snapshot across concurrent source changes. Use a stable source table
@@ -103,7 +122,7 @@ provenance and atomic output rules apply.
 ADF and Databricks native connections are future provider bindings. An ADF
 linked service may use its managed identity, Key Vault or integration runtime;
 a Databricks connection may use its own platform-supported credentials. The SQL
-source's `object` choice can remain the same, but these paths require separate
+table's `source` choice can remain the same, but these paths require separate
 provider implementations and qualification. No native ADF or Databricks execution
 is included in this release.
 

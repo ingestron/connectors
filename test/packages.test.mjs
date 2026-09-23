@@ -44,7 +44,6 @@ test("source-owned bounds and credential references reject invalid configuration
     readFileSync("connectors/sql-server/connector.yaml", "utf8"),
   );
   const base = {
-    object: { schema: "dbo", table: "Products" },
     connection: {
       server: "example.database.windows.net",
       database: "northwind",
@@ -56,6 +55,21 @@ test("source-owned bounds and credential references reject invalid configuration
     },
   };
   assert.equal(conforms(sql.definition.settingsSchema, base), true);
+  assert.equal(
+    conforms(sql.definition.tableSourceSchema, {
+      schema: "dbo",
+      table: "Products",
+    }),
+    true,
+  );
+  assert.equal(
+    conforms(sql.definition.tableSourceSchema, {
+      schema: "dbo",
+      table: "Products",
+      columns: ["ProductID"],
+    }),
+    false,
+  );
   assert.equal(
     conforms(sql.definition.settingsSchema, {
       ...base,

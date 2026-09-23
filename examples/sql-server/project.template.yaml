@@ -1,9 +1,9 @@
 apiVersion: ingestron.project/v1
 id: sql_server_sample
+packages:
+  local: local@0.4.1
+  sql-server: sql-server@1.1.0
 providers:
-  packages:
-    local: ingestron/provider-local@0.4.1
-    sql-server: ingestron/connectors/connectors/sql-server/connector.yaml@1.0.0
   configurations:
     local:
       package: local
@@ -18,15 +18,11 @@ environments:
       runtime:
         kind: local
 connections:
-  products:
+  northwind:
     package: sql-server
-    sourceId: sql_products
+    sourceId: northwind
     tenantId: training
     settings:
-      object:
-        schema: dbo
-        table: Products
-        columns: [ProductID, ProductName, UnitPrice]
       connection:
         server: __SQL_SERVER__
         database: __SQL_DATABASE__
@@ -43,14 +39,15 @@ flows:
     id: products_local
     provider: local
     ingestion:
-      connection: products
+      connection: northwind
       timeoutSeconds: 180
       execution:
         mode: local
     tables:
       products:
         source:
-          stream: records
+          schema: dbo
+          table: Products
         contract:
           apiVersion: v3.1.0
           kind: DataContract
