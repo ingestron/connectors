@@ -81,10 +81,10 @@ use streamed/batched reads. Leave disk space for input, spool and Parquet output
 These are preview bounds, not a throughput claim. File metadata changes during a
 read fail; callers must still supply stable files, not concurrent writers.
 
-Files 1.0.1 remains immutable and works with its one-file-per-connection layout;
-the [retail exercise](../examples/retail/README.md) is still pinned to it.
-Moving that project to 1.1.0 requires an explicit edit and review; installing a
-new version does not silently rewrite its connections or contracts.
+Files 1.0.1 remains immutable and works with its one-file-per-connection layout.
+The [current retail exercise](../examples/retail/README.md) uses 1.1.0 and one
+connection for three tables. Older downloaded exercises keep their original
+layout; installing a new version does not rewrite their connections or contracts.
 
 The file adapter reuses the existing reviewed snapshot runtime and Apache Arrow.
 Its CSV reader follows [Python's CSV API](https://docs.python.org/3/library/csv.html);

@@ -1,0 +1,31 @@
+apiVersion: v3.1.0
+kind: DataContract
+id: retail-orders
+name: Retail orders
+version: 1.0.0
+status: draft
+schema:
+  - name: orders
+    logicalType: object
+    physicalType: table
+    properties:
+      - name: order_id
+        logicalType: integer
+        physicalType: BIGINT
+        required: true
+      - name: customer_id
+        logicalType: string
+        physicalType: STRING
+        required: true
+      - name: product_id
+        logicalType: integer
+        physicalType: BIGINT
+        required: true
+      - name: quantity
+        logicalType: integer
+        physicalType: BIGINT
+        required: true
+      - name: order_date
+        logicalType: string
+        physicalType: STRING
+        required: true

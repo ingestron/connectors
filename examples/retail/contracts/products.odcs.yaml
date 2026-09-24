@@ -1,0 +1,27 @@
+apiVersion: v3.1.0
+kind: DataContract
+id: retail-products
+name: Retail products
+version: 1.0.0
+status: draft
+schema:
+  - name: products
+    logicalType: object
+    physicalType: table
+    properties:
+      - name: product_id
+        logicalType: integer
+        physicalType: BIGINT
+        required: true
+      - name: name
+        logicalType: string
+        physicalType: STRING
+        required: true
+      - name: unit_price
+        logicalType: number
+        physicalType: DECIMAL(10,2)
+        required: true
+      - name: category
+        logicalType: string
+        physicalType: STRING
+        required: true

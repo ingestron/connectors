@@ -1,9 +1,9 @@
 apiVersion: ingestron.project/v1
 id: retail_files
+packages:
+  local: local@0.4.1
+  files: files@1.1.0
 providers:
-  packages:
-    local: ingestron/provider-local@0.4.1
-    files: ingestron/connectors/connectors/files/connector.yaml@1.0.1
   configurations:
     local:
       package: local
@@ -18,168 +18,37 @@ environments:
       runtime:
         kind: local
 connections:
-  customers:
+  retail_files:
     package: files
-    sourceId: retail_customers
+    sourceId: retail
     tenantId: training
-    settings:
-      path: __CUSTOMERS_PATH__
-      format: __FORMAT__
-      types:
-        customer_id: string
-        name: string
-        city: string
-        email: string
-  products:
-    package: files
-    sourceId: retail_products
-    tenantId: training
-    settings:
-      path: __PRODUCTS_PATH__
-      format: __FORMAT__
-      types:
-        product_id: integer
-        name: string
-        unit_price: decimal
-        category: string
-  orders:
-    package: files
-    sourceId: retail_orders
-    tenantId: training
-    settings:
-      path: __ORDERS_PATH__
-      format: __FORMAT__
-      types:
-        order_id: integer
-        customer_id: string
-        product_id: integer
-        quantity: integer
-        order_date: string
+    settings: {}
 flows:
   - apiVersion: ingestron.flow/v1
     kind: ingestion
-    id: customers_local
+    id: retail_local
     provider: local
     ingestion:
-      connection: customers
+      connection: retail_files
       timeoutSeconds: 120
       execution:
         mode: local
     tables:
       customers:
         source:
-          stream: records
+          path: __CUSTOMERS_PATH__
+          format: __FORMAT__
         contract:
-          apiVersion: v3.1.0
-          kind: DataContract
-          id: retail-customers
-          name: Retail customers
-          version: 1.0.1
-          status: draft
-          schema:
-            - name: customers
-              logicalType: object
-              physicalType: table
-              properties:
-                - name: customer_id
-                  logicalType: string
-                  physicalType: STRING
-                  required: true
-                - name: name
-                  logicalType: string
-                  physicalType: STRING
-                  required: true
-                - name: city
-                  logicalType: string
-                  physicalType: STRING
-                  required: true
-                - name: email
-                  logicalType: string
-                  physicalType: STRING
-                  required: false
-  - apiVersion: ingestron.flow/v1
-    kind: ingestion
-    id: products_local
-    provider: local
-    ingestion:
-      connection: products
-      timeoutSeconds: 120
-      execution:
-        mode: local
-    tables:
+          $resolve: ./contracts/customers.odcs.yaml
       products:
         source:
-          stream: records
+          path: __PRODUCTS_PATH__
+          format: __FORMAT__
         contract:
-          apiVersion: v3.1.0
-          kind: DataContract
-          id: retail-products
-          name: Retail products
-          version: 1.0.1
-          status: draft
-          schema:
-            - name: products
-              logicalType: object
-              physicalType: table
-              properties:
-                - name: product_id
-                  logicalType: integer
-                  physicalType: BIGINT
-                  required: true
-                - name: name
-                  logicalType: string
-                  physicalType: STRING
-                  required: true
-                - name: unit_price
-                  logicalType: number
-                  physicalType: DECIMAL(10,2)
-                  required: true
-                - name: category
-                  logicalType: string
-                  physicalType: STRING
-                  required: true
-  - apiVersion: ingestron.flow/v1
-    kind: ingestion
-    id: orders_local
-    provider: local
-    ingestion:
-      connection: orders
-      timeoutSeconds: 120
-      execution:
-        mode: local
-    tables:
+          $resolve: ./contracts/products.odcs.yaml
       orders:
         source:
-          stream: records
+          path: __ORDERS_PATH__
+          format: __FORMAT__
         contract:
-          apiVersion: v3.1.0
-          kind: DataContract
-          id: retail-orders
-          name: Retail orders
-          version: 1.0.1
-          status: draft
-          schema:
-            - name: orders
-              logicalType: object
-              physicalType: table
-              properties:
-                - name: order_id
-                  logicalType: integer
-                  physicalType: BIGINT
-                  required: true
-                - name: customer_id
-                  logicalType: string
-                  physicalType: STRING
-                  required: true
-                - name: product_id
-                  logicalType: integer
-                  physicalType: BIGINT
-                  required: true
-                - name: quantity
-                  logicalType: integer
-                  physicalType: BIGINT
-                  required: true
-                - name: order_date
-                  logicalType: string
-                  physicalType: STRING
-                  required: true
+          $resolve: ./contracts/orders.odcs.yaml
