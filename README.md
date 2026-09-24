@@ -5,9 +5,10 @@ execution provider; neither the CLI nor compute providers are bundled here.
 
 Files 1.1.0 selects several local CSV, TSV, JSON, JSONL or Parquet files under
 one connection. ODCS contracts select output columns and parser types. See the
-[file configuration guide](docs/files.md) and [two-file project](examples/files/project.template.yaml).
-The [retail training project](examples/retail/README.md) remains pinned to Files
-1.0.1. No source credentials are needed.
+[file configuration guide](docs/files.md), [two-file project](examples/files/project.template.yaml)
+and [retail training project](examples/retail/README.md). The current retail
+project uses Files 1.1.0; the immutable Files 1.0.1 training download remains
+available for older projects. No source credentials are needed.
 
 Azure Blob 1.0.0 reads the same formats from one selected object, including ADLS
 Gen2 files through the Blob endpoint. Execution stays local. See

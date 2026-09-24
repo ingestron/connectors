@@ -20,6 +20,7 @@
     "acceptance": "build/singer-github/bin/python scripts/installed-acceptance.py",
     "acceptance:files": "python3 scripts/files-acceptance.py",
     "acceptance:files:tables": "build/singer-github/bin/python scripts/files-table-acceptance.py",
+    "acceptance:retail": "python3 scripts/retail-current-acceptance.py",
     "package:retail": "python3 scripts/package-retail.py",
     "acceptance:azure-blob": "build/singer-github/bin/python scripts/azure-blob-acceptance.py",
     "acceptance:sql-server:live": "python3 scripts/sql-server-live-acceptance.py"

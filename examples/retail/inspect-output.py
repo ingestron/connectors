@@ -11,7 +11,7 @@ import pyarrow.parquet as pq
 root=Path('.')
 tables={}
 for name in ['customers','products','orders']:
- files=list((root/'build/generated/data'/ (name+'_local')).glob('*/retail-001/records.parquet'))
+ files=list((root/'build/generated/data/retail_local').glob('*/retail-001/'+name+'.parquet'))
  assert len(files)==1, 'Complete retail-001 before inspecting output'
  tables[name]=pq.read_table(files[0]).to_pylist()
  assert len(tables[name])==3

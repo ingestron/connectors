@@ -1,0 +1,27 @@
+apiVersion: v3.1.0
+kind: DataContract
+id: retail-customers
+name: Retail customers
+version: 1.0.0
+status: draft
+schema:
+  - name: customers
+    logicalType: object
+    physicalType: table
+    properties:
+      - name: customer_id
+        logicalType: string
+        physicalType: STRING
+        required: true
+      - name: name
+        logicalType: string
+        physicalType: STRING
+        required: true
+      - name: city
+        logicalType: string
+        physicalType: STRING
+        required: true
+      - name: email
+        logicalType: string
+        physicalType: STRING
+        required: false

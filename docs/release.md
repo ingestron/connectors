@@ -60,24 +60,29 @@ For a provider candidate, `INGESTRON_TEST_PROVIDER` selects a local tagged Git c
 
 ## Files and retail training
 
-Run `pnpm acceptance:files` and `pnpm package:retail`. The files source tag is
-`files-1.0.1`; attach `build/release/retail-files-1.0.1.zip` to that release after
-qualification. `INGESTRON_TEST_PUBLIC_SOURCE=1 pnpm acceptance:files` verifies
-the public tag. The immutable zip contains a pinned fixture subset and its licence,
-not private demo infrastructure. Keep fixture bytes unchanged; verify provenance
-before packaging. CSV, TSV, JSON, JSONL and Parquet all pass the same retail checks.
+Run `pnpm acceptance:files` for the immutable Files 1.0.1 exercise. It fetches
+the already-published `retail-files-1.0.1.zip` and checks its SHA-256 before
+running the old three-connection project against the public 1.0.1 tag. The Azure
+Blob retail package extends that same verified archive. Do not rebuild either
+published download from the current example or move their tags.
 
 Files 1.1.0 moves the file path and format to each flow table and derives parsing
 types from the table's ODCS contract. Run `pnpm acceptance:files:tables` with
 CLI 0.15.1/core 0.12.4 to check ten files across all five formats through one
 connection, discovery, review, stored Parquet rows and rejection of a later
-file failure without a partial commit. Use the `files-1.1.0` source tag only after this
-installed-package gate and the normal component gate pass. Keep the 1.0.1
+file failure without a partial commit. The published `files-1.1.0` source tag
+and shortcut catalogue already point to the qualified connector. Keep the 1.0.1
 retail archive and tag unchanged; its acceptance uses the public 1.0.1 tag.
-After tagging, repeat with `INGESTRON_TEST_PUBLIC_SOURCE=1` to install the
-immutable public source tree before adding 1.1.0 to the shortcut catalogue.
 
-Source repositories must remain UTF-8 text for core 0.12.1. Parquet fixtures are
+The current [retail example](../examples/retail/README.md) uses Files 1.1.0,
+one connection and three contracted tables. `pnpm package:retail` builds
+`retail-files-1.1.0.zip` from the unchanged fictional fixture bytes and the
+current project/contract files. Run `pnpm acceptance:retail` against that exact
+archive and published CLI/core/provider/connector versions. After the gate and
+documentation pass, create an immutable `retail-1.1.0` training tag and attach
+the tested archive. Keep the source connector tag `files-1.1.0` unchanged.
+
+Source repositories must remain UTF-8 text for the current core host. Parquet fixtures are
 base64 text in Git and decoded into the training zip; hashes verify the original
 bytes. Files 1.0.0 was not installable from its public tree and is superseded by
 1.0.1. Keep that tag immutable and excluded from the qualified catalogue. Candidate

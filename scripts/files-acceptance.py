@@ -1,6 +1,7 @@
 """Qualify the retail download through installed CLI/core and public local provider."""
 from pathlib import Path
 import os,shutil,subprocess,json,tempfile,hashlib,zipfile
+from legacy_retail_archive import verified_archive
 ROOT=Path(__file__).resolve().parents[1]
 CLI=Path(os.environ.get('INGESTRON_TEST_CLI',str(ROOT/'node_modules/ingestron/build/cli/cli/index.js'))).resolve()
 WORK=ROOT/'build/files-acceptance'
@@ -9,9 +10,7 @@ WORK.mkdir(parents=True)
 # Files 1.0.1 is immutable; the checkout now builds 1.1.0. Qualify the old
 # retail download against its actual public tag, never a local retag of HEAD.
 PUBLIC=True
-ARCHIVE=Path(os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE',str(ROOT/'build/release/retail-files-1.0.1.zip')))
-if not os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE'):
- subprocess.run(['python3',str(ROOT/'scripts/package-retail.py')],cwd=ROOT,check=True)
+ARCHIVE=verified_archive(os.environ['INGESTRON_TEST_RETAIL_ARCHIVE']) if os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE') else verified_archive()
 records=[]
 def command(args,cwd,ok=True):
  p=subprocess.run(args,cwd=cwd,capture_output=True,text=True,timeout=1200)
