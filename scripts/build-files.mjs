@@ -54,7 +54,7 @@ writeFileSync(dir + "/UPSTREAM-LICENSE.txt", files["UPSTREAM-LICENSE.txt"]);
 const manifest = {
   apiVersion: "ingestron.connector/v1",
   id: "files",
-  version: "1.1.0",
+  version: "1.2.0",
   description:
     "Reviewed snapshots from local CSV, TSV, JSON, JSONL and Parquet files",
   connector: "singer:files@23.0.1",

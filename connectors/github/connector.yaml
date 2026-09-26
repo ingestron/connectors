@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: github
-version: 1.33.0
+version: 1.33.1
 description: github customer-operated full snapshot connector
 connector: singer:github@1.29.2
 documentation: https://github.com/ingestron/connectors/blob/main/docs/github.md
@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/github/runtime.json
-  sha256: c0a4e95a9d29667a60c6bc0895d17f6bfbc1fb86627e9db6d613fbad1aaa26c1
+  sha256: c281b7af0c90376c0bef390ae308b1c24453a0ad1583d9c4b92bb2393580251b
   contract: ingestron.snapshot/python/v1
 definition:
   settingsSchema:
@@ -75,6 +75,9 @@ definition:
                   - json
               nullable:
                 type: boolean
+              target:
+                type: string
+                minLength: 1
               precision:
                 type: integer
               scale:

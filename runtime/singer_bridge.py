@@ -137,7 +137,7 @@ def snapshot(
                     raise ValueError("Empty field selection")
                 schemas[name] = pa.schema(
                     [
-                        pa.field(k, arrow_type(v), nullable=v.get("nullable", False))
+                        pa.field(v.get("target", k), arrow_type(v), nullable=v.get("nullable", False))
                         for k, v in spec["fields"].items()
                     ]
                 )
@@ -177,7 +177,7 @@ def snapshot(
                 row = message["record"]
                 buffers[name].append(
                     {
-                        k: convert(row.get(k), v)
+                        v.get("target", k): convert(row.get(k), v)
                         for k, v in contract[name]["fields"].items()
                     }
                 )

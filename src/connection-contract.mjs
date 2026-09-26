@@ -7,6 +7,7 @@ const field = object(
       enum: ["integer", "string", "boolean", "number", "decimal", "json"],
     },
     nullable: { type: "boolean" },
+    target: { type: "string", minLength: 1 },
     precision: { type: "integer" },
     scale: { type: "integer" },
   },
