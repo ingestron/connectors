@@ -13,6 +13,8 @@ from decimal import Decimal
 ROOT = Path(__file__).resolve().parents[1]
 CLI = Path(os.environ.get('INGESTRON_TEST_CLI', ROOT / 'node_modules/ingestron/build/cli/cli/index.js')).resolve()
 PUBLIC = os.environ.get('INGESTRON_TEST_PUBLIC_SOURCE') == '1'
+FILES_VERSION = yaml.safe_load((ROOT / 'connectors/files/connector.yaml').read_text())['version']
+PROVIDER_VERSION = os.environ.get('INGESTRON_TEST_PROVIDER_VERSION', '0.4.1')
 WORK = ROOT / 'build/files-table-acceptance'
 shutil.rmtree(WORK, ignore_errors=True)
 WORK.mkdir(parents=True)
@@ -77,7 +79,7 @@ for fmt in ['csv', 'tsv', 'json', 'jsonl', 'parquet']:
 
 project = {
     'apiVersion': 'ingestron.project/v1', 'id': 'files_multitable',
-    'packages': {'local': 'local@0.4.1', 'files': 'files@1.1.0'},
+    'packages': {'local': f'local@{PROVIDER_VERSION}', 'files': f'files@{FILES_VERSION}'},
     'providers': {'configurations': {'local': {'package': 'local', 'binding': 'runtime'}}},
     'defaults': {'provider': 'local'},
     'environments': {'dev': {'apiVersion': 'ingestron.environment/v1', 'environment': 'dev',
@@ -101,10 +103,10 @@ with tempfile.TemporaryDirectory(prefix='files-candidate-') as temporary:
             shutil.copyfile(source, target)
     for args in [['git', 'init', '-q'], ['git', 'add', '.'],
                  ['git', '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
-                  'commit', '-qm', 'fixture'], ['git', 'tag', 'files-1.1.0']]:
+                  'commit', '-qm', 'fixture'], ['git', 'tag', f'files-{FILES_VERSION}']]:
         command(args, origin)
-    cli('provider', 'install', 'ingestron/provider-local@0.4.1')
-    cli('connector', 'install', 'ingestron/connectors/connectors/files/connector.yaml@1.1.0',
+    cli('provider', 'install', f'ingestron/provider-local@{PROVIDER_VERSION}')
+    cli('connector', 'install', f'ingestron/connectors/connectors/files/connector.yaml@{FILES_VERSION}',
         '--tag-prefix', 'files-', *([] if PUBLIC else ['--from-git', str(origin)]))
     cli('check')
     cli('build')
@@ -132,7 +134,7 @@ with tempfile.TemporaryDirectory(prefix='files-candidate-') as temporary:
     cli('run', '--retry', 'files-later-input-failure')
     evidence = {'passed': True, 'cli': json.loads((CLI.parents[3] / 'package.json').read_text())['version'],
                 'core': json.loads((CLI.parents[3] / 'package.json').read_text())['dependencies']['@ingestron/core'],
-                'provider': '0.4.1', 'files': '1.1.0', 'tables': list(tables),
+                'provider': PROVIDER_VERSION, 'files': FILES_VERSION, 'tables': list(tables),
                 'formats': ['csv', 'tsv', 'json', 'jsonl', 'parquet'],
                 'rowsPerTable': 1, 'laterFileFailureRejected': True,
                 'failedRunRecovered': True, 'publicSource': PUBLIC, 'cloudAccess': False}

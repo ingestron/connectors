@@ -56,7 +56,16 @@ def field_from_column(type_name, required):
 
 def project_selection(project):
     if 'tables' not in project: return project['selection']
-    return {table['source']['stream']:{'name':name,'fields':{column['name']:field_from_column(column['type'],column['required']) for column in table['columns']}} for name,table in project['tables'].items()}
+    selected = {}
+    for name, table in project['tables'].items():
+        fields = {}
+        for column in table['columns']:
+            field = field_from_column(column['type'], column['required'])
+            if column.get('target') and column['target'] != column['name']:
+                field['target'] = column['target']
+            fields[column['name']] = field
+        selected[table['source']['stream']] = {'name': name, 'fields': fields}
+    return selected
 
 
 def project_contracts(project):
@@ -240,9 +249,13 @@ def review(discovery, selection, authored_contracts=None):
         check(isinstance(fields, dict) and 1 <= len(fields) <= 500, 'Select 1–500 fields')
         properties = stream['schema'].get('properties', {})
         odcs = []
+        targets = set()
         for field, shape in sorted(fields.items()):
             check(re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', field) and field in properties, 'Invalid/missing selected field')
-            check(set(shape) <= {'type','nullable','precision','scale'}, 'Unsupported projection property')
+            check(set(shape) <= {'type','nullable','precision','scale','target'}, 'Unsupported projection property')
+            target = shape.get('target', field)
+            check(isinstance(target, str) and re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', target) and target not in targets, 'Invalid/duplicate target field')
+            targets.add(target)
             check(type(shape.get('nullable')) is bool, 'Explicit nullable boolean required')
             arrow_type(shape)
             kind = shape['type']
@@ -252,7 +265,7 @@ def review(discovery, selection, authored_contracts=None):
             else:
                 check('precision' not in shape and 'scale' not in shape, 'Precision/scale apply only to decimal')
                 physical = {'string':'STRING','integer':'BIGINT','boolean':'BOOLEAN','number':'DOUBLE','json':'STRING'}[kind]
-            odcs.append({'name':field,'logicalType': {'json':'string','decimal':'number'}.get(kind,kind),
+            odcs.append({'name':target, **({'physicalName':field} if target != field else {}), 'logicalType': {'json':'string','decimal':'number'}.get(kind,kind),
                          'physicalType':physical,'required':not shape['nullable'],
                          'description':'Canonical structured JSON; missing and null collapse.' if kind == 'json' else 'Explicit reviewed source projection; no business key inferred.'})
         wire_name = stream.get('stream') or stream_id
@@ -280,7 +293,10 @@ def review(discovery, selection, authored_contracts=None):
         check(set(authored_contracts) == set(contracts), 'ODCS table identities differ')
         for name, contract in authored_contracts.items():
             check(len(contract['schema']) == 1, 'One ODCS schema per table required')
-            actual = {p.get('physicalName', p['name']): field_from_column(p.get('physicalType') or {'string':'STRING','integer':'BIGINT','number':'DOUBLE','boolean':'BOOLEAN'}.get(p['logicalType']), p.get('required',False)) for p in contract['schema'][0]['properties']}
+            actual = {p.get('physicalName', p['name']): {
+                **field_from_column(p.get('physicalType') or {'string':'STRING','integer':'BIGINT','number':'DOUBLE','boolean':'BOOLEAN'}.get(p['logicalType']), p.get('required',False)),
+                **({'target':p['name']} if p['name'] != p.get('physicalName', p['name']) else {})
+            } for p in contract['schema'][0]['properties']}
             expected = next(spec['fields'] for spec in selection.values() if spec['name'] == name)
             check(actual == expected, 'ODCS fields differ from extraction projection')
         contracts = authored_contracts

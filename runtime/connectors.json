@@ -6,7 +6,7 @@
     "version": "1.29.2",
     "executable": "tap-github",
     "prepared": true,
-    "packageVersion": "1.33.0",
+    "packageVersion": "1.33.1",
     "supportedStreams": ["issues"],
     "evidence": "Synthetic REST/authentication/failure qualification and bounded anonymous public repository read; no performance guarantee"
   }

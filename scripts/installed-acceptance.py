@@ -17,7 +17,8 @@ PROJECT = ROOT / 'build/installed-acceptance'
 shutil.rmtree(PROJECT, ignore_errors=True)
 PROJECT.mkdir(parents=True)
 CLI = Path(os.environ.get('INGESTRON_TEST_CLI', str(ROOT / 'node_modules/ingestron/build/cli/cli/index.js'))).resolve()
-SOURCE = 'ingestron/connectors/connectors/github/connector.yaml@1.33.0'
+SOURCE_VERSION = yaml.safe_load((ROOT / 'connectors/github/connector.yaml').read_text())['version']
+SOURCE = f'ingestron/connectors/connectors/github/connector.yaml@{SOURCE_VERSION}'
 def installed_package(path, name):
     for parent in path.parents:
         manifest = parent / 'package.json'
@@ -51,8 +52,11 @@ with tempfile.TemporaryDirectory(prefix='source-origin-') as temp:
     subprocess.run(['git','init','-q',str(origin)],check=True)
     subprocess.run(['git','-C',str(origin),'add','.'],check=True)
     subprocess.run(['git','-C',str(origin),'-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','fixture'],check=True)
-    subprocess.run(['git','-C',str(origin),'tag','github-1.33.0'],check=True)
+    subprocess.run(['git','-C',str(origin),'tag',f'github-{SOURCE_VERSION}'],check=True)
     shutil.copyfile(ROOT / 'examples/github/project.yaml', PROJECT / 'project.yaml')
+    project = yaml.safe_load((PROJECT / 'project.yaml').read_text())
+    project['providers']['packages']['github'] = SOURCE
+    (PROJECT / 'project.yaml').write_text(yaml.safe_dump(project, sort_keys=False))
     call('plugin','install','ingestron/provider-local@0.4.1','--cache-only', *(['--from-git',os.environ['INGESTRON_TEST_PROVIDER']] if os.environ.get('INGESTRON_TEST_PROVIDER') else []))
     options=[] if os.environ.get('INGESTRON_TEST_PUBLIC_SOURCE') == '1' else ['--from-git',str(origin)]
     call('plugin','install',SOURCE,'--tag-prefix','github-','--cache-only',*options)

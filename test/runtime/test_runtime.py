@@ -20,6 +20,27 @@ DISCOVERY = {'apiVersion':'ingestron.singer-discovery/v1','identity':{'source':'
 SELECT = {'orders':{'name':'orders','fields':{'id':{'type':'integer','nullable':False},'amount':{'type':'decimal','precision':20,'scale':2,'nullable':True}}}}
 
 class RuntimeTests(unittest.TestCase):
+    def test_reviewed_field_mapping_changes_committed_column(self):
+        import pyarrow.parquet as pq
+        selected = copy.deepcopy(SELECT)
+        selected['orders']['fields']['id']['target'] = 'customer_id'
+        bundle = review(DISCOVERY, selected)
+        properties = bundle['contracts']['orders']['schema'][0]['properties']
+        self.assertIn({'name': 'customer_id', 'physicalName': 'id', 'logicalType': 'integer', 'physicalType': 'BIGINT', 'required': True, 'description': 'Explicit reviewed source projection; no business key inferred.'}, properties)
+        bundle['status'] = 'approved'
+        accepted(bundle, DISCOVERY['identity'])
+        def messages():
+            yield {'type':'SCHEMA','stream':'orders','schema':SCHEMA}
+            yield {'type':'RECORD','stream':'orders','record':{'id':7,'amount':'1.25'}}
+        with tempfile.TemporaryDirectory() as directory:
+            snapshot(directory, 'tenant', 'mapped', bundle['projection'], {}, messages)
+            table = pq.read_table(Path(directory) / 'tenant' / 'mapped' / 'orders.parquet')
+            self.assertEqual(table.column_names, ['customer_id', 'amount'])
+            self.assertEqual(table.to_pylist()[0]['customer_id'], 7)
+        selected['orders']['fields']['amount']['target'] = 'customer_id'
+        with self.assertRaisesRegex(ValueError, 'duplicate target'):
+            review(DISCOVERY, selected)
+
     def test_authored_odcs_metadata_is_preserved_and_projection_checked(self):
         generated = review(DISCOVERY, SELECT)['contracts']
         authored = copy.deepcopy(generated)
