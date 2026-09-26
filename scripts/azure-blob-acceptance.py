@@ -4,6 +4,7 @@ import os,shutil,subprocess,json,tempfile,hashlib,zipfile,sys,yaml
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"test"))
 from azure_blob_fixture import azure_blob_fixture
 ROOT=Path(__file__).resolve().parents[1]
+SOURCE_VERSION=yaml.safe_load((ROOT/'connectors/azure-blob/connector.yaml').read_text())['version']
 CLI=Path(os.environ.get('INGESTRON_TEST_CLI',str(ROOT/'node_modules/ingestron/build/cli/cli/index.js'))).resolve()
 WORK=ROOT/'build/azure-blob-acceptance'
 os.environ['AZURE_STORAGE_SAS']='sv=2023-11-03&sp=rl&se=2030-01-01&spr=https&sig=synthetic'
@@ -28,13 +29,17 @@ with tempfile.TemporaryDirectory() as tmp:
   path=ROOT/name
   if path.is_file():
    target=origin/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(path,target)
- for args in [['git','init','-q'],['git','add','.'],['git','-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','fixture'],['git','tag','azure-blob-1.0.0']]:command(args,origin)
+ for args in [['git','init','-q'],['git','add','.'],['git','-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','fixture'],['git','tag',f'azure-blob-{SOURCE_VERSION}']]:command(args,origin)
  for fmt in ['csv','tsv','json','jsonl','parquet']:
   project=WORK/fmt;project.mkdir()
   with zipfile.ZipFile(ARCHIVE) as archive: archive.extractall(project)
   command(['python3','setup-azure.py','--account','sampleaccount','--format',fmt],project)
+  project_file=project/'project.yaml'
+  project_config=yaml.safe_load(project_file.read_text())
+  project_config['providers']['packages']['files']=f'ingestron/connectors/connectors/azure-blob/connector.yaml@{SOURCE_VERSION}'
+  project_file.write_text(yaml.safe_dump(project_config,sort_keys=False))
   cli(project,'plugin','install','ingestron/provider-local@0.4.1')
-  cli(project,'plugin','install','ingestron/connectors/connectors/azure-blob/connector.yaml@1.0.0','--tag-prefix','azure-blob-',* ([] if PUBLIC else ['--from-git',str(origin)]))
+  cli(project,'plugin','install',f'ingestron/connectors/connectors/azure-blob/connector.yaml@{SOURCE_VERSION}','--tag-prefix','azure-blob-',* ([] if PUBLIC else ['--from-git',str(origin)]))
   cli(project,'check');cli(project,'build');cli(project,'runtime','prepare')
   python=next((project/'.ingestron/runtimes').glob('*/bin/python'))
   site=Path(subprocess.check_output([str(python),'-c','import sysconfig; print(sysconfig.get_paths()["purelib"])'],text=True).strip())
@@ -66,4 +71,4 @@ with tempfile.TemporaryDirectory() as tmp:
     transport.mode['value']='normal';cli(project,'run','--retry',failure)
    assert 'HEAD' in transport.observed and 'GET' in transport.observed
   print(fmt+' installed retail snapshots and retry passed',flush=True)
-(WORK/'evidence.json').write_text(json.dumps({'passed':True,'publicSource':PUBLIC,'cli':json.loads((CLI.parents[3]/'package.json').read_text())['version'],'core':json.loads((CLI.parents[3]/'package.json').read_text())['dependencies']['@ingestron/core'],'provider':'0.4.1','azureBlob':'1.0.0','formats':['csv','tsv','json','jsonl','parquet'],'rowsPerSelectedTable':3,'orderValue':'61.95','unapprovedRejected':True,'malformedRejected':True,'schemaDriftRejected':True,'failedRunRecovered':True,'tamperRejected':True,'cloudAccess':False,'transport':'loopback only','conditionalReadRejected':True,'authFailureRecovered':True},indent=2)+'\n')
+(WORK/'evidence.json').write_text(json.dumps({'passed':True,'publicSource':PUBLIC,'cli':json.loads((CLI.parents[3]/'package.json').read_text())['version'],'core':json.loads((CLI.parents[3]/'package.json').read_text())['dependencies']['@ingestron/core'],'provider':'0.4.1','azureBlob':SOURCE_VERSION,'formats':['csv','tsv','json','jsonl','parquet'],'rowsPerSelectedTable':3,'orderValue':'61.95','unapprovedRejected':True,'malformedRejected':True,'schemaDriftRejected':True,'failedRunRecovered':True,'tamperRejected':True,'cloudAccess':False,'transport':'loopback only','conditionalReadRejected':True,'authFailureRecovered':True},indent=2)+'\n')
