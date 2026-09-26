@@ -10,6 +10,10 @@ and [retail training project](examples/retail/README.md). The current retail
 project uses Files 1.1.0; the immutable Files 1.0.1 training download remains
 available for older projects. No source credentials are needed.
 
+This branch also contains an unreleased Files 1.2.0 candidate that carries reviewed
+source-to-target field names into the local output. The public short name remains
+qualified for Files 1.1.0 until 1.2.0 passes its installed release gate.
+
 Azure Blob 1.0.0 reads the same formats from one selected object, including ADLS
 Gen2 files through the Blob endpoint. Execution stays local. See
 [Azure Blob configuration](docs/azure-blob.md) for SAS authentication and limits.

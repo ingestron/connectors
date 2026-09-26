@@ -74,6 +74,13 @@ file failure without a partial commit. The published `files-1.1.0` source tag
 and shortcut catalogue already point to the qualified connector. Keep the 1.0.1
 retail archive and tag unchanged; its acceptance uses the public 1.0.1 tag.
 
+Files 1.2.0 is the current source candidate for reviewed target-field names. The
+`acceptance:files:tables` script uses the current Files manifest version in its
+local fixture; the separate retail gate continues to use published Files 1.1.0.
+Before tagging 1.2.0, run the ten-file gate with the published CLI 0.16.1/core
+0.12.5 and `INGESTRON_TEST_PROVIDER_VERSION=0.4.2`, then repeat against the
+immutable public Files tag. Add the 1.2.0 catalogue entry only after both pass.
+
 The current [retail example](../examples/retail/README.md) uses Files 1.1.0,
 one connection and three contracted tables. `pnpm package:retail` builds
 `retail-files-1.1.0.zip` from the unchanged fictional fixture bytes and the
