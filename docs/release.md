@@ -136,8 +136,8 @@ have schema/connection construction tests but await live identity qualification.
 ## Core 0.12.6 qualification — 2026-09-27
 
 Files 1.2.0 and local provider 0.4.2 passed installed-package acceptance with
-published core 0.12.6 and the CLI 0.16.2 tarball built from merged CLI commit
-84471eb. CLI npm publication is pending its separate authentication approval.
+published npm core 0.12.6 and CLI 0.16.2 (merged CLI commit 84471eb).
+Both acceptance suites were repeated using the registry-installed CLI.
 The unchanged public Files tag passed ten files across CSV, TSV, JSON, JSONL and
 Parquet with contract-derived parser types. The unchanged public local provider
 passed managed execution, environment sharing, review, extraction, retry and
