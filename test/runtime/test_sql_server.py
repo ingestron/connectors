@@ -54,6 +54,14 @@ def settings(method="sql-password"):
 
 
 class SqlServer(unittest.TestCase):
+    def test_safe_error_crosses_runtime_boundary(self):
+        from sql_server_reader import SQLSourceError
+        with patch.object(runtime, 'read_sql', side_effect=SQLSourceError('SQL_CONNECT', 'private details')):
+            with self.assertRaises(singer_runtime.SourceError) as caught:
+                runtime.scan({})
+        self.assertEqual(caught.exception.code, 'SQL_CONNECT')
+        self.assertNotIn('private details', str(caught.exception))
+
     def test_multi_table_binding_and_reviewed_streams(self):
         project = {"tables": {
             "products": {"source": {"schema": "dbo", "table": "Products", "stream": "products"},
