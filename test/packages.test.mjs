@@ -142,11 +142,11 @@ test("official catalogue contains only qualified exact releases and stable ident
   assert.equal(c.plugins.local.tagPrefix, "");
   assert.deepEqual(c.plugins.local.releases.at(-1), {
     version: "0.4.2",
-    coreVersions: ["0.12.5"],
+    coreVersions: ["0.12.5", "0.12.6"],
   });
   assert.deepEqual(c.plugins.files.releases.at(-1), {
     version: "1.2.0",
-    coreVersions: ["0.12.5"],
+    coreVersions: ["0.12.5", "0.12.6"],
   });
   for (const p of Object.values(c.plugins)) {
     assert.ok(

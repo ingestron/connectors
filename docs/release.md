@@ -132,3 +132,14 @@ retry. Its generated project, source output and local transcript are ignored und
 `build/`. SQL password was live-qualified with 1.0.0; the 1.1.0 multi-table path
 has installed synthetic acceptance but awaits a live read. The three Entra modes
 have schema/connection construction tests but await live identity qualification.
+
+## Core 0.12.6 qualification — 2026-09-27
+
+Files 1.2.0 and local provider 0.4.2 passed installed-package acceptance with
+published core 0.12.6 and the CLI 0.16.2 tarball built from merged CLI commit
+84471eb. CLI npm publication is pending its separate authentication approval.
+The unchanged public Files tag passed ten files across CSV, TSV, JSON, JSONL and
+Parquet with contract-derived parser types. The unchanged public local provider
+passed managed execution, environment sharing, review, extraction, retry and
+status acceptance in its owning repository. Catalogue entries add core 0.12.6;
+no plugin source tag is moved. Evidence is synthetic and local.
