@@ -21,3 +21,8 @@ SQL password authentication is the live-tested mode. Entra modes remain
 unqualified. Discovery is limited to selected table columns; source-wide browsing
 is not implied. Public catalogue qualification and installed registry CLI checks
 follow publication of core 0.12.7 and its matching CLI.
+
+Core 0.12.7 is now published. CLI 0.17.0 built against that exact registry
+dependency also passed the public Files 1.2.0/local 0.4.3 ten-table acceptance
+across CSV, TSV, JSON, JSONL and Parquet, including failure recovery. The catalogue
+qualifies Files 1.2.0, local 0.4.3 and SQL Server 1.2.0 for core 0.12.7.
