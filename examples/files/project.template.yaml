@@ -1,8 +1,8 @@
 apiVersion: ingestron.project/v1
 id: two_local_files
 packages:
-  local: local@0.4.1
-  files: files@1.1.0
+  local: local@0.4.3
+  files: files@1.2.0
 providers:
   configurations:
     local:

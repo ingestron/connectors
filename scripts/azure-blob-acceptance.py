@@ -11,7 +11,7 @@ os.environ['AZURE_STORAGE_SAS']='sv=2023-11-03&sp=rl&se=2030-01-01&spr=https&sig
 if WORK.exists():shutil.rmtree(WORK)
 WORK.mkdir(parents=True)
 PUBLIC=os.environ.get('INGESTRON_TEST_PUBLIC_SOURCE')=='1'
-ARCHIVE=Path(os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE',str(ROOT/'build/release/azure-blob-retail-1.0.0.zip')))
+ARCHIVE=Path(os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE',str(ROOT/'build/release/azure-blob-retail-1.1.0.zip')))
 if not os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE'):
  subprocess.run(['python3',str(ROOT/'scripts/package-azure-retail.py')],cwd=ROOT,check=True)
 records=[]
@@ -38,7 +38,7 @@ with tempfile.TemporaryDirectory() as tmp:
   project_config=yaml.safe_load(project_file.read_text())
   project_config['providers']['packages']['files']=f'ingestron/connectors/connectors/azure-blob/connector.yaml@{SOURCE_VERSION}'
   project_file.write_text(yaml.safe_dump(project_config,sort_keys=False))
-  cli(project,'plugin','install','ingestron/provider-local@0.4.1')
+  cli(project,'plugin','install','ingestron/provider-local@0.4.3')
   cli(project,'plugin','install',f'ingestron/connectors/connectors/azure-blob/connector.yaml@{SOURCE_VERSION}','--tag-prefix','azure-blob-',* ([] if PUBLIC else ['--from-git',str(origin)]))
   cli(project,'check');cli(project,'build');cli(project,'runtime','prepare')
   python=next((project/'.ingestron/runtimes').glob('*/bin/python'))
@@ -71,4 +71,4 @@ with tempfile.TemporaryDirectory() as tmp:
     transport.mode['value']='normal';cli(project,'run','--retry',failure)
    assert 'HEAD' in transport.observed and 'GET' in transport.observed
   print(fmt+' installed retail snapshots and retry passed',flush=True)
-(WORK/'evidence.json').write_text(json.dumps({'passed':True,'publicSource':PUBLIC,'cli':json.loads((CLI.parents[3]/'package.json').read_text())['version'],'core':json.loads((CLI.parents[3]/'package.json').read_text())['dependencies']['@ingestron/core'],'provider':'0.4.1','azureBlob':SOURCE_VERSION,'formats':['csv','tsv','json','jsonl','parquet'],'rowsPerSelectedTable':3,'orderValue':'61.95','unapprovedRejected':True,'malformedRejected':True,'schemaDriftRejected':True,'failedRunRecovered':True,'tamperRejected':True,'cloudAccess':False,'transport':'loopback only','conditionalReadRejected':True,'authFailureRecovered':True},indent=2)+'\n')
+(WORK/'evidence.json').write_text(json.dumps({'passed':True,'publicSource':PUBLIC,'cli':json.loads((CLI.parents[3]/'package.json').read_text())['version'],'core':json.loads((CLI.parents[3]/'package.json').read_text())['dependencies']['@ingestron/core'],'provider':'0.4.3','azureBlob':SOURCE_VERSION,'formats':['csv','tsv','json','jsonl','parquet'],'rowsPerSelectedTable':3,'orderValue':'61.95','unapprovedRejected':True,'malformedRejected':True,'schemaDriftRejected':True,'failedRunRecovered':True,'tamperRejected':True,'cloudAccess':False,'transport':'loopback only','conditionalReadRejected':True,'authFailureRecovered':True},indent=2)+'\n')

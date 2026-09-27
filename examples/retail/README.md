@@ -1,7 +1,7 @@
 # Read the retail files
 
 This fictional NZ retailer has three customers, three products and three orders.
-The current project uses Files 1.1.0: one local-files connection serves three
+The current project uses Files 1.2.0: one local-files connection serves three
 tables in one ingestion flow. Each table names its file and has a separate ODCS
 data contract. The output is three Parquet snapshots, with an order value of
 NZD 61.95. The inspection script calculates that value; the connector does not
@@ -9,15 +9,15 @@ join or transform the tables.
 
 Follow the [manual retail tutorial](https://docs.ingestron.io/docs/tutorials/retail-files)
 to write the project and contracts yourself. The files here are a completed
-example you can compare with your work. Use CLI 0.15.1, local provider 0.4.1,
+example you can compare with your work. Use CLI 0.17.0, local provider 0.4.3,
 Git and Python 3.12 on macOS or Linux. No cloud account or credential is needed.
 
 For a quick run in a fresh copy of this directory:
 
 ```sh
 python3 setup.py
-ingestron provider install local@0.4.1
-ingestron connector install files@1.1.0
+ingestron provider install local@0.4.3
+ingestron connector install files@1.2.0
 ingestron check
 ingestron build
 ingestron runtime prepare

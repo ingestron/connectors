@@ -143,3 +143,16 @@ Parquet with contract-derived parser types. The unchanged public local provider
 passed managed execution, environment sharing, review, extraction, retry and
 status acceptance in its owning repository. Catalogue entries add core 0.12.6;
 no plugin source tag is moved. Evidence is synthetic and local.
+
+## Core 0.12.7 qualification — 2026-09-28
+
+CLI 0.17.0/core 0.12.7 could not install GitHub or Azure Blob because no qualified
+release listed that core. `main` already held unreleased GitHub 1.33.1 and Azure
+Blob 1.1.0 (reviewed target field names). With the pinned `ingestron@0.17.0` and
+local provider 0.4.3, `pnpm acceptance`, `pnpm acceptance:azure-blob` (five
+formats), `pnpm acceptance:files:tables` and `pnpm acceptance:retail` pass on the
+candidate tree. Release `github-1.33.1`, `azure-blob-1.1.0` with
+`azure-blob-retail-1.1.0.zip`, and `retail-1.2.0` with `retail-files-1.2.0.zip`;
+then repeat with `INGESTRON_TEST_PUBLIC_SOURCE=1` from the public tags. The
+catalogue qualifies GitHub 1.33.1 and Azure Blob 1.1.0 for core 0.12.7 only.
+Published 1.0.0/1.1.0 downloads and tags stay unchanged.
