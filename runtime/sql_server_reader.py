@@ -15,6 +15,12 @@ _USER = re.compile(r"[A-Za-z0-9_@.\\$-]{1,128}\Z")
 _GUID = re.compile(r"[0-9a-fA-F-]{36}\Z")
 
 
+class SQLSourceError(ValueError):
+    def __init__(self, code, message):
+        self.code = code
+        super().__init__(message)
+
+
 def require(condition, message):
     if not condition:
         raise ValueError(message)
@@ -112,7 +118,8 @@ def metadata(cursor, schema, table, selected):
         JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
         WHERE s.name = ? AND t.name = ? ORDER BY c.column_id""", (schema, table))
     rows = cursor.fetchall()
-    require(rows, "SQL table absent or metadata not visible to this identity")
+    if not rows:
+        raise SQLSourceError("SQL_TABLE", "SQL table absent or metadata not visible to this identity")
     names = [r[0] for r in rows]
     require(len(names) == len(set(names)), "Duplicate SQL column name")
     chosen = selected or names
@@ -149,7 +156,7 @@ def scan(settings, emit=None, connect=None):
     try:
         db = connect(conn_string, timeout=65)
     except Exception:
-        raise ValueError("SQL connection failed; check access, credentials and TLS") from None
+        raise SQLSourceError("SQL_CONNECT", "SQL connection failed; check access, credentials and TLS") from None
     try:
         cursor = db.cursor()
         fields = metadata(cursor, schema, table, selected)
@@ -174,6 +181,6 @@ def scan(settings, emit=None, connect=None):
     except ValueError:
         raise
     except Exception:
-        raise ValueError("SQL read failed; check table permissions and source availability") from None
+        raise SQLSourceError("SQL_READ", "SQL read failed; check table permissions and source availability") from None
     finally:
         db.close()

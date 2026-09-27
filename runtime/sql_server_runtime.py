@@ -3,7 +3,21 @@ import tempfile
 
 import snapshot_runtime as workflow
 from singer_bridge import canonical, digest
-from sql_server_reader import scan
+from sql_server_reader import scan as read_sql, SQLSourceError
+
+workflow.ERRORS.update({
+ 'SQL_CONNECT': 'Cannot connect to SQL. Check network access, credentials and TLS. If the database was paused, wait for it to resume before retrying.',
+ 'SQL_READ': 'SQL read failed. Check table permissions and source availability.',
+ 'SQL_TABLE': 'SQL table is absent or its metadata is not visible. Check schema, table and metadata permissions.',
+
+})
+
+
+def scan(*args, **kwargs):
+    try:
+        return read_sql(*args, **kwargs)
+    except SQLSourceError as error:
+        raise workflow.SourceError(error.code) from None
 
 
 def source_config(config):

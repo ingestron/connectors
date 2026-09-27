@@ -141,18 +141,20 @@ test("official catalogue contains only qualified exact releases and stable ident
   assert.equal(c.plugins.local.path, "plugin/provider.yaml");
   assert.equal(c.plugins.local.tagPrefix, "");
   assert.deepEqual(c.plugins.local.releases.at(-1), {
-    version: "0.4.2",
-    coreVersions: ["0.12.5", "0.12.6"],
+    version: "0.4.3",
+    coreVersions: ["0.12.7"],
   });
   assert.deepEqual(c.plugins.files.releases.at(-1), {
     version: "1.2.0",
-    coreVersions: ["0.12.5", "0.12.6"],
+    coreVersions: ["0.12.5", "0.12.6", "0.12.7"],
   });
   for (const p of Object.values(c.plugins)) {
     assert.ok(
       p.releases
         .at(-1)
-        .coreVersions.some((version) => ["0.12.4", "0.12.5"].includes(version)),
+        .coreVersions.some((version) =>
+          ["0.12.4", "0.12.5", "0.12.6", "0.12.7"].includes(version),
+        ),
       "Every latest official shortcut must retain a qualified published core",
     );
     assert.equal(
