@@ -11,7 +11,7 @@ run arbitrary SQL or write to the database.
 Install the exact source release with:
 
 ```sh
-ingestron connector install sql-server@1.1.0
+ingestron connector install sql-server@1.2.0
 ```
 
 Use a separate account with `SELECT` permission on the chosen tables and enough
@@ -23,8 +23,8 @@ Add the packages, connection and flow tables to your project:
 
 ```yaml
 packages:
-  local: local@0.4.1
-  sql-server: sql-server@1.1.0
+  local: local@0.4.3
+  sql-server: sql-server@1.2.0
 connections:
   northwind:
     package: sql-server

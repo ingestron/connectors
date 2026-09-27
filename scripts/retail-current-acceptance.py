@@ -9,7 +9,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 CLI = Path(os.environ.get('INGESTRON_TEST_CLI', ROOT / 'node_modules/ingestron/build/cli/cli/index.js')).resolve()
-ARCHIVE = Path(os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE', ROOT / 'build/release/retail-files-1.1.0.zip')).resolve()
+ARCHIVE = Path(os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE', ROOT / 'build/release/retail-files-1.2.0.zip')).resolve()
 WORK = ROOT / 'build/retail-current-acceptance'
 shutil.rmtree(WORK, ignore_errors=True)
 WORK.mkdir(parents=True)
@@ -39,8 +39,8 @@ for fmt in ['csv', 'tsv', 'json', 'jsonl', 'parquet']:
     with zipfile.ZipFile(ARCHIVE) as downloaded:
         downloaded.extractall(project)
     command(project, ['python3', 'setup.py', '--format', fmt])
-    cli(project, 'provider', 'install', 'local@0.4.1')
-    cli(project, 'connector', 'install', 'files@1.1.0')
+    cli(project, 'provider', 'install', 'local@0.4.3')
+    cli(project, 'connector', 'install', 'files@1.2.0')
     cli(project, 'check')
     cli(project, 'build')
     cli(project, 'runtime', 'prepare')
@@ -77,7 +77,7 @@ evidence = {
     'archiveSha256': archive_hash,
     'cli': json.loads((CLI.parents[3] / 'package.json').read_text())['version'],
     'core': json.loads((CLI.parents[3] / 'package.json').read_text())['dependencies']['@ingestron/core'],
-    'provider': '0.4.1',
+    'provider': '0.4.3',
     'files': '1.1.0',
     'formats': ['csv', 'tsv', 'json', 'jsonl', 'parquet'],
     'tables': ['customers', 'products', 'orders'],

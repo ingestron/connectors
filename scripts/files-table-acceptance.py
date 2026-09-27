@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CLI = Path(os.environ.get('INGESTRON_TEST_CLI', ROOT / 'node_modules/ingestron/build/cli/cli/index.js')).resolve()
 PUBLIC = os.environ.get('INGESTRON_TEST_PUBLIC_SOURCE') == '1'
 FILES_VERSION = yaml.safe_load((ROOT / 'connectors/files/connector.yaml').read_text())['version']
-PROVIDER_VERSION = os.environ.get('INGESTRON_TEST_PROVIDER_VERSION', '0.4.1')
+PROVIDER_VERSION = os.environ.get('INGESTRON_TEST_PROVIDER_VERSION', '0.4.3')
 WORK = ROOT / 'build/files-table-acceptance'
 shutil.rmtree(WORK, ignore_errors=True)
 WORK.mkdir(parents=True)

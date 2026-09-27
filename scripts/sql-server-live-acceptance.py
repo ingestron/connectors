@@ -49,7 +49,7 @@ with tempfile.TemporaryDirectory() as tmp:
                                '__SQL_PORT__': private['port'], '__SQL_USERNAME__': private['user']}.items():
         text = text.replace(placeholder, json.dumps(value))
     (WORK / 'project.yaml').write_text(text)
-    cli('plugin', 'install', 'ingestron/provider-local@0.4.1')
+    cli('plugin', 'install', 'ingestron/provider-local@0.4.3')
     cli('plugin', 'install', 'ingestron/connectors/connectors/sql-server/connector.yaml@1.1.0',
         '--tag-prefix', 'sql-server-', *([] if PUBLIC else ['--from-git', str(origin)]))
     cli('check')

@@ -57,7 +57,7 @@ with tempfile.TemporaryDirectory(prefix='source-origin-') as temp:
     project = yaml.safe_load((PROJECT / 'project.yaml').read_text())
     project['providers']['packages']['github'] = SOURCE
     (PROJECT / 'project.yaml').write_text(yaml.safe_dump(project, sort_keys=False))
-    call('plugin','install','ingestron/provider-local@0.4.1','--cache-only', *(['--from-git',os.environ['INGESTRON_TEST_PROVIDER']] if os.environ.get('INGESTRON_TEST_PROVIDER') else []))
+    call('plugin','install','ingestron/provider-local@0.4.3','--cache-only', *(['--from-git',os.environ['INGESTRON_TEST_PROVIDER']] if os.environ.get('INGESTRON_TEST_PROVIDER') else []))
     options=[] if os.environ.get('INGESTRON_TEST_PUBLIC_SOURCE') == '1' else ['--from-git',str(origin)]
     call('plugin','install',SOURCE,'--tag-prefix','github-','--cache-only',*options)
     call('check')
@@ -104,6 +104,6 @@ with tempfile.TemporaryDirectory(prefix='source-origin-') as temp:
         files[0].write_bytes(output)
         with (PROJECT/'project.yaml').open('a') as file: file.write('\n# stale\n')
         call('run','--retry','issues-001',ok=False)
-    evidence={'passed':True,'cli':cli_package['version'],'core':core_package['version'],'node':subprocess.check_output(['node','--version'],text=True).strip(),'provider':'0.4.1','source':'1.33.0','authentication':'anonymous','transport':'loopback synthetic HTTP','rows':rows,'pagination':True,'unapprovedRejected':True,'sourceFreeRetry':True,'tamperRejected':True,'staleRejected':True,'emptySnapshot':True,'httpFailuresRejected':True,'partialFailureRecovered':True,'liveGitHub':False}
+    evidence={'passed':True,'cli':cli_package['version'],'core':core_package['version'],'node':subprocess.check_output(['node','--version'],text=True).strip(),'provider':'0.4.3','source':SOURCE_VERSION,'authentication':'anonymous','transport':'loopback synthetic HTTP','rows':rows,'pagination':True,'unapprovedRejected':True,'sourceFreeRetry':True,'tamperRejected':True,'staleRejected':True,'emptySnapshot':True,'httpFailuresRejected':True,'partialFailureRecovered':True,'liveGitHub':False}
     (PROJECT/'evidence.json').write_text(json.dumps(evidence,indent=2)+'\n')
     print('Installed GitHub connector: pagination, reviewed Parquet, source-free retry, tamper/stale rejection passed')

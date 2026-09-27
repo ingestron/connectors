@@ -1,13 +1,13 @@
 # Read local files
 
-Files 1.1.0 reads several local files through one reusable connection. Each
+Files 1.2.0 reads several local files through one reusable connection. Each
 `flows[].tables` entry chooses its file and format; its reviewed ODCS data
 contract chooses the output columns and their types. The local provider writes
 reviewed full snapshots. This connector does not watch directories or apply
 incremental changes.
 
 ```sh
-ingestron connector install files@1.1.0
+ingestron connector install files@1.2.0
 ```
 
 Use [this two-file project](../examples/files/project.template.yaml) as a starting
@@ -46,7 +46,7 @@ segments are rejected. `source.format` is `csv`, `tsv`, `json`, `jsonl` or
 rebuilding/reviewing the flow. The generated project lock binds each path, format
 and contract to the run.
 
-There is no separate `types` map in Files 1.1.0. The runtime derives parser
+There is no separate `types` map in Files 1.1.0 or later. The runtime derives parser
 types from each table's contracted columns: string, integer, decimal, number
 and boolean are supported. A selected DATE, TIMESTAMP or BINARY column fails
 before file access because this file reader has no supported conversion for it.
@@ -82,7 +82,7 @@ These are preview bounds, not a throughput claim. File metadata changes during a
 read fail; callers must still supply stable files, not concurrent writers.
 
 Files 1.0.1 remains immutable and works with its one-file-per-connection layout.
-The [current retail exercise](../examples/retail/README.md) uses 1.1.0 and one
+The [current retail exercise](../examples/retail/README.md) uses 1.2.0 and one
 connection for three tables. Older downloaded exercises keep their original
 layout; installing a new version does not rewrite their connections or contracts.
 
