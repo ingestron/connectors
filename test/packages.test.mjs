@@ -144,30 +144,30 @@ test("official catalogue contains only qualified exact releases and stable ident
   assert.equal(c.plugins.local.tagPrefix, "");
   assert.deepEqual(c.plugins.local.releases.at(-1), {
     version: "0.4.3",
-    coreVersions: ["0.12.7"],
+    coreVersions: ["0.12.7", "0.12.8"],
   });
   for (const [name, repository, version] of [
-    ["adf", "ingestron/provider-adf", "4.2.0"],
-    ["databricks", "ingestron/provider-databricks", "3.2.0"],
+    ["adf", "ingestron/provider-adf", "4.3.1"],
+    ["databricks", "ingestron/provider-databricks", "3.3.0"],
   ]) {
     assert.equal(c.plugins[name].repository, repository);
     assert.equal(c.plugins[name].path, "plugin/provider.yaml");
     assert.equal(c.plugins[name].tagPrefix, "");
     assert.deepEqual(c.plugins[name].releases.at(-1), {
       version,
-      coreVersions: ["0.12.7"],
+      coreVersions: ["0.12.8"],
     });
   }
   assert.deepEqual(c.plugins.files.releases.at(-1), {
     version: "1.2.0",
-    coreVersions: ["0.12.5", "0.12.6", "0.12.7"],
+    coreVersions: ["0.12.5", "0.12.6", "0.12.7", "0.12.8"],
   });
   for (const p of Object.values(c.plugins)) {
     assert.ok(
       p.releases
         .at(-1)
         .coreVersions.some((version) =>
-          ["0.12.4", "0.12.5", "0.12.6", "0.12.7"].includes(version),
+          ["0.12.4", "0.12.5", "0.12.6", "0.12.7", "0.12.8"].includes(version),
         ),
       "Every latest official shortcut must retain a qualified published core",
     );
