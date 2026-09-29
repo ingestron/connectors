@@ -6,6 +6,7 @@ import { azureBlobSettings } from "../src/azure-blob-settings.mjs";
 import {
   selectionSchema,
   runtimeContract,
+  quality,
 } from "../src/connection-contract.mjs";
 const sha = (v) => createHash("sha256").update(v).digest("hex");
 const read = (p) => readFileSync(p, "utf8");
@@ -16,6 +17,7 @@ const files = {
   "snapshot_runtime.py": read("runtime/singer_runtime.py"),
   "files_reader.py": read("runtime/files_reader.py"),
   "singer_bridge.py": read("runtime/singer_bridge.py"),
+  "quality_rules.py": read("runtime/quality_rules.py"),
   "singer_inventory.py": read("runtime/singer_inventory.py"),
   "connectors.json": JSON.stringify([
     {
@@ -56,7 +58,7 @@ writeFileSync(dir + "/UPSTREAM-LICENSE.txt", files["UPSTREAM-LICENSE.txt"]);
 const manifest = {
   apiVersion: "ingestron.connector/v1",
   id: "azure-blob",
-  version: "1.1.0",
+  version: "1.2.0",
   description: "Reviewed local snapshots from one Azure Blob or ADLS Gen2 file",
   connector: "singer:azure-blob@23.0.1",
   documentation:
@@ -76,6 +78,7 @@ const manifest = {
     sha256: sha(content),
     contract: runtimeContract,
   },
+  quality,
   definition: { settingsSchema: azureBlobSettings, selectionSchema },
   execution: {
     local: {

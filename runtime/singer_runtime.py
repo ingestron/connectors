@@ -13,6 +13,7 @@ import tempfile
 import threading
 from decimal import Decimal
 from singer_bridge import canonical, digest, file_digest, safe_name, arrow_type, snapshot
+from quality_rules import QualityFailed
 
 VERSION = '0.4.0'
 
@@ -344,7 +345,13 @@ def execute(config, folder, output, run_id, raw_config=None):
                 # Schema numeric metadata uses canonical standard JSON.
                 value = json.loads(line)
             yield value
-    return snapshot(output, namespace, run_id, contract, {**identity,'reviewSha256':digest(bundle)}, messages)
+    # Authored ODCS contracts carry the quality rules for each committed stream.
+    rules = {}
+    for stream in bundle['catalog']['streams']:
+        spec = bundle['selection'].get(stream['tap_stream_id'])
+        if spec is not None:
+            rules[stream.get('stream') or stream['tap_stream_id']] = bundle['contracts'][spec['name']]
+    return snapshot(output, namespace, run_id, contract, {**identity,'reviewSha256':digest(bundle)}, messages, rules=rules)
 
 
 def main():
@@ -381,11 +388,17 @@ def main():
             check(args.output is not None, 'Explicit output path required')
             check(args.run_id is not None, 'Explicit stable run ID required')
             receipt = execute(config, folder, args.output, args.run_id)
-            print(canonical({'status':'Succeeded','identity':receipt['identity'],'tables':receipt['tables']})); return
+            print(canonical({'status':'Succeeded','identity':receipt['identity'],'tables':receipt['tables'],
+                             **({'quality':receipt['quality']} if 'quality' in receipt else {})})); return
         check(args.output is not None, 'Explicit output path required')
         # Never overwrite an existing discovery/review file silently.
         with Path(args.output).open('x') as target: target.write(canonical(result)+'\n')
         print(canonical({'status':'Succeeded','applied':False}))
+    except QualityFailed as error:
+        # Rule identities and counts only; row values never leave the runtime.
+        print(canonical({'status':'Failed','errorCode':'QUALITY_FAILED','error':str(error),
+                         'failed':[{'id':r['id'],'stream':r['stream'],'metric':r['metric'],'value':r['value']} for r in error.results[:20]]}))
+        raise SystemExit(1) from None
     except SourceError as error:
         print(canonical({'status':'Failed','errorCode':error.code,'error':ERRORS[error.code]}))
         raise SystemExit(1) from None

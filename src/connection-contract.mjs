@@ -1,5 +1,17 @@
 import { object, text } from "./shape.mjs";
 export const runtimeContract = "ingestron.snapshot/python/v1";
+// ODCS library rules the shared runtime evaluates on staged output before commit.
+export const quality = {
+  library: {
+    nullValues: "at-load",
+    missingValues: "at-load",
+    invalidValues: "at-load",
+    duplicateValues: "at-load",
+    rowCount: "at-load",
+  },
+  sql: "unsupported",
+  engines: [],
+};
 const field = object(
   {
     type: {

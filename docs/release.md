@@ -156,3 +156,15 @@ candidate tree. Release `github-1.33.1`, `azure-blob-1.1.0` with
 then repeat with `INGESTRON_TEST_PUBLIC_SOURCE=1` from the public tags. The
 catalogue qualifies GitHub 1.33.1 and Azure Blob 1.1.0 for core 0.12.7 only.
 Published 1.0.0/1.1.0 downloads and tags stay unchanged.
+
+## Contract quality checks — core 0.12.10
+
+Files 1.3.0, SQL Server 1.3.0, Azure Blob 1.2.0 and GitHub 1.34.0 share a runtime
+that evaluates ODCS library quality rules on staged Parquet before `commit.json`
+is written. Their manifests declare `quality`, which core 0.12.9 and earlier
+reject, so the catalogue qualifies them for core 0.12.10 onwards only. Qualify
+with the published CLI pinned in package.json: `pnpm acceptance`,
+`pnpm acceptance:azure-blob`, `pnpm acceptance:files:tables` and
+`pnpm acceptance:retail`, where the retail gate also proves that a duplicate
+primary key fails with nothing committed and a warning rule commits and is
+recorded in the receipt.
