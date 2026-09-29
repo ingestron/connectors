@@ -95,6 +95,28 @@
           "coreVersions": ["0.12.7"]
         }
       ]
+    },
+    "adf": {
+      "repository": "ingestron/provider-adf",
+      "path": "plugin/provider.yaml",
+      "tagPrefix": "",
+      "releases": [
+        {
+          "version": "4.2.0",
+          "coreVersions": ["0.12.7"]
+        }
+      ]
+    },
+    "databricks": {
+      "repository": "ingestron/provider-databricks",
+      "path": "plugin/provider.yaml",
+      "tagPrefix": "",
+      "releases": [
+        {
+          "version": "3.2.0",
+          "coreVersions": ["0.12.7"]
+        }
+      ]
     }
   }
 }

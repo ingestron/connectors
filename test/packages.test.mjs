@@ -128,7 +128,9 @@ test("official catalogue contains only qualified exact releases and stable ident
   const c = JSON.parse(readFileSync("catalogue.json", "utf8"));
   assert.equal(c.apiVersion, "ingestron.catalogue/v1");
   assert.deepEqual(Object.keys(c.plugins).sort(), [
+    "adf",
     "azure-blob",
+    "databricks",
     "files",
     "github",
     "local",
@@ -144,6 +146,18 @@ test("official catalogue contains only qualified exact releases and stable ident
     version: "0.4.3",
     coreVersions: ["0.12.7"],
   });
+  for (const [name, repository, version] of [
+    ["adf", "ingestron/provider-adf", "4.2.0"],
+    ["databricks", "ingestron/provider-databricks", "3.2.0"],
+  ]) {
+    assert.equal(c.plugins[name].repository, repository);
+    assert.equal(c.plugins[name].path, "plugin/provider.yaml");
+    assert.equal(c.plugins[name].tagPrefix, "");
+    assert.deepEqual(c.plugins[name].releases.at(-1), {
+      version,
+      coreVersions: ["0.12.7"],
+    });
+  }
   assert.deepEqual(c.plugins.files.releases.at(-1), {
     version: "1.2.0",
     coreVersions: ["0.12.5", "0.12.6", "0.12.7"],
