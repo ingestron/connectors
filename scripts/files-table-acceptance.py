@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CLI = Path(os.environ.get('INGESTRON_TEST_CLI', ROOT / 'node_modules/ingestron/build/cli/cli/index.js')).resolve()
 PUBLIC = os.environ.get('INGESTRON_TEST_PUBLIC_SOURCE') == '1'
 FILES_VERSION = yaml.safe_load((ROOT / 'connectors/files/connector.yaml').read_text())['version']
-PROVIDER_VERSION = os.environ.get('INGESTRON_TEST_PROVIDER_VERSION', '0.4.3')
+PROVIDER_VERSION = os.environ.get('INGESTRON_TEST_PROVIDER_VERSION', '0.4.4')
 WORK = ROOT / 'build/files-table-acceptance'
 shutil.rmtree(WORK, ignore_errors=True)
 WORK.mkdir(parents=True)
@@ -77,6 +77,14 @@ for fmt in ['csv', 'tsv', 'json', 'jsonl', 'parquet']:
         tables[table] = {'source': {'path': str(path.resolve()), 'format': fmt},
                          'contract': contract(table, columns)}
 
+# Contract quality rules checked before commit: a key on CSV customers and a
+# warning-severity row-count rule on CSV orders (one row, so it warns).
+csv_customers = tables['customers_csv']['contract']['schema'][0]
+csv_customers['properties'] = [dict(p, primaryKey=True) if p['name'] == 'customer_id' else p
+                               for p in csv_customers['properties']]
+tables['orders_csv']['contract']['schema'][0]['quality'] = [
+    {'id': 'orders-volume', 'metric': 'rowCount', 'mustBeGreaterThan': 1, 'severity': 'warning'}]
+
 project = {
     'apiVersion': 'ingestron.project/v1', 'id': 'files_multitable',
     'packages': {'local': f'local@{PROVIDER_VERSION}', 'files': f'files@{FILES_VERSION}'},
@@ -108,7 +116,9 @@ with tempfile.TemporaryDirectory(prefix='files-candidate-') as temporary:
     cli('provider', 'install', f'ingestron/provider-local@{PROVIDER_VERSION}')
     cli('connector', 'install', f'ingestron/connectors/connectors/files/connector.yaml@{FILES_VERSION}',
         '--tag-prefix', 'files-', *([] if PUBLIC else ['--from-git', str(origin)]))
-    cli('check')
+    checked = cli('check')
+    assert checked['result']['quality']['summary'] == {
+        'rules': 3, 'atLoad': 3, 'afterLoad': 0, 'unsupported': 0, 'documentation': 0}, checked
     cli('build')
     cli('runtime', 'prepare')
     cli('run', '--action', 'discover')
@@ -117,6 +127,13 @@ with tempfile.TemporaryDirectory(prefix='files-candidate-') as temporary:
     run = cli('run', '--run-id', 'files-001')
     assert {table['stream']: table['rows'] for table in run['result']['result']['flows'][0]['tables']} == {
         name: 1 for name in tables}, run
+    quality = {r['id']: r for r in run['result']['result']['flows'][0]['quality']}
+    assert set(quality) == {'customers_csv.customer_id.key-not-null', 'customers_csv.key-unique',
+                            'orders-volume'}, quality
+    assert quality['orders-volume']['passed'] is False and quality['orders-volume']['value'] == 1
+    assert all(r['passed'] for r in quality.values() if r['outcome'] == 'fail')
+    receipt, = (PROJECT / 'build/generated/data').rglob('files-001/commit.json')
+    assert json.loads(receipt.read_text())['quality'] == run['result']['result']['flows'][0]['quality']
     snapshots = {path.stem: parquet.read_table(path).to_pylist()
                  for path in (PROJECT / 'build/generated/data').rglob('*.parquet')}
     assert snapshots == {table: expected_rows[table.split('_')[0]] for table in tables}, snapshots
@@ -132,11 +149,27 @@ with tempfile.TemporaryDirectory(prefix='files-candidate-') as temporary:
     assert not list((PROJECT / 'build/generated/data').rglob('files-later-input-failure/commit.json'))
     later_file.write_bytes(original)
     cli('run', '--retry', 'files-later-input-failure')
+    customers_file = PROJECT / 'customers.csv'
+    original = customers_file.read_bytes()
+    customers_file.write_text('customer_id,name\n1,Ada\n1,Grace\n')
+    duplicate = subprocess.run(
+        ['node', str(CLI), '--project', str(PROJECT), '--json', '--no-input',
+         'run', '--run-id', 'files-duplicate-key'],
+        cwd=PROJECT, capture_output=True, text=True, timeout=1200,
+    )
+    assert duplicate.returncode != 0, duplicate.stdout
+    assert 'customers_csv.key-unique (1)' in duplicate.stdout, duplicate.stdout
+    assert 'Grace' not in duplicate.stdout + duplicate.stderr
+    assert not list((PROJECT / 'build/generated/data').rglob('files-duplicate-key/*'))
+    customers_file.write_bytes(original)
+    cli('run', '--retry', 'files-duplicate-key')
     evidence = {'passed': True, 'cli': json.loads((CLI.parents[3] / 'package.json').read_text())['version'],
                 'core': json.loads((CLI.parents[3] / 'package.json').read_text())['dependencies']['@ingestron/core'],
                 'provider': PROVIDER_VERSION, 'files': FILES_VERSION, 'tables': list(tables),
                 'formats': ['csv', 'tsv', 'json', 'jsonl', 'parquet'],
                 'rowsPerTable': 1, 'laterFileFailureRejected': True,
-                'failedRunRecovered': True, 'publicSource': PUBLIC, 'cloudAccess': False}
+                'failedRunRecovered': True, 'duplicateKeyRejectedWithoutCommit': True,
+                'warningRuleCommittedAndRecorded': True, 'qualityRules': sorted(quality),
+                'publicSource': PUBLIC, 'cloudAccess': False}
     (WORK / 'evidence.json').write_text(json.dumps(evidence, indent=2) + '\n')
     print('Installed ten-file snapshot across five formats and ODCS-derived parser types passed')
