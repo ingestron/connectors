@@ -143,8 +143,8 @@ test("official catalogue contains only qualified exact releases and stable ident
   assert.equal(c.plugins.local.path, "plugin/provider.yaml");
   assert.equal(c.plugins.local.tagPrefix, "");
   assert.deepEqual(c.plugins.local.releases.at(-1), {
-    version: "0.4.3",
-    coreVersions: ["0.12.7", "0.12.8", "0.12.9"],
+    version: "0.4.4",
+    coreVersions: ["0.12.10"],
   });
   for (const [name, repository, version] of [
     ["adf", "ingestron/provider-adf", "4.3.1"],
@@ -155,21 +155,27 @@ test("official catalogue contains only qualified exact releases and stable ident
     assert.equal(c.plugins[name].tagPrefix, "");
     assert.deepEqual(c.plugins[name].releases.at(-1), {
       version,
-      coreVersions: ["0.12.8", "0.12.9"],
+      coreVersions: ["0.12.8", "0.12.9", "0.12.10"],
     });
   }
   assert.deepEqual(c.plugins.files.releases.at(-1), {
-    version: "1.2.0",
-    coreVersions: ["0.12.5", "0.12.6", "0.12.7", "0.12.8", "0.12.9"],
+    version: "1.3.0",
+    coreVersions: ["0.12.10"],
   });
   for (const p of Object.values(c.plugins)) {
     assert.ok(
       p.releases
         .at(-1)
         .coreVersions.some((version) =>
-          ["0.12.4", "0.12.5", "0.12.6", "0.12.7", "0.12.8", "0.12.9"].includes(
-            version,
-          ),
+          [
+            "0.12.4",
+            "0.12.5",
+            "0.12.6",
+            "0.12.7",
+            "0.12.8",
+            "0.12.9",
+            "0.12.10",
+          ].includes(version),
         ),
       "Every latest official shortcut must retain a qualified published core",
     );

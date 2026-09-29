@@ -168,3 +168,9 @@ with the published CLI pinned in package.json: `pnpm acceptance`,
 `pnpm acceptance:retail`, where the retail gate also proves that a duplicate
 primary key fails with nothing committed and a warning rule commits and is
 recorded in the receipt.
+
+Qualified 2026-09-29 with published `ingestron@0.17.4` (core 0.12.10) and local
+provider 0.4.4: the four gates passed on the candidate tree and again from the
+public `files-1.3.0`, `github-1.34.0` and `azure-blob-1.2.0` tags. The retail
+download (Files 1.2.0, local 0.4.3) still passes unchanged. ADF 4.3.1 and
+Databricks 3.3.0 example projects check and build with the same CLI.
