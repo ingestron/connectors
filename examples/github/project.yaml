@@ -2,8 +2,8 @@ apiVersion: ingestron.project/v1
 id: github_issues
 providers:
   packages:
-    local: ingestron/provider-local@0.4.3
-    github: ingestron/connectors/connectors/github/connector.yaml@1.33.1
+    local: ingestron/provider-local@0.4.4
+    github: ingestron/connectors/connectors/github/connector.yaml@1.34.0
   configurations:
     local:
       package: local

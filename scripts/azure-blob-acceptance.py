@@ -38,7 +38,7 @@ with tempfile.TemporaryDirectory() as tmp:
   project_config=yaml.safe_load(project_file.read_text())
   project_config['providers']['packages']['files']=f'ingestron/connectors/connectors/azure-blob/connector.yaml@{SOURCE_VERSION}'
   project_file.write_text(yaml.safe_dump(project_config,sort_keys=False))
-  cli(project,'plugin','install','ingestron/provider-local@0.4.4')
+  cli(project,'plugin','install','ingestron/provider-local@0.4.3')
   cli(project,'plugin','install',f'ingestron/connectors/connectors/azure-blob/connector.yaml@{SOURCE_VERSION}','--tag-prefix','azure-blob-',* ([] if PUBLIC else ['--from-git',str(origin)]))
   cli(project,'check');cli(project,'build');cli(project,'runtime','prepare')
   python=next((project/'.ingestron/runtimes').glob('*/bin/python'))
@@ -71,4 +71,4 @@ with tempfile.TemporaryDirectory() as tmp:
     transport.mode['value']='normal';cli(project,'run','--retry',failure)
    assert 'HEAD' in transport.observed and 'GET' in transport.observed
   print(fmt+' installed retail snapshots and retry passed',flush=True)
-(WORK/'evidence.json').write_text(json.dumps({'passed':True,'publicSource':PUBLIC,'cli':json.loads((CLI.parents[3]/'package.json').read_text())['version'],'core':json.loads((CLI.parents[3]/'package.json').read_text())['dependencies']['@ingestron/core'],'provider':'0.4.4','azureBlob':SOURCE_VERSION,'formats':['csv','tsv','json','jsonl','parquet'],'rowsPerSelectedTable':3,'orderValue':'61.95','unapprovedRejected':True,'malformedRejected':True,'schemaDriftRejected':True,'failedRunRecovered':True,'tamperRejected':True,'cloudAccess':False,'transport':'loopback only','conditionalReadRejected':True,'authFailureRecovered':True},indent=2)+'\n')
+(WORK/'evidence.json').write_text(json.dumps({'passed':True,'publicSource':PUBLIC,'cli':json.loads((CLI.parents[3]/'package.json').read_text())['version'],'core':json.loads((CLI.parents[3]/'package.json').read_text())['dependencies']['@ingestron/core'],'provider':'0.4.3','azureBlob':SOURCE_VERSION,'formats':['csv','tsv','json','jsonl','parquet'],'rowsPerSelectedTable':3,'orderValue':'61.95','unapprovedRejected':True,'malformedRejected':True,'schemaDriftRejected':True,'failedRunRecovered':True,'tamperRejected':True,'cloudAccess':False,'transport':'loopback only','conditionalReadRejected':True,'authFailureRecovered':True},indent=2)+'\n')
