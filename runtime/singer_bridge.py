@@ -14,6 +14,7 @@ from pathlib import Path
 from decimal import Decimal
 import pyarrow as pa
 import pyarrow.parquet as pq
+from quality_rules import QualityFailed, evaluate
 
 
 def canonical(value):
@@ -101,12 +102,14 @@ def verify_commit(destination, identity):
 
 
 def snapshot(
-    root, namespace, run_id, contract, source_identity, messages, fail_at=None
+    root, namespace, run_id, contract, source_identity, messages, fail_at=None,
+    rules=None,
 ):
     """messages is a lazy factory; only successful commit exposes its STATE.
 
     Local POSIX single-writer lock; full snapshots only. Source identity must contain
-    no credentials. No incremental cursor is restored.
+    no credentials. No incremental cursor is restored. rules maps a stream to its
+    authored ODCS contract; an error-severity rule that fails prevents the commit.
     """
     if not contract:
         raise ValueError("Empty stream selection")
@@ -196,6 +199,17 @@ def snapshot(
                 writers[name].close()
             if fail_at == "files":
                 raise RuntimeError("Injected pre-commit interruption")
+            quality = []
+            for n in sorted(rules or {}):
+                if n in contract:
+                    name = rules[n]["schema"][0]["name"]
+                    quality += [
+                        {"stream": n, **r}
+                        for r in evaluate(rules[n], staging / (n + ".parquet"), name)
+                    ]
+            failed = [r for r in quality if r["outcome"] == "fail" and not r["passed"]]
+            if failed:
+                raise QualityFailed(failed)
             receipt = {
                 "format": "ingestron-singer-local-snapshot/preview-1",
                 "identity": identity,
@@ -208,6 +222,7 @@ def snapshot(
                     }
                     for n in sorted(contract)
                 ],
+                **({"quality": quality} if quality else {}),
             }
             (staging / "commit.json").write_text(canonical(receipt) + "\n")
             for p in staging.iterdir():

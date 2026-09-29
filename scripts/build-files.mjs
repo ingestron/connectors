@@ -6,6 +6,7 @@ import { filesSettings, filesTableSource } from "../src/files-settings.mjs";
 import {
   selectionSchema,
   runtimeContract,
+  quality,
 } from "../src/connection-contract.mjs";
 const sha = (v) => createHash("sha256").update(v).digest("hex");
 const read = (p) => readFileSync(p, "utf8");
@@ -14,6 +15,7 @@ const files = {
   "snapshot_runtime.py": read("runtime/singer_runtime.py"),
   "files_reader.py": read("runtime/files_reader.py"),
   "singer_bridge.py": read("runtime/singer_bridge.py"),
+  "quality_rules.py": read("runtime/quality_rules.py"),
   "singer_inventory.py": read("runtime/singer_inventory.py"),
   "connectors.json": JSON.stringify([
     {
@@ -54,7 +56,7 @@ writeFileSync(dir + "/UPSTREAM-LICENSE.txt", files["UPSTREAM-LICENSE.txt"]);
 const manifest = {
   apiVersion: "ingestron.connector/v1",
   id: "files",
-  version: "1.2.0",
+  version: "1.3.0",
   description:
     "Reviewed snapshots from local CSV, TSV, JSON, JSONL and Parquet files",
   connector: "singer:files@23.0.1",
@@ -75,6 +77,7 @@ const manifest = {
     sha256: sha(content),
     contract: runtimeContract,
   },
+  quality,
   definition: {
     settingsSchema: filesSettings,
     selectionSchema,
