@@ -183,3 +183,13 @@ from public tags; SQL Server 1.3.0 checks and builds offline. Databricks 3.4.0
 and ADF 4.4.0 add native contract quality checks and need core 0.12.11; their
 example projects with added rules check and build from the public tags. All
 latest releases gain core 0.12.11; the new providers are qualified for it only.
+
+## Core 0.12.12 qualification — 2026-09-29
+
+Published `ingestron@0.17.6` (core 0.12.12, per-engine quality modes and SQL
+placeholder checks): the GitHub, ten-file Files, Azure Blob and retail gates
+passed from public tags (Azure Blob after a retried GitHub read); SQL Server 1.3.0
+checks and builds offline. Databricks 3.5.0 and ADF 4.5.0 add SQL and engine
+rules and need core 0.12.12; their example projects with SQL, Databricks and Soda
+rules check and build from the public tags. All latest releases gain core
+0.12.12; the new providers are qualified for it only.
