@@ -174,3 +174,12 @@ provider 0.4.4: the four gates passed on the candidate tree and again from the
 public `files-1.3.0`, `github-1.34.0` and `azure-blob-1.2.0` tags. The retail
 download (Files 1.2.0, local 0.4.3) still passes unchanged. ADF 4.3.1 and
 Databricks 3.3.0 example projects check and build with the same CLI.
+
+## Core 0.12.11 qualification — 2026-09-29
+
+Published `ingestron@0.17.5` (core 0.12.11, per-standard provider quality
+declarations): the GitHub, ten-file Files, Azure Blob and retail gates passed
+from public tags; SQL Server 1.3.0 checks and builds offline. Databricks 3.4.0
+and ADF 4.4.0 add native contract quality checks and need core 0.12.11; their
+example projects with added rules check and build from the public tags. All
+latest releases gain core 0.12.11; the new providers are qualified for it only.
