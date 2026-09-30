@@ -3,10 +3,9 @@
 Versioned source packages for reviewed ingestion. Install a connector alongside an
 execution provider; neither the CLI nor compute providers are bundled here.
 
-With CLI 0.17.4/core 0.12.10, `ingestron provider install local` and
-`ingestron connector install <alias>` select these qualified releases: local
-provider 0.4.4, Files 1.3.0, SQL Server 1.3.0, Azure Blob 1.2.0 and GitHub
-1.34.0. Earlier core versions keep their previously qualified releases.
+With CLI 0.17.7/core 0.12.13, `ingestron provider install local` and
+`ingestron connector install <name>` select the releases below and local
+provider 0.4.5. Earlier core versions keep their previously qualified releases.
 
 These releases check ODCS library quality rules (`nullValues`, `missingValues`,
 `invalidValues`, `duplicateValues`, `rowCount`) and the key rules implied by

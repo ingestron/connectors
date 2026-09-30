@@ -187,6 +187,9 @@ test("official catalogue contains only qualified exact releases and stable ident
     "files",
     "github",
     "local",
+    "mysql",
+    "oracle",
+    "postgresql",
     "sql-server",
   ]);
   assert.equal(c.plugins.github.repository, "ingestron/connectors");
@@ -196,24 +199,24 @@ test("official catalogue contains only qualified exact releases and stable ident
   assert.equal(c.plugins.local.path, "plugin/provider.yaml");
   assert.equal(c.plugins.local.tagPrefix, "");
   assert.deepEqual(c.plugins.local.releases.at(-1), {
-    version: "0.4.4",
-    coreVersions: ["0.12.10", "0.12.11", "0.12.12"],
+    version: "0.4.5",
+    coreVersions: ["0.12.13"],
   });
   for (const [name, repository, version] of [
-    ["adf", "ingestron/provider-adf", "4.5.0"],
-    ["databricks", "ingestron/provider-databricks", "3.5.0"],
+    ["adf", "ingestron/provider-adf", "4.6.0"],
+    ["databricks", "ingestron/provider-databricks", "3.6.0"],
   ]) {
     assert.equal(c.plugins[name].repository, repository);
     assert.equal(c.plugins[name].path, "plugin/provider.yaml");
     assert.equal(c.plugins[name].tagPrefix, "");
     assert.deepEqual(c.plugins[name].releases.at(-1), {
       version,
-      coreVersions: ["0.12.12"],
+      coreVersions: ["0.12.13"],
     });
   }
   assert.deepEqual(c.plugins.files.releases.at(-1), {
-    version: "1.3.0",
-    coreVersions: ["0.12.10", "0.12.11", "0.12.12"],
+    version: "1.4.0",
+    coreVersions: ["0.12.13"],
   });
   for (const p of Object.values(c.plugins)) {
     assert.ok(
@@ -230,6 +233,7 @@ test("official catalogue contains only qualified exact releases and stable ident
             "0.12.10",
             "0.12.11",
             "0.12.12",
+            "0.12.13",
           ].includes(version),
         ),
       "Every latest official shortcut must retain a qualified published core",
