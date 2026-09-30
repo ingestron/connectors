@@ -21,8 +21,13 @@ class SqlServer(kit.TableConnector):
         return {'schema': source['schema'], 'table': source['table'],
                 'columns': [column['name'] for column in columns]}
 
+    def __init__(self, connect=None):
+        # Tests and container checks may supply the driver's connect function.
+        self.connect = connect
+
     def scan(self, settings, table, emit=None):
-        schema, _ = scan({'connection': settings['connection'], 'object': table}, emit)
+        extra = {'connect': self.connect} if self.connect else {}
+        schema, _ = scan({'connection': settings['connection'], 'object': table}, emit, **extra)
         return schema
 
 
