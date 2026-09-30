@@ -14,19 +14,22 @@ rule stops the run with nothing committed; other rules are recorded in the
 snapshot receipt. Reports name rules and counts, never row values. SQL and
 engine rules are not evaluated by these connectors.
 
-| Connector                                      | Package            | Reads                                | Maturity |
-| ---------------------------------------------- | ------------------ | ------------------------------------ | -------- |
-| [Local files](docs/files.md)                   | `files@1.4.0`      | CSV, TSV, JSON, JSONL, Parquet files | verified |
-| [Azure Blob and ADLS Gen2](docs/azure-blob.md) | `azure-blob@2.0.0` | The same formats from blobs (SAS)    | preview  |
-| [SQL Server and Azure SQL](docs/sql-server.md) | `sql-server@1.4.0` | Tables                               | verified |
-| [PostgreSQL](docs/postgresql.md)               | `postgresql@1.0.0` | Tables                               | verified |
-| [MySQL and MariaDB](docs/mysql.md)             | `mysql@1.0.0`      | Tables                               | verified |
-| [Oracle](docs/oracle.md)                       | `oracle@1.0.0`     | Tables                               | verified |
-| [GitHub](docs/github.md)                       | `github@1.35.0`    | Issues                               | verified |
+| Connector                                      | Package            | Reads                                              | Maturity |
+| ---------------------------------------------- | ------------------ | -------------------------------------------------- | -------- |
+| [Local files](docs/files.md)                   | `files@1.4.0`      | CSV, TSV, JSON, JSONL, Parquet files               | verified |
+| [Azure Blob and ADLS Gen2](docs/azure-blob.md) | `azure-blob@2.0.0` | The same formats from blobs (SAS)                  | preview  |
+| [SQL Server and Azure SQL](docs/sql-server.md) | `sql-server@1.4.0` | Tables                                             | verified |
+| [PostgreSQL](docs/postgresql.md)               | `postgresql@1.0.0` | Tables                                             | verified |
+| [MySQL and MariaDB](docs/mysql.md)             | `mysql@1.0.0`      | Tables                                             | verified |
+| [Oracle](docs/oracle.md)                       | `oracle@1.0.0`     | Tables                                             | verified |
+| [GitHub](docs/github.md)                       | `github@1.35.0`    | Issues                                             | verified |
+| [Stripe](docs/stripe.md)                       | `stripe@0.1.0`     | Customers, charges, invoices and other objects     | preview  |
+| [SharePoint](docs/sharepoint.md)               | `sharepoint@0.1.0` | Files and folders in document libraries (Graph)    | preview  |
+| [OneDrive](docs/onedrive.md)                   | `onedrive@0.1.0`   | Files and folders in OneDrive for Business (Graph) | preview  |
 
 Every connector uses the same layout: the connection holds the endpoint, scope
 and credentials (always `$secret` references); each `flows[].tables` entry names
-one object in the source's terms (`{schema, table}`, `{path, format}` or
+one object in the source's terms (`{schema, table}`, `{path, format}`, `{object}` or
 `{stream}`); and its ODCS contract chooses the columns and types. One connection
 serves several tables. Every connector declares a reference record (licence,
 cost, access, maturity) that `ingestron check` shows. Verified means recorded

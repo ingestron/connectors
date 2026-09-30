@@ -1,0 +1,130 @@
+apiVersion: ingestron.connector/v1
+id: stripe
+version: 0.1.0
+description: Reviewed local snapshots of Stripe objects
+connector: singer:stripe@23.0.1
+documentation: https://github.com/ingestron/connectors/blob/main/docs/stripe.md
+upstream:
+  ecosystem: singer
+  variant: ingestron
+  package: pyarrow
+  version: 23.0.1
+  repository: https://github.com/apache/arrow
+  licence: Apache-2.0
+  licenceFile: connectors/stripe/UPSTREAM-LICENSE.txt
+  licenceStatus: evidenced
+runtime:
+  path: connectors/stripe/runtime.json
+  sha256: 1bdaef3f465e54f210a95278eed986481c53b6cfcb64055a700bfd49b2114484
+  contract: ingestron.snapshot/python/v1
+quality:
+  library:
+    nullValues: at-load
+    missingValues: at-load
+    invalidValues: at-load
+    duplicateValues: at-load
+    rowCount: at-load
+  sql: unsupported
+  engines: []
+source:
+  kind: stripe
+  capabilities:
+    - snapshot
+    - discovery
+  reference:
+    docs: https://github.com/ingestron/connectors/blob/main/docs/stripe.md
+    vendorStatus: not-applicable
+    licence: Apache-2.0; upstream pyarrow Apache-2.0; HTTPS through the Python
+      standard library
+    cost:
+      model: none
+      note: The Stripe API has no per-call charge
+    access:
+      model: free
+      url: https://docs.stripe.com/keys
+      note: Test-mode keys in a free Stripe account; use a restricted read-only key
+    auth:
+      - api-key
+    network:
+      - public
+    maturity: preview
+    verified: 2026-09-30
+    note:
+      Documented list API with cursor pagination; conformance suite against a
+      mock of that API only; no live Stripe account
+definition:
+  settingsSchema:
+    type: object
+    properties:
+      api_key:
+        type: object
+        properties:
+          $secret:
+            type: object
+            properties:
+              env: &a1
+                type: string
+                minLength: 1
+            required:
+              - env
+            additionalProperties: false
+        required:
+          - $secret
+        additionalProperties: false
+    required:
+      - api_key
+    additionalProperties: false
+  selectionSchema:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        name: *a1
+        fields:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - integer
+                  - string
+                  - boolean
+                  - number
+                  - decimal
+                  - json
+              nullable:
+                type: boolean
+              target:
+                type: string
+                minLength: 1
+              precision:
+                type: integer
+              scale:
+                type: integer
+            required:
+              - type
+              - nullable
+            additionalProperties: false
+      required:
+        - name
+        - fields
+      additionalProperties: false
+  tableSourceSchema:
+    type: object
+    properties:
+      object:
+        type: string
+        minLength: 1
+        maxLength: 64
+    required:
+      - object
+    additionalProperties: false
+execution:
+  local:
+    modes:
+      - local
+    evidence:
+      Read-only Stripe list API over HTTPS; conformance suite against a mock
+      of the documented list API

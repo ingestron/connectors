@@ -43,11 +43,11 @@ connector uses the Singer adapter path, which speaks the same runtime contract.
 Every connector splits its settings the same way, so a flow reads alike across
 sources and a native provider route can reuse the table sources:
 
-| Where                          | Holds                                | Examples                                        |
-| ------------------------------ | ------------------------------------ | ----------------------------------------------- |
-| Connection `settings`          | Endpoint, scope and credentials      | host, database, account, container, SAS         |
-| `flows[].tables.<name>.source` | One object in the source's own terms | `{schema, table}`, `{path, format}`, `{stream}` |
-| The table's ODCS contract      | Columns, types and quality rules     | never a second column list or `types` map       |
+| Where                          | Holds                                | Examples                                                    |
+| ------------------------------ | ------------------------------------ | ----------------------------------------------------------- |
+| Connection `settings`          | Endpoint, scope and credentials      | host, database, account, container, SAS                     |
+| `flows[].tables.<name>.source` | One object in the source's own terms | `{schema, table}`, `{path, format}`, `{object}`, `{stream}` |
+| The table's ODCS contract      | Columns, types and quality rules     | never a second column list or `types` map                   |
 
 Declare the connection shape as `definition.settingsSchema` and the table shape
 as `definition.tableSourceSchema`. Credentials are always `$secret` references.
@@ -73,6 +73,16 @@ package, kind, maturity, licence and cost, then **Install**, **Connection**
 (with a `connections` and `flows` example), **Tables** (the `source` keys),
 **Types**, **Behaviour and limits**, **Evidence** and **References**. The
 scaffold creates this outline.
+
+## API mocks
+
+Connectors for services without a free local engine are tested against
+in-memory mocks in `test/mocks/` that follow the vendor's published API
+(pagination, authentication, error bodies). The conformance fixture patches the
+reader's HTTPS connection with the mock; `test/mocks/loopback.py` serves the same
+mock to an installed runtime so the CLI path runs end to end
+(`pnpm acceptance:apps`). Mocks never ship in runtime assets. A connector tested
+only against mocks stays `preview`.
 
 ## Maturity and reference records
 

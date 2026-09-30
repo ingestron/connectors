@@ -22,6 +22,31 @@ const database = (kind, label, docsName, driver, licence, access) => ({
   },
 });
 
+const graphFiles = (kind, label, auth) => ({
+  kind,
+  capabilities: snapshot,
+  reference: {
+    docs: docs(kind),
+    vendorStatus: "not-applicable",
+    licence:
+      "Apache-2.0; upstream pyarrow Apache-2.0; HTTPS through the Python standard library",
+    cost: {
+      model: "none",
+      note: "Microsoft Graph file reads carry no separate charge; Microsoft 365 licensing applies",
+    },
+    access: {
+      model: "subscription",
+      url: "https://learn.microsoft.com/graph/api/resources/onedrive",
+      note: `A Microsoft 365 tenant and an Entra app with ${auth} application permission`,
+    },
+    auth: ["client-credentials"],
+    network: ["public"],
+    maturity: "preview",
+    verified,
+    note: `${label} files and folders through Microsoft Graph v1.0; conformance and unit tests against a Graph mock only; no live tenant`,
+  },
+});
+
 export const sources = {
   files: {
     kind: "local-files",
@@ -118,6 +143,33 @@ export const sources = {
       note: "Oracle Database Free or an existing database",
     },
   ),
+  stripe: {
+    kind: "stripe",
+    capabilities: snapshot,
+    reference: {
+      docs: docs("stripe"),
+      vendorStatus: "not-applicable",
+      licence:
+        "Apache-2.0; upstream pyarrow Apache-2.0; HTTPS through the Python standard library",
+      cost: { model: "none", note: "The Stripe API has no per-call charge" },
+      access: {
+        model: "free",
+        url: "https://docs.stripe.com/keys",
+        note: "Test-mode keys in a free Stripe account; use a restricted read-only key",
+      },
+      auth: ["api-key"],
+      network: ["public"],
+      maturity: "preview",
+      verified,
+      note: "Documented list API with cursor pagination; conformance suite against a mock of that API only; no live Stripe account",
+    },
+  },
+  sharepoint: graphFiles(
+    "sharepoint",
+    "SharePoint document library",
+    "Sites.Selected or Sites.Read.All",
+  ),
+  onedrive: graphFiles("onedrive", "OneDrive for Business", "Files.Read.All"),
   github: {
     kind: "github",
     capabilities: snapshot,

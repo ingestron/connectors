@@ -17,6 +17,9 @@ test("released source assets bind schema, code, requirements and licence to one 
     "postgresql",
     "mysql",
     "oracle",
+    "stripe",
+    "sharepoint",
+    "onedrive",
   ]) {
     const m = parse(
       readFileSync(`connectors/${source}/connector.yaml`, "utf8"),
@@ -169,11 +172,19 @@ test("every table connector keeps endpoint and credentials on the connection and
     "postgresql",
     "mysql",
     "oracle",
+    "stripe",
+    "sharepoint",
+    "onedrive",
   ]) {
     const m = parse(
       readFileSync(`connectors/${source}/connector.yaml`, "utf8"),
     );
     assert.ok(m.definition.tableSourceSchema, source);
+    for (const key of Object.keys(m.definition.settingsSchema.properties))
+      assert.ok(
+        !["path", "blob", "format", "types", "object", "table"].includes(key),
+        `${source} keeps object selection on the table`,
+      );
   }
 });
 

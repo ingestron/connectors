@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { stringify } from "yaml";
 import { format } from "prettier";
 import { settings } from "../src/settings.mjs";
@@ -119,6 +119,7 @@ await import("./build-files.mjs");
 await import("./build-azure-blob.mjs");
 await import("./build-sql-server.mjs");
 await import("./build-database.mjs");
+await import("./build-apps.mjs");
 
 if (process.env.GITHUB_REF_TYPE === "tag") {
   const tag = process.env.GITHUB_REF_NAME;
@@ -126,10 +127,9 @@ if (process.env.GITHUB_REF_TYPE === "tag") {
     if (tag !== "v" + JSON.parse(readFileSync("package.json")).version)
       throw Error("Runtime tag mismatch");
   } else {
-    const match = /^(github|files|azure-blob|sql-server)-(\d+\.\d+\.\d+)$/.exec(
-      tag,
-    );
-    if (!match) throw Error("Unknown source tag");
+    const match = /^([a-z][a-z0-9-]*?)-(\d+\.\d+\.\d+)$/.exec(tag);
+    if (!match || !existsSync(`connectors/${match[1]}/connector.yaml`))
+      throw Error("Unknown source tag");
     const { parse } = await import("yaml");
     if (
       parse(readFileSync(`connectors/${match[1]}/connector.yaml`, "utf8"))

@@ -9,11 +9,16 @@ from unittest.mock import patch
 import hashlib
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'conformance'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'mocks'))
 from harness import Conformance, singer_runtime
+from stripe_api import StripeApi
+from graph_api import GraphApi, TENANT, CLIENT
 _before = (singer_runtime.source_config, singer_runtime.tap_output, singer_runtime.review)
 import azure_blob_runtime
 import files_table_runtime
 import sql_server_runtime
+import stripe_runtime
+import graph_runtime
 singer_runtime.source_config, singer_runtime.tap_output, singer_runtime.review = _before
 
 
@@ -189,6 +194,106 @@ class SqlServerConformance(Conformance, unittest.TestCase):
 
     def secret_values(self):
         return ['p4ss-secret', 'secret-row-value']
+
+STRIPE_KEY = 'rk_test_' + 'SyntheticKey0123456789'
+
+
+class StripeConformance(Conformance, unittest.TestCase):
+    """Stripe against an in-memory list API that follows the documented pagination."""
+
+    def make_connector(self):
+        self.api = StripeApi(STRIPE_KEY)
+        transport = patch('stripe_reader.http.client.HTTPSConnection', self.api.connection())
+        transport.start()
+        self.addCleanup(transport.stop)
+        return stripe_runtime.Stripe()
+
+    def settings(self):
+        return {'api_key': STRIPE_KEY}
+
+    def tables(self):
+        return {
+            'customers': {'source': {'object': 'customers'},
+                          'columns': [{'name': 'id', 'type': 'STRING'}, {'name': 'email', 'type': 'STRING'},
+                                      {'name': 'balance', 'type': 'BIGINT'},
+                                      {'name': 'delinquent', 'type': 'BOOLEAN'}]},
+            'charges': {'source': {'object': 'charges'},
+                        'columns': [{'name': 'id', 'type': 'STRING'}, {'name': 'amount', 'type': 'BIGINT'},
+                                    {'name': 'currency', 'type': 'STRING'}]},
+        }
+
+    def rows(self, stream):
+        if stream == 'customers':
+            # More than one page, so pagination is exercised.
+            return [{'id': f'cus_{i:04d}', 'object': 'customer', 'email': None if i % 7 == 0 else f'c{i}@example.invalid',
+                     'balance': i, 'delinquent': i % 2 == 0, 'created': 1_700_000_000 + i, 'livemode': False}
+                    for i in range(230)]
+        return [{'id': 'ch_1', 'object': 'charge', 'amount': 1250, 'currency': 'nzd', 'created': 1_700_000_000,
+                 'livemode': False}]
+
+    def load(self, stream, rows):
+        self.api.load(stream, rows)
+
+    def change_schema(self, stream):
+        self.api.load(stream, [{**row, 'balance': str(row['balance'])} for row in self.rows(stream)])
+
+    def break_source(self, stream):
+        self.api.fail[stream] = 500
+
+    def secret_values(self):
+        return [STRIPE_KEY, 'secret-row-value']
+
+GRAPH_SECRET = 'graph-client-' + 'secret-value'
+
+
+class SharePointConformance(Conformance, unittest.TestCase):
+    """SharePoint through a Graph mock: one file table and one folder table read across two pages."""
+
+    def make_connector(self):
+        self.api = GraphApi(GRAPH_SECRET)
+        transport = patch('graph_reader.http.client.HTTPSConnection', self.api.connection())
+        transport.start()
+        self.addCleanup(transport.stop)
+        return graph_runtime.GraphFiles('sharepoint')
+
+    def settings(self):
+        return {'tenant_id': TENANT, 'client_id': CLIENT, 'client_secret': GRAPH_SECRET,
+                'site': 'https://contoso.sharepoint.com/sites/finance'}
+
+    def tables(self):
+        return {
+            'customers': {'source': {'path': 'Shared Documents/retail/customers.csv', 'format': 'csv'},
+                          'columns': [{'name': 'id', 'type': 'BIGINT'}, {'name': 'name', 'type': 'STRING'}]},
+            'orders': {'source': {'path': 'Shared Documents/retail/orders', 'format': 'csv'},
+                       'columns': [{'name': 'amount', 'type': 'DECIMAL(10,2)'}]},
+        }
+
+    def rows(self, stream):
+        return [{'id': 1, 'name': 'Ada'}, {'id': 2, 'name': 'Grace'}] if stream == 'customers' \
+            else [{'amount': '12.50'}, {'amount': '3.00'}, {'amount': '7.25'}]
+
+    def load(self, stream, rows):
+        drive = self.api.drives['drive-docs']
+        for path in [p for p in drive if p.startswith(f'retail/{stream}')]:
+            del drive[path]
+        if stream == 'customers':
+            text = 'id,name\n' + ''.join(f"{r['id']},{r['name']}\n" for r in rows)
+            self.api.put('drive-docs', 'retail/customers.csv', text.encode())
+            return
+        # One file per row across a paged folder, plus a file of another format that is ignored.
+        for i, row in enumerate(rows or [None]):
+            text = 'amount\n' + (f"{row['amount']}\n" if row else '')
+            self.api.put('drive-docs', f'retail/orders/part-{i}.csv', text.encode())
+        self.api.put('drive-docs', 'retail/orders/readme.txt', b'not data')
+
+    def change_schema(self, stream):
+        self.api.put('drive-docs', 'retail/customers.csv', b'id,name,extra\n1,Ada,x\n')
+
+    def break_source(self, stream):
+        self.api.fail['retail/orders/part-1.csv'] = 500
+
+    def secret_values(self):
+        return [GRAPH_SECRET, 'secret-tempauth', 'secret-row-value', 'graph-access-token']
 
 
 if __name__ == '__main__':
