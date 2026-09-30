@@ -25,6 +25,10 @@
         {
           "version": "1.35.0",
           "coreVersions": ["0.12.13"]
+        },
+        {
+          "version": "1.36.0",
+          "coreVersions": ["0.12.14"]
         }
       ]
     },
@@ -56,6 +60,10 @@
         {
           "version": "0.4.5",
           "coreVersions": ["0.12.13"]
+        },
+        {
+          "version": "0.4.6",
+          "coreVersions": ["0.12.14"]
         }
       ]
     },
@@ -83,6 +91,10 @@
         {
           "version": "1.4.0",
           "coreVersions": ["0.12.13"]
+        },
+        {
+          "version": "1.5.0",
+          "coreVersions": ["0.12.14"]
         }
       ]
     },
@@ -106,6 +118,10 @@
         {
           "version": "2.0.0",
           "coreVersions": ["0.12.13"]
+        },
+        {
+          "version": "2.1.0",
+          "coreVersions": ["0.12.14"]
         }
       ]
     },
@@ -133,6 +149,10 @@
         {
           "version": "1.4.0",
           "coreVersions": ["0.12.13"]
+        },
+        {
+          "version": "1.5.0",
+          "coreVersions": ["0.12.14"]
         }
       ]
     },
@@ -160,6 +180,10 @@
         {
           "version": "4.6.0",
           "coreVersions": ["0.12.13"]
+        },
+        {
+          "version": "4.7.0",
+          "coreVersions": ["0.12.14"]
         }
       ]
     },
@@ -187,6 +211,10 @@
         {
           "version": "3.6.0",
           "coreVersions": ["0.12.13"]
+        },
+        {
+          "version": "3.7.0",
+          "coreVersions": ["0.12.14"]
         }
       ]
     },
@@ -198,6 +226,10 @@
         {
           "version": "1.0.0",
           "coreVersions": ["0.12.13"]
+        },
+        {
+          "version": "1.1.0",
+          "coreVersions": ["0.12.14"]
         }
       ]
     },
@@ -209,6 +241,10 @@
         {
           "version": "1.0.0",
           "coreVersions": ["0.12.13"]
+        },
+        {
+          "version": "1.1.0",
+          "coreVersions": ["0.12.14"]
         }
       ]
     },
@@ -220,6 +256,109 @@
         {
           "version": "1.0.0",
           "coreVersions": ["0.12.13"]
+        },
+        {
+          "version": "1.1.0",
+          "coreVersions": ["0.12.14"]
+        }
+      ]
+    },
+    "stripe": {
+      "repository": "ingestron/connectors",
+      "path": "connectors/stripe/connector.yaml",
+      "tagPrefix": "stripe-",
+      "releases": [
+        {
+          "version": "0.1.0",
+          "coreVersions": ["0.12.14"]
+        }
+      ]
+    },
+    "sharepoint": {
+      "repository": "ingestron/connectors",
+      "path": "connectors/sharepoint/connector.yaml",
+      "tagPrefix": "sharepoint-",
+      "releases": [
+        {
+          "version": "0.1.0",
+          "coreVersions": ["0.12.14"]
+        }
+      ]
+    },
+    "onedrive": {
+      "repository": "ingestron/connectors",
+      "path": "connectors/onedrive/connector.yaml",
+      "tagPrefix": "onedrive-",
+      "releases": [
+        {
+          "version": "0.1.0",
+          "coreVersions": ["0.12.14"]
+        }
+      ]
+    },
+    "s3": {
+      "repository": "ingestron/connectors",
+      "path": "connectors/s3/connector.yaml",
+      "tagPrefix": "s3-",
+      "releases": [
+        {
+          "version": "1.0.0",
+          "coreVersions": ["0.12.14"]
+        }
+      ]
+    },
+    "gcs": {
+      "repository": "ingestron/connectors",
+      "path": "connectors/gcs/connector.yaml",
+      "tagPrefix": "gcs-",
+      "releases": [
+        {
+          "version": "0.1.0",
+          "coreVersions": ["0.12.14"]
+        }
+      ]
+    },
+    "sftp": {
+      "repository": "ingestron/connectors",
+      "path": "connectors/sftp/connector.yaml",
+      "tagPrefix": "sftp-",
+      "releases": [
+        {
+          "version": "1.0.0",
+          "coreVersions": ["0.12.14"]
+        }
+      ]
+    },
+    "salesforce": {
+      "repository": "ingestron/connectors",
+      "path": "connectors/salesforce/connector.yaml",
+      "tagPrefix": "salesforce-",
+      "releases": [
+        {
+          "version": "0.1.0",
+          "coreVersions": ["0.12.14"]
+        }
+      ]
+    },
+    "hubspot": {
+      "repository": "ingestron/connectors",
+      "path": "connectors/hubspot/connector.yaml",
+      "tagPrefix": "hubspot-",
+      "releases": [
+        {
+          "version": "0.1.0",
+          "coreVersions": ["0.12.14"]
+        }
+      ]
+    },
+    "jira": {
+      "repository": "ingestron/connectors",
+      "path": "connectors/jira/connector.yaml",
+      "tagPrefix": "jira-",
+      "releases": [
+        {
+          "version": "0.1.0",
+          "coreVersions": ["0.12.14"]
         }
       ]
     }

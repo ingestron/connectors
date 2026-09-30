@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: mysql
-version: 1.0.0
+version: 1.1.0
 description: Reviewed local snapshots from MySQL and MariaDB tables
 connector: singer:mysql@1.2.3
 documentation: https://github.com/ingestron/connectors/blob/main/docs/mysql.md

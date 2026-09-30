@@ -208,12 +208,21 @@ test("official catalogue contains only qualified exact releases and stable ident
     "azure-blob",
     "databricks",
     "files",
+    "gcs",
     "github",
+    "hubspot",
+    "jira",
     "local",
     "mysql",
+    "onedrive",
     "oracle",
     "postgresql",
+    "s3",
+    "salesforce",
+    "sftp",
+    "sharepoint",
     "sql-server",
+    "stripe",
   ]);
   assert.equal(c.plugins.github.repository, "ingestron/connectors");
   assert.equal(c.plugins.github.path, "connectors/github/connector.yaml");
@@ -222,24 +231,24 @@ test("official catalogue contains only qualified exact releases and stable ident
   assert.equal(c.plugins.local.path, "plugin/provider.yaml");
   assert.equal(c.plugins.local.tagPrefix, "");
   assert.deepEqual(c.plugins.local.releases.at(-1), {
-    version: "0.4.5",
-    coreVersions: ["0.12.13"],
+    version: "0.4.6",
+    coreVersions: ["0.12.14"],
   });
   for (const [name, repository, version] of [
-    ["adf", "ingestron/provider-adf", "4.6.0"],
-    ["databricks", "ingestron/provider-databricks", "3.6.0"],
+    ["adf", "ingestron/provider-adf", "4.7.0"],
+    ["databricks", "ingestron/provider-databricks", "3.7.0"],
   ]) {
     assert.equal(c.plugins[name].repository, repository);
     assert.equal(c.plugins[name].path, "plugin/provider.yaml");
     assert.equal(c.plugins[name].tagPrefix, "");
     assert.deepEqual(c.plugins[name].releases.at(-1), {
       version,
-      coreVersions: ["0.12.13"],
+      coreVersions: ["0.12.14"],
     });
   }
   assert.deepEqual(c.plugins.files.releases.at(-1), {
-    version: "1.4.0",
-    coreVersions: ["0.12.13"],
+    version: "1.5.0",
+    coreVersions: ["0.12.14"],
   });
   for (const p of Object.values(c.plugins)) {
     assert.ok(
@@ -257,6 +266,7 @@ test("official catalogue contains only qualified exact releases and stable ident
             "0.12.11",
             "0.12.12",
             "0.12.13",
+            "0.12.14",
           ].includes(version),
         ),
       "Every latest official shortcut must retain a qualified published core",

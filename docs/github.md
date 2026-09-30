@@ -5,7 +5,7 @@ reader. The connection names the repositories and how to authenticate; each
 `flows[].tables` entry names a stream, and its ODCS contract chooses the
 columns. The connector only reads; it never writes to GitHub.
 
-| Package  | `github@1.35.0`                                                      |
+| Package  | `github@1.36.0`                                                      |
 | -------- | -------------------------------------------------------------------- |
 | Kind     | `github`                                                             |
 | Maturity | verified: synthetic loopback checks and a bounded anonymous live run |
@@ -15,7 +15,7 @@ columns. The connector only reads; it never writes to GitHub.
 ## Install
 
 ```sh
-ingestron connector install github@1.35.0
+ingestron connector install github@1.36.0
 ```
 
 Follow [the public-data tutorial](https://docs.ingestron.io/docs/tutorials/github-to-parquet)
