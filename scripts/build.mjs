@@ -8,6 +8,7 @@ import {
   runtimeContract,
   quality,
 } from "../src/connection-contract.mjs";
+import { sources } from "../src/sources.mjs";
 const sha = (v) => createHash("sha256").update(v).digest("hex");
 const singerFiles = [
   "singer_bridge.py",
@@ -93,6 +94,7 @@ for (const entry of singerCatalogue.filter((e) => e.prepared)) {
       contract: runtimeContract,
     },
     quality,
+    source: sources[name],
     definition: {
       settingsSchema: settings[ecosystem + ":" + entry.id],
       selectionSchema,

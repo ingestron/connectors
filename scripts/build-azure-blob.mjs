@@ -8,6 +8,7 @@ import {
   runtimeContract,
   quality,
 } from "../src/connection-contract.mjs";
+import { sources } from "../src/sources.mjs";
 const sha = (v) => createHash("sha256").update(v).digest("hex");
 const read = (p) => readFileSync(p, "utf8");
 const files = {
@@ -58,7 +59,7 @@ writeFileSync(dir + "/UPSTREAM-LICENSE.txt", files["UPSTREAM-LICENSE.txt"]);
 const manifest = {
   apiVersion: "ingestron.connector/v1",
   id: "azure-blob",
-  version: "1.2.0",
+  version: "1.3.0",
   description: "Reviewed local snapshots from one Azure Blob or ADLS Gen2 file",
   connector: "singer:azure-blob@23.0.1",
   documentation:
@@ -79,6 +80,7 @@ const manifest = {
     contract: runtimeContract,
   },
   quality,
+  source: sources["azure-blob"],
   definition: { settingsSchema: azureBlobSettings, selectionSchema },
   execution: {
     local: {

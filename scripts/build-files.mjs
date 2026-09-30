@@ -8,6 +8,7 @@ import {
   runtimeContract,
   quality,
 } from "../src/connection-contract.mjs";
+import { sources } from "../src/sources.mjs";
 const sha = (v) => createHash("sha256").update(v).digest("hex");
 const read = (p) => readFileSync(p, "utf8");
 const files = {
@@ -56,7 +57,7 @@ writeFileSync(dir + "/UPSTREAM-LICENSE.txt", files["UPSTREAM-LICENSE.txt"]);
 const manifest = {
   apiVersion: "ingestron.connector/v1",
   id: "files",
-  version: "1.3.0",
+  version: "1.4.0",
   description:
     "Reviewed snapshots from local CSV, TSV, JSON, JSONL and Parquet files",
   connector: "singer:files@23.0.1",
@@ -78,6 +79,7 @@ const manifest = {
     contract: runtimeContract,
   },
   quality,
+  source: sources["files"],
   definition: {
     settingsSchema: filesSettings,
     selectionSchema,

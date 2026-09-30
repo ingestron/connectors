@@ -11,6 +11,7 @@ import {
   runtimeContract,
   quality,
 } from "../src/connection-contract.mjs";
+import { sources } from "../src/sources.mjs";
 
 const sha = (v) => createHash("sha256").update(v).digest("hex");
 const read = (p) => readFileSync(p, "utf8");
@@ -60,7 +61,7 @@ writeFileSync(dir + "/UPSTREAM-LICENSE.txt", files["UPSTREAM-LICENSE.txt"]);
 const manifest = {
   apiVersion: "ingestron.connector/v1",
   id: "sql-server",
-  version: "1.3.0",
+  version: "1.4.0",
   description:
     "Reviewed local snapshots from multiple SQL Server or Azure SQL tables",
   connector: "singer:sql-server@1.15.0",
@@ -82,6 +83,7 @@ const manifest = {
     contract: runtimeContract,
   },
   quality,
+  source: sources["sql-server"],
   definition: {
     settingsSchema: sqlServerSettings,
     selectionSchema,
