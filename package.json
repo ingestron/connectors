@@ -28,7 +28,8 @@
     "connector:new": "node scripts/new-connector.mjs",
     "local-stack": "node scripts/local-stack.mjs",
     "acceptance:postgresql": "build/singer-github/bin/python scripts/database-acceptance.py",
-    "acceptance:apps": "build/singer-github/bin/python scripts/app-acceptance.py"
+    "acceptance:apps": "build/singer-github/bin/python scripts/app-acceptance.py",
+    "acceptance:discovery": "build/singer-github/bin/python scripts/discovery-acceptance.py"
   },
   "devDependencies": {
     "ingestron": "0.17.7",

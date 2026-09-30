@@ -123,6 +123,15 @@ def _fixed(host, headers, path, paged, table, columns, emit):
         start += len(values)
 
 
+def catalogue(settings, obj):
+    """Issue fields from the fields API, or a table's fixed fields."""
+    host, headers = settings_for(settings)
+    fields = issue_fields(host, headers) if obj == 'issues' else TABLES[obj][2]
+    key = 'accountId' if obj == 'users' else 'id'
+    return [{'name': n, 'type': 'decimal' if k == 'number' else k, 'nullable': n != key,
+             **({'key': True} if n == key else {})} for n, k in fields.items()]
+
+
 def scan(settings, table, emit=None):
     host, headers = settings_for(settings)
     obj, columns = table['object'], table['columns']

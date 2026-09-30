@@ -24,6 +24,7 @@ suite as generated; replace it with the real source and keep the suite passing.
 | `settings(settings)`          | Validate the connection settings; secret references are already resolved                  |
 | `table(source, columns)`      | Validate one table's source settings; return what `scan` needs                            |
 | `scan(settings, table, emit)` | Return the table's JSON Schema; when `emit` is given, also call `emit(row)` for every row |
+| `catalogue(settings, source)` | List every field one table source offers, before any contract: name, type, nullable, key  |
 
 Declare `table_keys` (the table source settings) and `errors` (safe codes and
 messages). Raise `kit.SourceError(code)` for failures users can act on. Messages
@@ -37,6 +38,15 @@ rules, atomic commit and receipts. Connectors never write outputs or state.
 
 `install(connector)` wires a table connector into the runtime. The GitHub
 connector uses the Singer adapter path, which speaks the same runtime contract.
+
+## Discovery before contracts
+
+`ingestron discover --flow <id>` calls `catalogue` through the local provider
+with only the connection and table sources, and writes draft ODCS contracts for
+review. Databases read their catalogue (with primary keys), files infer from the
+data (suggesting integer, decimal and boolean types from a sample), and APIs use
+the vendor's field metadata. Mark fields a source cannot represent with
+`supported: false` so they are listed instead of drafted.
 
 ## Connection and table settings
 
@@ -55,7 +65,8 @@ as `definition.tableSourceSchema`. Credentials are always `$secret` references.
 ## Conformance
 
 `test/conformance/harness.py` is one suite every table connector passes before
-release: deterministic discovery of every table, schemas before records, empty
+release: a catalogue of every contracted field without a contract, deterministic
+discovery of every table, schemas before records, empty
 tables, drift failing before any record, a failure in the last table publishing
 nothing, errors free of secrets and source values, and locked-project bounds. A
 fixture supplies settings, tables, rows and ways to change or break the source.

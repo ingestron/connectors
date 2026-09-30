@@ -42,6 +42,10 @@ cost, access, maturity) that `ingestron check` shows. Verified means recorded
 tests against the real engine or service; preview means conformance against
 fakes or mocks. Each page lists its exact evidence.
 
+Tables can start with only a `source`: `ingestron discover --flow <id>` lists
+every field the source offers and writes draft contracts to review, including
+for native and bridge routes through a portable package on the connection.
+
 Start with [the public-data tutorial](https://docs.ingestron.io/docs/tutorials/github-to-parquet)
 (no account or token) or the [retail training project](examples/retail/README.md).
 Older releases and their downloads remain available at their immutable tags.

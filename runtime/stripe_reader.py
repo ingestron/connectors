@@ -141,6 +141,14 @@ def _matches(value, kind):
     return isinstance(value, str)
 
 
+def catalogue(settings, obj):
+    """The object's selectable fields; one page is read to check access."""
+    catalogue_fields = fields(obj)
+    scan(settings, {'object': obj, 'columns': ['id']})
+    return [{'name': name, 'type': kind, 'nullable': name != 'id', **({'key': True} if name == 'id' else {})}
+            for name, kind in catalogue_fields.items()]
+
+
 def scan(settings, table, emit=None):
     """Return the JSON Schema of the selected fields; when emit is given, read every record."""
     key, obj, columns = api_key(settings), table['object'], table['columns']

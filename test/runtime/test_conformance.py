@@ -150,6 +150,7 @@ class FakeSql:
         pass
 
     def execute(self, query, parameters=None):
+        self.keys = 'is_primary_key' in query
         if parameters:
             self.current = self.tables.get(parameters[1])
             self.position = 0
@@ -160,7 +161,10 @@ class FakeSql:
         self.current, self.position = self.tables[table], 0
 
     def fetchall(self):
-        return self.current['columns'] if self.current else []
+        if not self.current: return []
+        # The catalogue query adds a primary-key flag; the first column is the key here.
+        return [(*c, int(i == 0)) for i, c in enumerate(self.current['columns'])] if self.keys \
+            else self.current['columns']
 
     def fetchmany(self, size):
         rows = self.current['rows'][self.position:self.position + size]

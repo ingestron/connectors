@@ -146,6 +146,54 @@ def wire_value(value, kind):
     raise ValueError("SQL row value differs from discovered type")
 
 
+def catalogue(settings, connect=None):
+    """Every column with its type, nullability and primary key; unsupported types are marked."""
+    schema, table, _ = source_object({**settings, "object": {k: v for k, v in settings["object"].items()
+                                                              if k != "columns"}})
+    conn_string = connection_string(settings["connection"])
+    if connect is None:
+        import mssql_python
+        connect = mssql_python.connect
+    try:
+        db = connect(conn_string, timeout=65)
+    except Exception:
+        raise SQLSourceError("SQL_CONNECT", "SQL connection failed; check access, credentials and TLS") from None
+    try:
+        cursor = db.cursor()
+        cursor.execute("""SELECT c.name, ty.name, c.precision, c.scale, c.is_nullable,
+            CAST(CASE WHEN EXISTS (SELECT 1 FROM sys.indexes i JOIN sys.index_columns ic
+              ON ic.object_id = i.object_id AND ic.index_id = i.index_id
+              WHERE i.is_primary_key = 1 AND ic.object_id = t.object_id AND ic.column_id = c.column_id)
+            THEN 1 ELSE 0 END AS bit)
+            FROM sys.tables AS t
+            JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+            JOIN sys.columns AS c ON c.object_id = t.object_id
+            JOIN sys.types AS ty ON ty.user_type_id = c.user_type_id
+            WHERE s.name = ? AND t.name = ? ORDER BY c.column_id""", (schema, table))
+        rows = cursor.fetchall()
+        if not rows:
+            raise SQLSourceError("SQL_TABLE", "SQL table absent or metadata not visible to this identity")
+        columns = []
+        for column, type_name, precision, scale, nullable, key in rows:
+            entry = {"name": column, "nullable": bool(nullable), "sourceType": str(type_name)}
+            try:
+                kind = column_type(type_name, precision, scale)
+                entry["type"] = kind
+                if str(type_name).lower() in ("decimal", "numeric", "money", "smallmoney"):
+                    entry.update(type="decimal", precision=int(precision), scale=int(scale))
+            except ValueError:
+                entry.update(type="string", supported=False)
+            if key: entry["key"] = True
+            columns.append(entry)
+        return columns
+    except (ValueError, SQLSourceError):
+        raise
+    except Exception:
+        raise SQLSourceError("SQL_READ", "SQL read failed; check table permissions and source availability") from None
+    finally:
+        db.close()
+
+
 def scan(settings, emit=None, connect=None):
     """Discover a single table and optionally emit at most MAX_ROWS records."""
     schema, table, selected = source_object(settings)

@@ -103,6 +103,10 @@ DIALECTS = {
         "type": _postgres_type,
         "limit": lambda sql, n: f"{sql} LIMIT {n}",
         "connect": _pg_connect,
+        "keys": """SELECT kcu.column_name FROM information_schema.table_constraints tc
+            JOIN information_schema.key_column_usage kcu ON kcu.constraint_name = tc.constraint_name
+            AND kcu.table_schema = tc.table_schema AND kcu.table_name = tc.table_name
+            WHERE tc.constraint_type = 'PRIMARY KEY' AND tc.table_schema = %s AND tc.table_name = %s""",
         "database_key": "database",
     },
     "mysql": {
@@ -115,6 +119,8 @@ DIALECTS = {
         "type": _mysql_type,
         "limit": lambda sql, n: f"{sql} LIMIT {n}",
         "connect": _mysql_connect,
+        "keys": """SELECT COLUMN_NAME FROM information_schema.key_column_usage
+            WHERE CONSTRAINT_NAME = 'PRIMARY' AND TABLE_SCHEMA = %s AND TABLE_NAME = %s""",
         "database_key": "database",
     },
     "oracle": {
@@ -126,6 +132,9 @@ DIALECTS = {
         "type": _oracle_type,
         "limit": lambda sql, n: f"{sql} FETCH FIRST {n} ROWS ONLY",
         "connect": _oracle_connect,
+        "keys": """SELECT cols.column_name FROM all_constraints cons JOIN all_cons_columns cols
+            ON cols.owner = cons.owner AND cols.constraint_name = cons.constraint_name
+            WHERE cons.constraint_type = 'P' AND cons.owner = :1 AND cons.table_name = :2""",
         "database_key": "service",
     },
 }
@@ -169,6 +178,43 @@ def wire_value(value, kind):
         return value
     if kind == "string" and isinstance(value, str): return value
     raise ValueError("Database row value differs from discovered type")
+
+
+def catalogue(dialect, connection, table, connect=None):
+    """Every column with its type, nullability and primary key; unsupported types are marked."""
+    d = DIALECTS[dialect]
+    schema, tname = name(table["schema"], "schema"), name(table["table"], "table")
+    try:
+        db = (connect or d["connect"])(connection)
+    except Exception:
+        raise DatabaseSourceError("DB_CONNECT", "Database connection failed") from None
+    try:
+        cursor = db.cursor()
+        cursor.execute(d["metadata"], (schema, tname))
+        rows = cursor.fetchall()
+        if not rows:
+            raise DatabaseSourceError("DB_TABLE", "Table absent or metadata not visible")
+        cursor.execute(d["keys"], (schema, tname))
+        keys = {r[0] for r in cursor.fetchall()}
+        columns = []
+        for column, source_type, precision, scale, nullable in rows:
+            entry = {"name": column, "nullable": d["nullable"](nullable), "sourceType": str(source_type)}
+            try:
+                kind = d["type"](source_type, precision, scale)
+                entry["type"] = kind
+                if kind == "number" and scale is not None and precision is not None and int(scale) > 0:
+                    entry.update(type="decimal", precision=int(precision), scale=int(scale))
+            except ValueError:
+                entry.update(type="string", supported=False)
+            if column in keys: entry["key"] = True
+            columns.append(entry)
+        return columns
+    except DatabaseSourceError:
+        raise
+    except Exception:
+        raise DatabaseSourceError("DB_READ", "Database read failed") from None
+    finally:
+        db.close()
 
 
 def scan(dialect, connection, table, emit=None, connect=None):

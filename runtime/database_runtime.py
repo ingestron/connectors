@@ -1,6 +1,6 @@
 """PostgreSQL, MySQL and Oracle tables through the connector kit (PB-064 phase 3)."""
 import connector_kit as kit
-from dbapi_reader import DIALECTS, DatabaseSourceError, connection_settings, scan
+from dbapi_reader import DIALECTS, DatabaseSourceError, catalogue, connection_settings, scan
 
 
 class Database(kit.TableConnector):
@@ -33,6 +33,12 @@ class Database(kit.TableConnector):
         except DatabaseSourceError as error:
             raise kit.SourceError(error.code) from None
         return schema
+
+    def catalogue(self, settings, source):
+        try:
+            return catalogue(self.dialect, settings['connection'], source, self.connect)
+        except DatabaseSourceError as error:
+            raise kit.SourceError(error.code) from None
 
 
 def install(dialect):

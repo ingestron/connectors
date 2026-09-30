@@ -251,6 +251,28 @@ def scan_list(access, locator, table, emit=None):
     return schema
 
 
+LIST_TYPES = {'number': 'decimal', 'currency': 'decimal', 'boolean': 'boolean'}
+
+
+def list_catalogue(settings, source):
+    """A SharePoint list's visible columns with types from their definitions."""
+    locator = settings_for(settings, 'sharepoint')
+    access = token(settings)
+    _, host, name = locator
+    site = graph(access, f'/v1.0/sites/{host}:/sites/{quote(name)}')
+    base = f"/v1.0/sites/{quote(str(site.get('id')), safe=',.')}/lists/{quote(list_name(source['path']))}"
+    columns = graph(access, base + '/columns').get('value')
+    if not isinstance(columns, list): raise GraphError('GRAPH_RESPONSE')
+    out = []
+    for c in columns:
+        if not isinstance(c, dict) or not isinstance(c.get('name'), str) or c.get('hidden'): continue
+        facet = next((k for k in LIST_TYPES if k in c), None)
+        out.append({'name': c['name'], 'type': LIST_TYPES.get(facet, 'string'), 'nullable': not c.get('required', False),
+                    'sourceType': next((k for k in ('text', 'number', 'currency', 'boolean', 'dateTime', 'choice',
+                                                    'lookup', 'personOrGroup', 'calculated') if k in c), 'text')})
+    return out
+
+
 def scan(settings, kind, table, emit=None):
     """Return the JSON Schema of the table; when emit is given, emit every row."""
     locator = settings_for(settings, kind)

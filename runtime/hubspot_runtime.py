@@ -31,6 +31,12 @@ class HubSpot(kit.TableConnector):
         except ApiError as error:
             raise kit.SourceError(error.code) from None
 
+    def catalogue(self, settings, source):
+        try:
+            return reader.catalogue(settings, source['object'])
+        except ApiError as error:
+            raise kit.SourceError(error.code) from None
+
 
 connector = HubSpot()
 workflow = kit.install(connector)

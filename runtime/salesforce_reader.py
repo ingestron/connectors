@@ -70,6 +70,21 @@ def _value(value, expected):
     raise ApiError('SF_SCHEMA')
 
 
+def catalogue(settings, obj):
+    """Every readable field from the object describe; compound fields are skipped."""
+    host = settings_for(settings)
+    access = token(settings, host)
+    value = call('SF', host, 'GET', f'/services/data/{VERSION}/sobjects/{quote(obj)}/describe',
+                 {'Authorization': 'Bearer ' + access})
+    fields = value.get('fields') if isinstance(value, dict) else None
+    if not isinstance(fields, list): raise ApiError('SF_RESPONSE')
+    return [{'name': f['name'], 'type': 'decimal' if kind(f.get('type')) == 'number' else kind(f.get('type')),
+             'nullable': bool(f.get('nillable', True)), 'sourceType': str(f.get('type')),
+             **({'key': True} if f['name'] == 'Id' else {})}
+            for f in fields if isinstance(f, dict) and isinstance(f.get('name'), str)
+            and f.get('type') not in ('address', 'location')]
+
+
 def scan(settings, table, emit=None):
     host = settings_for(settings)
     obj, columns = table['object'], table['columns']

@@ -25,7 +25,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'runtime'))
 import singer_runtime
 # Bundles ship the shared runtime as snapshot_runtime.py.
 sys.modules.setdefault('snapshot_runtime', singer_runtime)
-_original = (singer_runtime.source_config, singer_runtime.tap_output, singer_runtime.review)
+_original = (singer_runtime.source_config, singer_runtime.tap_output, singer_runtime.review,
+             singer_runtime.catalogue)
 import connector_kit as kit
 
 
@@ -43,7 +44,7 @@ class Conformance:
     @staticmethod
     def _restore():
         (singer_runtime.source_config, singer_runtime.tap_output,
-         singer_runtime.review) = _original
+         singer_runtime.review, singer_runtime.catalogue) = _original
 
     def config(self, tables=None):
         return {'sourceSettings': self.settings(),
@@ -126,6 +127,27 @@ class Conformance:
         for text in self.connector.errors.values():
             for value in self.secret_values():
                 self.assertNotIn(value, text)
+
+    def test_catalogue_lists_every_field_without_a_contract(self):
+        settings = self.connector.settings(self.settings())
+        compatible = {'integer': {'integer', 'decimal', 'number'}, 'decimal': {'decimal', 'number'},
+                      'number': {'number', 'decimal'}, 'boolean': {'boolean'}, 'string': {'string'}}
+        for stream, table in self.tables().items():
+            columns = self.connector.catalogue(settings, dict(table['source']))
+            names = [c['name'] for c in columns]
+            self.assertEqual(len(names), len(set(names)), stream)
+            for column in columns:
+                self.assertIn(column['type'], compatible, column)
+                self.assertIsInstance(column['nullable'], bool, column)
+            by_name = {c['name']: c for c in columns}
+            for contracted in table['columns']:
+                self.assertIn(contracted['name'], by_name, stream)
+                kind = contracted['type'].upper()
+                expected = ('integer' if kind in ('BIGINT', 'INT', 'INTEGER', 'SMALLINT') else
+                            'decimal' if kind.startswith('DECIMAL(') else 'number' if kind in ('DOUBLE', 'FLOAT')
+                            else 'boolean' if kind == 'BOOLEAN' else 'string')
+                self.assertIn(by_name[contracted['name']]['type'], compatible[expected] | {'string'},
+                              (stream, contracted))
 
     def test_locked_project_bounds_are_enforced(self):
         tables = self.tables()
