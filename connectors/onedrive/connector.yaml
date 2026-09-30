@@ -1,0 +1,153 @@
+apiVersion: ingestron.connector/v1
+id: onedrive
+version: 0.1.0
+description: Reviewed local snapshots of OneDrive files through Microsoft Graph
+connector: singer:onedrive@23.0.1
+documentation: https://github.com/ingestron/connectors/blob/main/docs/onedrive.md
+upstream:
+  ecosystem: singer
+  variant: ingestron
+  package: pyarrow
+  version: 23.0.1
+  repository: https://github.com/apache/arrow
+  licence: Apache-2.0
+  licenceFile: connectors/onedrive/UPSTREAM-LICENSE.txt
+  licenceStatus: evidenced
+runtime:
+  path: connectors/onedrive/runtime.json
+  sha256: 6e1592f94db92741472ef4777768034c3e20f634071d0989b9fe69dc4a378f44
+  contract: ingestron.snapshot/python/v1
+quality:
+  library:
+    nullValues: at-load
+    missingValues: at-load
+    invalidValues: at-load
+    duplicateValues: at-load
+    rowCount: at-load
+  sql: unsupported
+  engines: []
+source:
+  kind: onedrive
+  capabilities:
+    - snapshot
+    - discovery
+  reference:
+    docs: https://github.com/ingestron/connectors/blob/main/docs/onedrive.md
+    vendorStatus: not-applicable
+    licence: Apache-2.0; upstream pyarrow Apache-2.0; HTTPS through the Python
+      standard library
+    cost:
+      model: none
+      note: Microsoft Graph file reads carry no separate charge; Microsoft 365
+        licensing applies
+    access:
+      model: subscription
+      url: https://learn.microsoft.com/graph/api/resources/onedrive
+      note:
+        A Microsoft 365 tenant and an Entra app with Files.Read.All application
+        permission
+    auth:
+      - client-credentials
+    network:
+      - public
+    maturity: preview
+    verified: 2026-09-30
+    note: OneDrive for Business files and folders through Microsoft Graph v1.0;
+      conformance and unit tests against a Graph mock only; no live tenant
+definition:
+  settingsSchema:
+    type: object
+    properties:
+      tenant_id: &a1
+        type: string
+        minLength: 36
+        maxLength: 36
+      client_id: *a1
+      client_secret:
+        type: object
+        properties:
+          $secret:
+            type: object
+            properties:
+              env: &a2
+                type: string
+                minLength: 1
+            required:
+              - env
+            additionalProperties: false
+        required:
+          - $secret
+        additionalProperties: false
+      user:
+        type: string
+        minLength: 3
+        maxLength: 320
+    required:
+      - tenant_id
+      - client_id
+      - client_secret
+      - user
+    additionalProperties: false
+  selectionSchema:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        name: *a2
+        fields:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - integer
+                  - string
+                  - boolean
+                  - number
+                  - decimal
+                  - json
+              nullable:
+                type: boolean
+              target:
+                type: string
+                minLength: 1
+              precision:
+                type: integer
+              scale:
+                type: integer
+            required:
+              - type
+              - nullable
+            additionalProperties: false
+      required:
+        - name
+        - fields
+      additionalProperties: false
+  tableSourceSchema:
+    type: object
+    properties:
+      path:
+        type: string
+        minLength: 1
+        maxLength: 1024
+      format:
+        type: string
+        enum:
+          - csv
+          - tsv
+          - json
+          - jsonl
+          - parquet
+    required:
+      - path
+      - format
+    additionalProperties: false
+execution:
+  local:
+    modes:
+      - local
+    evidence:
+      Read-only Microsoft Graph file reads with app-only credentials; unit
+      tests against a Graph mock
