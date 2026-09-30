@@ -53,11 +53,11 @@ source:
       - public
       - private-network
       - on-premises
-    maturity: preview
+    maturity: verified
     verified: 2026-09-30
-    note:
-      Multi-table reads tested synthetically; an earlier single-table release
-      read Northwind live
+    note: Conformance suite passed against SQL Server 2022 Developer in a local
+      container (certificate trust relaxed for the test only); an earlier
+      release read Northwind live
 definition:
   settingsSchema:
     type: object

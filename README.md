@@ -34,6 +34,14 @@ was live-qualified on the previous one-table release; the new multi-table path
 has synthetic and installed-build evidence. See the [SQL Server guide](docs/sql-server.md)
 for the connection choices, type limits and exact install command.
 
+PostgreSQL 1.0.0, MySQL 1.0.0 (also MariaDB) and Oracle 1.0.0 read selected tables
+through pure-Python drivers with no native client. They, Files and SQL Server pass
+the shared conformance suite, the database connectors against real engines in
+local containers. See [PostgreSQL](docs/postgresql.md), [MySQL](docs/mysql.md) and
+[Oracle](docs/oracle.md). Every connector declares a reference record (licence,
+cost, access, maturity); build new ones with the
+[connector kit](docs/adding-connectors.md).
+
 GitHub 1.34.0 reads GitHub.com issues into local Parquet snapshots. It supports
 anonymous public reads and explicit token authentication. The pinned Meltano issue
 reader supplies schemas and parsing; an Ingestron adapter uses REST for repository

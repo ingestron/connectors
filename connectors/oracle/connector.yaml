@@ -1,0 +1,156 @@
+apiVersion: ingestron.connector/v1
+id: oracle
+version: 1.0.0
+description: Reviewed local snapshots from Oracle tables
+connector: singer:oracle@26.0.1
+documentation: https://github.com/ingestron/connectors/blob/main/docs/oracle.md
+upstream:
+  ecosystem: singer
+  variant: ingestron
+  package: oracledb
+  version: 26.0.1
+  repository: https://github.com/oracle/python-oracledb
+  licence: UPL-1.0 OR Apache-2.0
+  licenceFile: connectors/oracle/UPSTREAM-LICENSE.txt
+  licenceStatus: evidenced
+runtime:
+  path: connectors/oracle/runtime.json
+  sha256: bad17be6dd451ab9443f29a5a37cc4144c074d4019a3eee68c1dd74519d386ed
+  contract: ingestron.snapshot/python/v1
+quality:
+  library:
+    nullValues: at-load
+    missingValues: at-load
+    invalidValues: at-load
+    duplicateValues: at-load
+    rowCount: at-load
+  sql: unsupported
+  engines: []
+source:
+  kind: oracle
+  capabilities:
+    - snapshot
+    - discovery
+  reference:
+    docs: https://github.com/ingestron/connectors/blob/main/docs/oracle.md
+    vendorStatus: not-applicable
+    licence: Apache-2.0; upstream python-oracledb UPL-1.0 OR Apache-2.0
+    cost:
+      model: none
+      note: Database compute and egress charges apply
+    access:
+      model: free
+      url: https://www.oracle.com/database/free/
+      note: Oracle Database Free or an existing database
+    auth:
+      - password
+    network:
+      - public
+      - private-network
+      - on-premises
+    maturity: verified
+    verified: 2026-09-30
+    note: Oracle tables through a pure-Python driver; conformance suite passed
+      against a local Oracle container
+definition:
+  settingsSchema:
+    type: object
+    properties:
+      connection:
+        type: object
+        properties:
+          host:
+            type: string
+            minLength: 1
+            maxLength: 253
+          port:
+            type: integer
+            minimum: 1
+            maximum: 65535
+          service: &a1
+            type: string
+            minLength: 1
+            maxLength: 128
+          user: *a1
+          password:
+            type: object
+            properties:
+              $secret:
+                type: object
+                properties:
+                  env: &a2
+                    type: string
+                    minLength: 1
+                required:
+                  - env
+                additionalProperties: false
+            required:
+              - $secret
+            additionalProperties: false
+          tls:
+            type: string
+            enum:
+              - require
+              - disable
+        required:
+          - host
+          - service
+          - user
+          - password
+        additionalProperties: false
+    required:
+      - connection
+    additionalProperties: false
+  selectionSchema:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        name: *a2
+        fields:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - integer
+                  - string
+                  - boolean
+                  - number
+                  - decimal
+                  - json
+              nullable:
+                type: boolean
+              target:
+                type: string
+                minLength: 1
+              precision:
+                type: integer
+              scale:
+                type: integer
+            required:
+              - type
+              - nullable
+            additionalProperties: false
+      required:
+        - name
+        - fields
+      additionalProperties: false
+  tableSourceSchema:
+    type: object
+    properties:
+      schema: *a1
+      table: *a1
+    required:
+      - schema
+      - table
+    additionalProperties: false
+execution:
+  local:
+    modes:
+      - local
+    evidence:
+      Bounded read-only table snapshot; conformance suite against synthetic
+      fakes and local containers

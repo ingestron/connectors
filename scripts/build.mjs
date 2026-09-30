@@ -118,6 +118,7 @@ for (const entry of singerCatalogue.filter((e) => e.prepared)) {
 await import("./build-files.mjs");
 await import("./build-azure-blob.mjs");
 await import("./build-sql-server.mjs");
+await import("./build-database.mjs");
 
 if (process.env.GITHUB_REF_TYPE === "tag") {
   const tag = process.env.GITHUB_REF_NAME;

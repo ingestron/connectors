@@ -1,48 +1,82 @@
-# Add a source without expanding the host
+# Add a connector with the connector kit
 
-This repository owns independent source manifests, settings, discovery and runtime
-adapters. An execution provider owns compute and platform assets. Core owns the
-common package/operation schemas; source-specific catalogues do not belong there.
+This repository owns source manifests, settings, discovery and runtime adapters.
+An execution provider owns compute and platform assets, including native platform
+connectors. Core owns the common package and operation schemas.
 
-Add a source only with its exact upstream version, licence text, dependency lock,
-settings schema and a tested runtime path. Prefer existing well-maintained libraries
-when suitable; an upstream connector is optional, not a required abstraction.
-Keep package versions independent and install only the selected package's runtime.
+## Start from the scaffold
 
-The current public interface is `ingestron.connector/v1` with a required
-`ingestron.snapshot/python/v1` runtime. It is not yet a portable native-execution
-contract. Do not add speculative execution modes or advertise provider support
-before those combinations have implemented adapters and acceptance evidence.
-Future contract changes must be versioned and preserve existing package behaviour.
+```sh
+pnpm connector:new <id> --label "Display name"
+pnpm runtime:test
+```
 
-For a new connector release, keep a connection reusable. Its `settingsSchema`
-describes the endpoint and authentication shared by the flow. Add
-`definition.tableSourceSchema` for the physical object selected by each
-`flows[].tables.<name>.source`. The flow table's ODCS contract is the one column
-projection; do not add a second column list to connection or source settings.
-Core validates each source against the connector schema and gives the table a
-stable stream identity for the current local runtime. Test at least two source
-objects through one connection and a rejected unsupported source field.
+The scaffold creates a working example connector (one JSON Lines file per table),
+a conformance test and a documentation page. The example passes the conformance
+suite as generated; replace it with the real source and keep the suite passing.
 
-Older GitHub and Azure Blob releases keep their pinned stream-based
-configuration. Move each to this layout only with a new connector version and
-tested reader mapping. Files 1.1.0 puts one path and format on each table and
-derives parsing types from ODCS columns; Files 1.0.1 remains pinned to its
-earlier layout. An Azure account and credential belong to the connection while
-each blob path belongs to a table source. GitHub repository and stream selection need an
-explicit reviewed mapping before a new release. A provider-native ADF or
-Databricks connection still needs its own implementation and qualification;
-the local Python settings do not establish native platform support.
+## The connector interface
 
-Use synthetic source data to check reviewed selection, data types, credentials,
-failure, retries, schema drift and actual stored output. A mocked protocol is
-useful evidence but not proof of live source behaviour. Retain reviewed contracts
-and output ownership; never silently change the selected execution implementation.
+`runtime/connector_kit.py` defines the interface. A table connector implements:
 
-The files bundle maps the existing snapshot workflow to `snapshot_runtime.py` and
-uses `files_table_runtime.py` as the provider's fixed `singer_runtime.py` entry point.
-The older `files_runtime.py` stays byte-identical for Azure Blob 1.0.0.
-Only the source reader is replaced; review, provenance and commit code are reused.
-The `singer:` identity denotes the v1 wire contract, not an installed upstream tap.
-Its runtime identity uses the pinned Arrow version; the files package has its own
-release version. A future native provider must declare a separate qualified path.
+| Method                        | Purpose                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------- |
+| `settings(settings)`          | Validate the connection settings; secret references are already resolved                  |
+| `table(source, columns)`      | Validate one table's source settings; return what `scan` needs                            |
+| `scan(settings, table, emit)` | Return the table's JSON Schema; when `emit` is given, also call `emit(row)` for every row |
+
+Declare `table_keys` (the table source settings) and `errors` (safe codes and
+messages). Raise `kit.SourceError(code)` for failures users can act on. Messages
+must never contain source values or credentials.
+
+The kit owns everything else: locked-project checks, table and column bounds,
+secret resolution, spooling every table before any record reaches commit,
+schema-drift checks, review of every selected table, and error codes. The shared
+runtime then owns projection to the reviewed contract, type conversion, quality
+rules, atomic commit and receipts. Connectors never write outputs or state.
+
+`install(connector)` wires a table connector into the runtime; `install_single(scan)`
+wires a single-object connector such as Azure Blob. The GitHub connector uses the
+Singer adapter path, which speaks the same runtime contract.
+
+## Conformance
+
+`test/conformance/harness.py` is one suite every table connector passes before
+release: deterministic discovery of every table, schemas before records, empty
+tables, drift failing before any record, a failure in the last table publishing
+nothing, errors free of secrets and source values, and locked-project bounds. A
+fixture supplies settings, tables, rows and ways to change or break the source.
+Files and SQL Server run it against fakes; PostgreSQL, MySQL, Oracle and SQL Server
+also run it against real engines in local containers:
+
+```sh
+pnpm test:containers        # Docker required; synthetic data only
+```
+
+## Maturity and reference records
+
+Every connector carries a reference record in `src/sources.mjs`: documentation,
+licence, cost, access, authentication, network, maturity and the date it was
+checked. Start at `preview` (conformance against fakes or mocks). Move to
+`verified` only with recorded tests against the real service, such as a local
+container of the real engine or a free or test account. `qualified` needs native
+platform execution or an independent user.
+
+## Packaging
+
+Add a build entry (see `scripts/build-database.mjs`), exact requirements in
+`runtime/<id>.in` compiled to a hash-locked `runtime/<id>.lock` with
+`uv pip compile --generate-hashes`, and the upstream licence text. Keep package
+versions independent. Wrapped ecosystem connectors (Singer, Airbyte, dlt) are
+added one at a time with their own licence evidence; restricted licences such as
+ELv2 are candidates only until legal review.
+
+## Testing against unreleased core and CLI
+
+```sh
+INGESTRON_TEST_CLI=$(pnpm -s local-stack --print) pnpm acceptance:files:tables
+```
+
+`pnpm local-stack` packs core and the CLI from the sibling checkouts and installs
+them together, with the CLI declaring exactly that core, so installed gates run
+without publishing to npm.

@@ -5,6 +5,23 @@ const docs = (name) =>
 const verified = "2026-09-30";
 const snapshot = ["snapshot", "discovery"];
 
+const database = (kind, label, docsName, driver, licence, access) => ({
+  kind,
+  capabilities: snapshot,
+  reference: {
+    docs: docs(docsName),
+    vendorStatus: "not-applicable",
+    licence: `Apache-2.0; upstream ${driver} ${licence}`,
+    cost: { model: "none", note: "Database compute and egress charges apply" },
+    access: { model: "free", ...access },
+    auth: ["password"],
+    network: ["public", "private-network", "on-premises"],
+    maturity: "verified",
+    verified,
+    note: `${label} tables through a pure-Python driver; conformance suite passed against a local ${label} container`,
+  },
+});
+
 export const sources = {
   files: {
     kind: "local-files",
@@ -70,11 +87,37 @@ export const sources = {
         "entra-service-principal",
       ],
       network: ["public", "private-network", "on-premises"],
-      maturity: "preview",
+      maturity: "verified",
       verified,
-      note: "Multi-table reads tested synthetically; an earlier single-table release read Northwind live",
+      note: "Conformance suite passed against SQL Server 2022 Developer in a local container (certificate trust relaxed for the test only); an earlier release read Northwind live",
     },
   },
+  postgresql: database(
+    "postgresql",
+    "PostgreSQL",
+    "postgresql",
+    "pg8000",
+    "BSD-3-Clause",
+    {
+      url: "https://www.postgresql.org/download/",
+      note: "PostgreSQL is free; any existing server",
+    },
+  ),
+  mysql: database("mysql", "MySQL and MariaDB", "mysql", "PyMySQL", "MIT", {
+    url: "https://dev.mysql.com/downloads/mysql/",
+    note: "MySQL Community Server is free; any existing server",
+  }),
+  oracle: database(
+    "oracle",
+    "Oracle",
+    "oracle",
+    "python-oracledb",
+    "UPL-1.0 OR Apache-2.0",
+    {
+      url: "https://www.oracle.com/database/free/",
+      note: "Oracle Database Free or an existing database",
+    },
+  ),
   github: {
     kind: "github",
     capabilities: snapshot,
