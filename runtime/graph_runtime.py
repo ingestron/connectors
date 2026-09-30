@@ -8,7 +8,9 @@ KEYS = {'sharepoint': {'tenant_id', 'client_id', 'client_secret', 'site'},
 
 
 class GraphFiles(kit.TableConnector):
-    table_keys = frozenset({'path', 'format'})
+    table_keys = frozenset({'path'})
+    # Files name a format; SharePoint lists use entity: list, as on the native routes.
+    optional_keys = frozenset({'format', 'entity'})
     errors = reader.ERRORS
 
     def __init__(self, kind):
@@ -22,8 +24,17 @@ class GraphFiles(kit.TableConnector):
         return settings
 
     def table(self, source, columns):
+        entity = source.get('entity', 'file')
+        kit.workflow.check(entity in ('file', 'list') and (self.kind == 'sharepoint' or entity == 'file'),
+                           'entity must be file, or list for SharePoint')
+        types = {column['name']: parser_kind(column['type']) for column in columns}
+        if entity == 'list':
+            kit.workflow.check('format' not in source, 'format applies to files only')
+            reader.list_name(source['path'])
+            return {'path': source['path'], 'entity': 'list', 'types': types}
+        kit.workflow.check(source.get('format') in reader.SUFFIX, 'Files need a format')
         return {'path': reader.table_path(source['path'], self.kind), 'format': source['format'],
-                'types': {column['name']: parser_kind(column['type']) for column in columns}}
+                'types': types}
 
     def scan(self, settings, table, emit=None):
         try:

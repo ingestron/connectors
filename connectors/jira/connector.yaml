@@ -1,0 +1,142 @@
+apiVersion: ingestron.connector/v1
+id: jira
+version: 0.1.0
+description: Reviewed local snapshots of Jira Cloud issues and projects
+connector: singer:jira@23.0.1
+documentation: https://github.com/ingestron/connectors/blob/main/docs/jira.md
+upstream:
+  ecosystem: singer
+  variant: ingestron
+  package: pyarrow
+  version: 23.0.1
+  repository: https://github.com/apache/arrow
+  licence: Apache-2.0
+  licenceFile: connectors/jira/UPSTREAM-LICENSE.txt
+  licenceStatus: evidenced
+runtime:
+  path: connectors/jira/runtime.json
+  sha256: 4c8c00d4bc6256374bbb22eeaaaa1a0756175eda4466cc122e0410f7430431f2
+  contract: ingestron.snapshot/python/v1
+quality:
+  library:
+    nullValues: at-load
+    missingValues: at-load
+    invalidValues: at-load
+    duplicateValues: at-load
+    rowCount: at-load
+  sql: unsupported
+  engines: []
+source:
+  kind: jira
+  capabilities:
+    - snapshot
+    - discovery
+  reference:
+    docs: https://github.com/ingestron/connectors/blob/main/docs/jira.md
+    vendorStatus: not-applicable
+    licence: Apache-2.0; HTTPS through the Python standard library
+    cost:
+      model: none
+      note: Jira Cloud API use has no separate charge; plan limits apply
+    access:
+      model: free-tier
+      url: https://www.atlassian.com/software/jira/free
+      note: A Jira Cloud site (the free plan has the REST API) and an API token
+    auth:
+      - api-token
+    network:
+      - public
+    maturity: preview
+    verified: 2026-10-01
+    note:
+      REST API v3 fields and enhanced JQL search; rate limits apply; conformance
+      suite against a mock of the documented API only; no live account
+definition:
+  settingsSchema:
+    type: object
+    properties:
+      site:
+        type: string
+        minLength: 12
+        maxLength: 300
+      email:
+        type: string
+        minLength: 3
+        maxLength: 320
+      api_token:
+        type: object
+        properties:
+          $secret:
+            type: object
+            properties:
+              env: &a1
+                type: string
+                minLength: 1
+            required:
+              - env
+            additionalProperties: false
+        required:
+          - $secret
+        additionalProperties: false
+    required:
+      - site
+      - email
+      - api_token
+    additionalProperties: false
+  selectionSchema:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        name: *a1
+        fields:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - integer
+                  - string
+                  - boolean
+                  - number
+                  - decimal
+                  - json
+              nullable:
+                type: boolean
+              target:
+                type: string
+                minLength: 1
+              precision:
+                type: integer
+              scale:
+                type: integer
+            required:
+              - type
+              - nullable
+            additionalProperties: false
+      required:
+        - name
+        - fields
+      additionalProperties: false
+  tableSourceSchema:
+    type: object
+    properties:
+      object:
+        type: string
+        minLength: 1
+        maxLength: 80
+      jql:
+        type: string
+        minLength: 1
+        maxLength: 2000
+    required:
+      - object
+    additionalProperties: false
+execution:
+  local:
+    modes:
+      - local
+    evidence: Jira Cloud REST API v3 (fields, enhanced JQL search); conformance
+      suite against a mock of the documented API

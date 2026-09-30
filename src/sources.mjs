@@ -3,6 +3,7 @@
 const docs = (name) =>
   `https://github.com/ingestron/connectors/blob/main/docs/${name}.md`;
 const verified = "2026-09-30";
+const checked = "2026-10-01";
 const snapshot = ["snapshot", "discovery"];
 
 const database = (kind, label, docsName, driver, licence, access) => ({
@@ -44,6 +45,35 @@ const graphFiles = (kind, label, auth) => ({
     maturity: "preview",
     verified,
     note: `${label} files and folders through Microsoft Graph v1.0; conformance and unit tests against a Graph mock only; no live tenant`,
+  },
+});
+
+const api = (
+  kind,
+  label,
+  url,
+  accessModel,
+  accessUrl,
+  accessNote,
+  auth,
+  what,
+) => ({
+  kind,
+  capabilities: snapshot,
+  reference: {
+    docs: docs(kind),
+    vendorStatus: "not-applicable",
+    licence: "Apache-2.0; HTTPS through the Python standard library",
+    cost: {
+      model: "none",
+      note: `${label} API use has no separate charge; plan limits apply`,
+    },
+    access: { model: accessModel, url: accessUrl, note: accessNote },
+    auth,
+    network: ["public"],
+    maturity: "preview",
+    verified: checked,
+    note: `${what}; conformance suite against a mock of the documented API only; no live account`,
   },
 });
 
@@ -164,6 +194,106 @@ export const sources = {
       note: "Documented list API with cursor pagination; conformance suite against a mock of that API only; no live Stripe account",
     },
   },
+  s3: {
+    kind: "s3",
+    capabilities: snapshot,
+    reference: {
+      docs: docs("s3"),
+      vendorStatus: "not-applicable",
+      licence:
+        "Apache-2.0; upstream pyarrow Apache-2.0; SigV4 signing with the Python standard library",
+      cost: {
+        model: "none",
+        pricing: "https://aws.amazon.com/s3/pricing/",
+        note: "S3 request and data transfer charges apply",
+      },
+      access: {
+        model: "subscription",
+        url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/",
+        note: "An AWS account and an access key with s3:ListBucket and s3:GetObject; S3-compatible stores through endpoint",
+      },
+      auth: ["access-key"],
+      network: ["public"],
+      maturity: "verified",
+      verified: checked,
+      note: "Conformance suite against an S3-compatible server (SeaweedFS) in a local container that verifies SigV4 signatures; not yet against AWS itself",
+    },
+  },
+  gcs: {
+    kind: "gcs",
+    capabilities: snapshot,
+    reference: {
+      docs: docs("gcs"),
+      vendorStatus: "not-applicable",
+      licence:
+        "Apache-2.0; upstream pyarrow Apache-2.0; SigV4 signing with the Python standard library",
+      cost: {
+        model: "none",
+        pricing: "https://cloud.google.com/storage/pricing",
+        note: "Cloud Storage operation and egress charges apply",
+      },
+      access: {
+        model: "subscription",
+        url: "https://cloud.google.com/storage/docs/authentication/hmackeys",
+        note: "A Google Cloud project and an HMAC key for a service account with read access",
+      },
+      auth: ["hmac-key"],
+      network: ["public"],
+      maturity: "preview",
+      verified: checked,
+      note: "XML API with HMAC keys; shares the S3 signing path verified against an S3-compatible server; conformance against a mock only",
+    },
+  },
+  sftp: {
+    kind: "sftp",
+    capabilities: snapshot,
+    reference: {
+      docs: docs("sftp"),
+      vendorStatus: "not-applicable",
+      licence:
+        "Apache-2.0; upstream pyarrow Apache-2.0; uses the machine's OpenSSH client (not bundled)",
+      cost: { model: "none" },
+      access: {
+        model: "none",
+        note: "An SFTP server, a user with a key, and its host key",
+      },
+      auth: ["ssh-key"],
+      network: ["public", "private-network", "on-premises"],
+      maturity: "verified",
+      verified: checked,
+      note: "System OpenSSH sftp with a pinned host key; conformance suite against an SFTP server in a local container",
+    },
+  },
+  salesforce: api(
+    "salesforce",
+    "Salesforce",
+    "https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/",
+    "free",
+    "https://developer.salesforce.com/signup",
+    "A Salesforce Developer Edition org is free; a connected app with client credentials",
+    ["oauth2-client-credentials"],
+    "REST API describe and SOQL query; API limits apply",
+  ),
+  hubspot: api(
+    "hubspot",
+    "HubSpot",
+    "https://developers.hubspot.com/docs/api/crm/understanding-the-crm",
+    "free-tier",
+    "https://developers.hubspot.com/docs/apps/legacy-apps/private-apps/overview",
+    "A HubSpot account with a private app token and CRM read scopes",
+    ["private-app-token"],
+    "CRM v3 objects and properties; daily API limits apply",
+  ),
+  jira: api(
+    "jira",
+    "Jira Cloud",
+    "https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/",
+    "free-tier",
+    "https://www.atlassian.com/software/jira/free",
+    "A Jira Cloud site (the free plan has the REST API) and an API token",
+    ["api-token"],
+    "REST API v3 fields and enhanced JQL search; rate limits apply",
+  ),
   sharepoint: graphFiles(
     "sharepoint",
     "SharePoint document library",

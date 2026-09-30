@@ -24,7 +24,7 @@
     "package:retail": "python3 scripts/package-retail.py",
     "acceptance:azure-blob": "build/singer-github/bin/python scripts/azure-blob-acceptance.py",
     "acceptance:sql-server:live": "python3 scripts/sql-server-live-acceptance.py",
-    "test:containers": "INGESTRON_TEST_CONTAINERS=1 PYTHONPATH=runtime build/database-test/bin/python -m unittest discover -s test/containers -p 'test_database_*.py' && INGESTRON_TEST_CONTAINERS=1 PYTHONPATH=runtime build/sql-server/bin/python -m unittest test/containers/test_sql_server_container.py",
+    "test:containers": "INGESTRON_TEST_CONTAINERS=1 PYTHONPATH=runtime build/database-test/bin/python -m unittest discover -s test/containers -p 'test_database_*.py' && INGESTRON_TEST_CONTAINERS=1 PYTHONPATH=runtime build/sql-server/bin/python -m unittest test/containers/test_sql_server_container.py && INGESTRON_TEST_CONTAINERS=1 PYTHONPATH=runtime build/singer-github/bin/python -m unittest test/containers/test_object_store_container.py test/containers/test_sftp_container.py",
     "connector:new": "node scripts/new-connector.mjs",
     "local-stack": "node scripts/local-stack.mjs",
     "acceptance:postgresql": "build/singer-github/bin/python scripts/database-acceptance.py",

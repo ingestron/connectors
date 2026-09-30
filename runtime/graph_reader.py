@@ -5,11 +5,14 @@ with scope https://graph.microsoft.com/.default), then Graph v1.0: resolve the
 site's document library or the user's OneDrive, resolve the item by path, and
 download each file through its pre-authenticated download URL. A file path reads
 one file; a folder path reads every file of the selected format directly inside
-it, in name order, and all must share one schema. Public cloud only. Documented
-at learn.microsoft.com/graph (accessed 2026-09-30).
+it, in name order, and all must share one schema. A SharePoint list
+(`Lists/<name>` with entity list) is read through the list items API with the
+contract's fields. Public cloud only. Documented at learn.microsoft.com/graph
+(accessed 2026-10-01).
 """
 import http.client
 import json
+from decimal import Decimal
 import re
 import tempfile
 from pathlib import Path
@@ -190,10 +193,71 @@ def download(item, destination):
     destination.write_bytes(data)
 
 
+def list_name(path):
+    name = path[len('Lists/'):] if path.startswith('Lists/') else ''
+    require(name and '/' not in name and len(name) <= 255, 'A list path is Lists/<name>')
+    return unquote(name)
+
+
+def _value(value, kind):
+    """Convert one list field to the contract type; lookups and people become JSON text."""
+    if value is None: return None
+    if kind == 'boolean':
+        if isinstance(value, bool): return value
+        raise GraphError('GRAPH_SCHEMA')
+    if kind in ('integer', 'number', 'decimal'):
+        if isinstance(value, bool) or not isinstance(value, (int, float, str)): raise GraphError('GRAPH_SCHEMA')
+        try:
+            number = Decimal(str(value))
+        except ArithmeticError:
+            raise GraphError('GRAPH_SCHEMA') from None
+        if kind == 'integer':
+            if number != number.to_integral_value(): raise GraphError('GRAPH_SCHEMA')
+            return int(number)
+        return number
+    return value if isinstance(value, str) else json.dumps(value, sort_keys=True, separators=(',', ':'))
+
+
+def scan_list(access, locator, table, emit=None):
+    """Read a SharePoint list's items; selected fields must exist as list columns."""
+    _, host, name = locator
+    site = graph(access, f'/v1.0/sites/{host}:/sites/{quote(name)}')
+    base = f"/v1.0/sites/{quote(str(site.get('id')), safe=',.')}/lists/{quote(list_name(table['path']))}"
+    columns = graph(access, base + '/columns').get('value')
+    if not isinstance(columns, list): raise GraphError('GRAPH_RESPONSE')
+    available = {c.get('name') for c in columns if isinstance(c, dict)}
+    selected = table['types']
+    if not set(selected) <= available: raise GraphError('GRAPH_SCHEMA')
+    mapping = {'string': 'string', 'integer': 'integer', 'boolean': 'boolean', 'number': 'number', 'decimal': 'number'}
+    schema = {'type': 'object', 'additionalProperties': False,
+              'properties': {c: {'type': ['null', mapping[k]]} for c, k in sorted(selected.items())}}
+    if emit is None: return schema
+    target, count = base + '/items?expand=fields(select=' + ','.join(sorted(selected)) + ')&$top=200', 0
+    while target:
+        page = graph(access, target)
+        items = page.get('value')
+        if not isinstance(items, list): raise GraphError('GRAPH_RESPONSE')
+        for item in items:
+            fields = item.get('fields') if isinstance(item, dict) else None
+            if not isinstance(fields, dict): raise GraphError('GRAPH_RESPONSE')
+            emit({c: _value(fields.get(c), k) for c, k in sorted(selected.items())})
+            count += 1
+            if count > 1_000_000: raise GraphError('GRAPH_TOO_LARGE')
+        nxt = page.get('@odata.nextLink')
+        if nxt is None: break
+        url = urlsplit(nxt) if isinstance(nxt, str) else None
+        if not (url and url.scheme == 'https' and url.hostname == GRAPH): raise GraphError('GRAPH_RESPONSE')
+        target = url.path + ('?' + url.query if url.query else '')
+    return schema
+
+
 def scan(settings, kind, table, emit=None):
     """Return the JSON Schema of the table; when emit is given, emit every row."""
     locator = settings_for(settings, kind)
     access = token(settings)
+    if table.get('entity') == 'list':
+        require(kind == 'sharepoint', 'Lists are read from SharePoint sites')
+        return scan_list(access, locator, table, emit)
     drive_id, path = drive(access, locator, table_path(table['path'], kind))
     items = files(access, drive_id, path, table['format'])
     if emit is None: items = items[:1]

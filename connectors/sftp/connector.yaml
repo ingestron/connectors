@@ -1,0 +1,158 @@
+apiVersion: ingestron.connector/v1
+id: sftp
+version: 1.0.0
+description: Reviewed local snapshots of files on SFTP servers
+connector: singer:sftp@23.0.1
+documentation: https://github.com/ingestron/connectors/blob/main/docs/sftp.md
+upstream:
+  ecosystem: singer
+  variant: ingestron
+  package: pyarrow
+  version: 23.0.1
+  repository: https://github.com/apache/arrow
+  licence: Apache-2.0
+  licenceFile: connectors/sftp/UPSTREAM-LICENSE.txt
+  licenceStatus: evidenced
+runtime:
+  path: connectors/sftp/runtime.json
+  sha256: 2c294f243b75662935a1e017eec8ed5908540f22d1bd90c07ce57b34b957358d
+  contract: ingestron.snapshot/python/v1
+quality:
+  library:
+    nullValues: at-load
+    missingValues: at-load
+    invalidValues: at-load
+    duplicateValues: at-load
+    rowCount: at-load
+  sql: unsupported
+  engines: []
+source:
+  kind: sftp
+  capabilities:
+    - snapshot
+    - discovery
+  reference:
+    docs: https://github.com/ingestron/connectors/blob/main/docs/sftp.md
+    vendorStatus: not-applicable
+    licence: Apache-2.0; upstream pyarrow Apache-2.0; uses the machine's OpenSSH
+      client (not bundled)
+    cost:
+      model: none
+    access:
+      model: none
+      note: An SFTP server, a user with a key, and its host key
+    auth:
+      - ssh-key
+    network:
+      - public
+      - private-network
+      - on-premises
+    maturity: verified
+    verified: 2026-10-01
+    note:
+      System OpenSSH sftp with a pinned host key; conformance suite against an
+      SFTP server in a local container
+definition:
+  settingsSchema:
+    type: object
+    properties:
+      host:
+        type: string
+        minLength: 1
+        maxLength: 253
+      port:
+        type: integer
+        minimum: 1
+        maximum: 65535
+      user:
+        type: string
+        minLength: 1
+        maxLength: 64
+      private_key:
+        type: object
+        properties:
+          $secret:
+            type: object
+            properties:
+              env: &a1
+                type: string
+                minLength: 1
+            required:
+              - env
+            additionalProperties: false
+        required:
+          - $secret
+        additionalProperties: false
+      host_key:
+        type: string
+        minLength: 20
+        maxLength: 1024
+    required:
+      - host
+      - user
+      - private_key
+      - host_key
+    additionalProperties: false
+  selectionSchema:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        name: *a1
+        fields:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - integer
+                  - string
+                  - boolean
+                  - number
+                  - decimal
+                  - json
+              nullable:
+                type: boolean
+              target:
+                type: string
+                minLength: 1
+              precision:
+                type: integer
+              scale:
+                type: integer
+            required:
+              - type
+              - nullable
+            additionalProperties: false
+      required:
+        - name
+        - fields
+      additionalProperties: false
+  tableSourceSchema:
+    type: object
+    properties:
+      path:
+        type: string
+        minLength: 1
+        maxLength: 1024
+      format:
+        type: string
+        enum:
+          - csv
+          - tsv
+          - json
+          - jsonl
+          - parquet
+    required:
+      - path
+      - format
+    additionalProperties: false
+execution:
+  local:
+    modes:
+      - local
+    evidence:
+      System OpenSSH sftp client with a pinned host key; conformance suite
+      against a local transport and an SFTP server container

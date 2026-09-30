@@ -87,6 +87,25 @@ class Graph(unittest.TestCase):
         _, rows = self.read(SP, 'sharepoint', {**TABLE, 'path': 'Shared Documents/retail/orders'})
         self.assertEqual(len(rows), 2)
 
+    def test_sharepoint_lists_read_contract_fields_across_pages(self):
+        self.api.lists['Budgets'] = {'columns': ['Title', 'Amount', 'Approved', 'Owner'],
+                                     'items': [{'Title': 'A', 'Amount': 12.5, 'Approved': True},
+                                               {'Title': 'B', 'Amount': 3, 'Approved': False,
+                                                'Owner': {'Email': 'x@example.invalid'}},
+                                               {'Title': 'C'}]}
+        table = {'path': 'Lists/Budgets', 'entity': 'list',
+                 'types': {'Title': 'string', 'Amount': 'decimal', 'Approved': 'boolean', 'Owner': 'string'}}
+        schema, rows = self.read(SP, 'sharepoint', table)
+        self.assertEqual(schema['properties']['Amount'], {'type': ['null', 'number']})
+        self.assertEqual([r['Title'] for r in rows], ['A', 'B', 'C'])
+        self.assertEqual(str(rows[0]['Amount']), '12.5')
+        self.assertEqual(rows[1]['Owner'], '{"Email":"x@example.invalid"}')
+        self.assertIsNone(rows[2]['Amount'])
+        self.assertEqual(self.code(SP, 'sharepoint', {**table, 'types': {'Missing': 'string'}}), 'GRAPH_SCHEMA')
+        self.api.lists['Budgets']['items'][0]['Approved'] = 'yes'
+        self.assertEqual(self.code(SP, 'sharepoint', table), 'GRAPH_SCHEMA')
+        self.assertEqual(self.code(SP, 'sharepoint', {**table, 'path': 'Lists/Other'}), 'GRAPH_NOT_FOUND')
+
     def test_settings_validation(self):
         for bad in [{**SP, 'tenant_id': 'contoso'}, {**SP, 'site': 'https://evil.example/sites/x'},
                     {**SP, 'site': 'http://contoso.sharepoint.com/sites/finance'}]:

@@ -70,6 +70,13 @@ A file path reads that file. A folder path reads every file of the selected
 format directly inside it (not subfolders), in name order, and they must share
 one schema. This matches the Databricks SharePoint route, which also reads a folder as one table.
 
+### Lists
+
+A table can read a SharePoint list instead of a file: `source: { path: Lists/Budgets, entity: list }`
+(no format), the same source as the ADF and Databricks list routes. The
+contract's columns must be list column internal names; lookups and people
+fields become JSON text. A removed column fails as `GRAPH_SCHEMA`.
+
 ## Types
 
 Types come from each table's contract, as for [local files](files.md): string,

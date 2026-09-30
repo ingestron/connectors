@@ -1,0 +1,139 @@
+apiVersion: ingestron.connector/v1
+id: salesforce
+version: 0.1.0
+description: Reviewed local snapshots of Salesforce objects
+connector: singer:salesforce@23.0.1
+documentation: https://github.com/ingestron/connectors/blob/main/docs/salesforce.md
+upstream:
+  ecosystem: singer
+  variant: ingestron
+  package: pyarrow
+  version: 23.0.1
+  repository: https://github.com/apache/arrow
+  licence: Apache-2.0
+  licenceFile: connectors/salesforce/UPSTREAM-LICENSE.txt
+  licenceStatus: evidenced
+runtime:
+  path: connectors/salesforce/runtime.json
+  sha256: b266b3350a9c87d59629c3be7650b5368a563002c1b828c2dfc23a4cea5d696c
+  contract: ingestron.snapshot/python/v1
+quality:
+  library:
+    nullValues: at-load
+    missingValues: at-load
+    invalidValues: at-load
+    duplicateValues: at-load
+    rowCount: at-load
+  sql: unsupported
+  engines: []
+source:
+  kind: salesforce
+  capabilities:
+    - snapshot
+    - discovery
+  reference:
+    docs: https://github.com/ingestron/connectors/blob/main/docs/salesforce.md
+    vendorStatus: not-applicable
+    licence: Apache-2.0; HTTPS through the Python standard library
+    cost:
+      model: none
+      note: Salesforce API use has no separate charge; plan limits apply
+    access:
+      model: free
+      url: https://developer.salesforce.com/signup
+      note:
+        A Salesforce Developer Edition org is free; a connected app with client
+        credentials
+    auth:
+      - oauth2-client-credentials
+    network:
+      - public
+    maturity: preview
+    verified: 2026-10-01
+    note: REST API describe and SOQL query; API limits apply; conformance suite
+      against a mock of the documented API only; no live account
+definition:
+  settingsSchema:
+    type: object
+    properties:
+      instance_url:
+        type: string
+        minLength: 12
+        maxLength: 300
+      client_id:
+        type: string
+        minLength: 1
+        maxLength: 1024
+      client_secret:
+        type: object
+        properties:
+          $secret:
+            type: object
+            properties:
+              env: &a1
+                type: string
+                minLength: 1
+            required:
+              - env
+            additionalProperties: false
+        required:
+          - $secret
+        additionalProperties: false
+    required:
+      - instance_url
+      - client_id
+      - client_secret
+    additionalProperties: false
+  selectionSchema:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        name: *a1
+        fields:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - integer
+                  - string
+                  - boolean
+                  - number
+                  - decimal
+                  - json
+              nullable:
+                type: boolean
+              target:
+                type: string
+                minLength: 1
+              precision:
+                type: integer
+              scale:
+                type: integer
+            required:
+              - type
+              - nullable
+            additionalProperties: false
+      required:
+        - name
+        - fields
+      additionalProperties: false
+  tableSourceSchema:
+    type: object
+    properties:
+      object:
+        type: string
+        minLength: 1
+        maxLength: 80
+    required:
+      - object
+    additionalProperties: false
+execution:
+  local:
+    modes:
+      - local
+    evidence: Salesforce REST API (describe and SOQL query); conformance suite
+      against a mock of the documented API

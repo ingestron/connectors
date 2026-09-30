@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/sharepoint/runtime.json
-  sha256: df251d81f38f24969633046934bbbc5a6e4d093a3a0a32c1050489b61cba0918
+  sha256: 176937bb131164c012031220cd67b1743bf1a7bb4c88db5f5eafa577c69da20f
   contract: ingestron.snapshot/python/v1
 quality:
   library:
@@ -139,9 +139,13 @@ definition:
           - json
           - jsonl
           - parquet
+      entity:
+        type: string
+        enum:
+          - file
+          - list
     required:
       - path
-      - format
     additionalProperties: false
 execution:
   local:
