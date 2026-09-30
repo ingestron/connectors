@@ -1,0 +1,150 @@
+apiVersion: ingestron.connector/v1
+id: gcs
+version: 0.1.0
+description: Reviewed local snapshots of Google Cloud Storage objects
+connector: singer:gcs@23.0.1
+documentation: https://github.com/ingestron/connectors/blob/main/docs/gcs.md
+upstream:
+  ecosystem: singer
+  variant: ingestron
+  package: pyarrow
+  version: 23.0.1
+  repository: https://github.com/apache/arrow
+  licence: Apache-2.0
+  licenceFile: connectors/gcs/UPSTREAM-LICENSE.txt
+  licenceStatus: evidenced
+runtime:
+  path: connectors/gcs/runtime.json
+  sha256: 936d974fb619e837f27cd2ce95aa762a0bbef49c588bbb55c2a6768ef53e3b46
+  contract: ingestron.snapshot/python/v1
+quality:
+  library:
+    nullValues: at-load
+    missingValues: at-load
+    invalidValues: at-load
+    duplicateValues: at-load
+    rowCount: at-load
+  sql: unsupported
+  engines: []
+source:
+  kind: gcs
+  capabilities:
+    - snapshot
+    - discovery
+  reference:
+    docs: https://github.com/ingestron/connectors/blob/main/docs/gcs.md
+    vendorStatus: not-applicable
+    licence:
+      Apache-2.0; upstream pyarrow Apache-2.0; SigV4 signing with the Python
+      standard library
+    cost:
+      model: none
+      pricing: https://cloud.google.com/storage/pricing
+      note: Cloud Storage operation and egress charges apply
+    access:
+      model: subscription
+      url: https://cloud.google.com/storage/docs/authentication/hmackeys
+      note:
+        A Google Cloud project and an HMAC key for a service account with read
+        access
+    auth:
+      - hmac-key
+    network:
+      - public
+    maturity: preview
+    verified: 2026-10-01
+    note: XML API with HMAC keys; shares the S3 signing path verified against an
+      S3-compatible server; conformance against a mock only
+definition:
+  settingsSchema:
+    type: object
+    properties:
+      bucket:
+        type: string
+        minLength: 3
+        maxLength: 63
+      access_key_id:
+        type: string
+        minLength: 1
+        maxLength: 256
+      secret_access_key:
+        type: object
+        properties:
+          $secret:
+            type: object
+            properties:
+              env: &a1
+                type: string
+                minLength: 1
+            required:
+              - env
+            additionalProperties: false
+        required:
+          - $secret
+        additionalProperties: false
+    required:
+      - bucket
+      - access_key_id
+      - secret_access_key
+    additionalProperties: false
+  selectionSchema:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        name: *a1
+        fields:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - integer
+                  - string
+                  - boolean
+                  - number
+                  - decimal
+                  - json
+              nullable:
+                type: boolean
+              target:
+                type: string
+                minLength: 1
+              precision:
+                type: integer
+              scale:
+                type: integer
+            required:
+              - type
+              - nullable
+            additionalProperties: false
+      required:
+        - name
+        - fields
+      additionalProperties: false
+  tableSourceSchema:
+    type: object
+    properties:
+      path:
+        type: string
+        minLength: 1
+        maxLength: 1024
+      format:
+        type: string
+        enum:
+          - csv
+          - tsv
+          - json
+          - jsonl
+          - parquet
+    required:
+      - path
+      - format
+    additionalProperties: false
+execution:
+  local:
+    modes:
+      - local
+    evidence: HMAC-signed Cloud Storage XML API reads; conformance suite against a mock

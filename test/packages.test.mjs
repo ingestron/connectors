@@ -20,6 +20,12 @@ test("released source assets bind schema, code, requirements and licence to one 
     "stripe",
     "sharepoint",
     "onedrive",
+    "s3",
+    "gcs",
+    "sftp",
+    "salesforce",
+    "hubspot",
+    "jira",
   ]) {
     const m = parse(
       readFileSync(`connectors/${source}/connector.yaml`, "utf8"),
@@ -175,6 +181,12 @@ test("every table connector keeps endpoint and credentials on the connection and
     "stripe",
     "sharepoint",
     "onedrive",
+    "s3",
+    "gcs",
+    "sftp",
+    "salesforce",
+    "hubspot",
+    "jira",
   ]) {
     const m = parse(
       readFileSync(`connectors/${source}/connector.yaml`, "utf8"),

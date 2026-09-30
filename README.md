@@ -26,6 +26,12 @@ engine rules are not evaluated by these connectors.
 | [Stripe](docs/stripe.md)                       | `stripe@0.1.0`     | Customers, charges, invoices and other objects     | preview  |
 | [SharePoint](docs/sharepoint.md)               | `sharepoint@0.1.0` | Files and folders in document libraries (Graph)    | preview  |
 | [OneDrive](docs/onedrive.md)                   | `onedrive@0.1.0`   | Files and folders in OneDrive for Business (Graph) | preview  |
+| [Amazon S3](docs/s3.md)                        | `s3@1.0.0`         | Objects and prefixes (SigV4)                       | verified |
+| [Google Cloud Storage](docs/gcs.md)            | `gcs@0.1.0`        | Objects and prefixes (HMAC)                        | preview  |
+| [SFTP](docs/sftp.md)                           | `sftp@1.0.0`       | Files and folders (OpenSSH)                        | verified |
+| [Salesforce](docs/salesforce.md)               | `salesforce@0.1.0` | Objects (REST, SOQL)                               | preview  |
+| [HubSpot](docs/hubspot.md)                     | `hubspot@0.1.0`    | CRM objects                                        | preview  |
+| [Jira Cloud](docs/jira.md)                     | `jira@0.1.0`       | Issues, projects, types, statuses, users           | preview  |
 
 Every connector uses the same layout: the connection holds the endpoint, scope
 and credentials (always `$secret` references); each `flows[].tables` entry names

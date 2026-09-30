@@ -44,6 +44,7 @@ class TableConnector:
     """Base for connectors that read several contracted tables per connection."""
     name = 'source'
     table_keys = frozenset()
+    optional_keys = frozenset()
     errors = {}
 
     def settings(self, settings):
@@ -72,8 +73,10 @@ def install(connector):
         for stream, table in tables.items():
             workflow.safe_name(stream)
             source = dict(table['source'])
-            workflow.check(set(source) == set(connector.table_keys) | {'stream'}
-                           and source.pop('stream') == stream,
+            keys = set(source) - {'stream'}
+            workflow.check('stream' in source and source.pop('stream') == stream
+                           and set(connector.table_keys) <= keys
+                           <= set(connector.table_keys) | set(connector.optional_keys),
                            f'{connector.name} table source differs from its stream identity')
             columns = table['columns']
             names = [column['name'] for column in columns]

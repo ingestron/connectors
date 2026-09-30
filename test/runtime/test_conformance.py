@@ -13,12 +13,20 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'mocks'))
 from harness import Conformance, singer_runtime
 from stripe_api import StripeApi
 from graph_api import GraphApi, TENANT, CLIENT
+from saas_api import SalesforceApi, HubSpotApi, JiraApi
+from s3_api import S3Api
 _before = (singer_runtime.source_config, singer_runtime.tap_output, singer_runtime.review)
 import azure_blob_runtime
 import files_table_runtime
 import sql_server_runtime
 import stripe_runtime
 import graph_runtime
+import salesforce_runtime
+import hubspot_runtime
+import jira_runtime
+import object_store_runtime
+import sftp_runtime
+import sftp_reader
 singer_runtime.source_config, singer_runtime.tap_output, singer_runtime.review = _before
 
 
@@ -294,6 +302,236 @@ class SharePointConformance(Conformance, unittest.TestCase):
 
     def secret_values(self):
         return [GRAPH_SECRET, 'secret-tempauth', 'secret-row-value', 'graph-access-token']
+
+SF_SECRET, HS_TOKEN, JIRA_TOKEN = 'sf-client-' + 'secret', 'pat-na1-' + 'synthetic-token', 'jira-' + 'api-token'
+
+
+class ApiConformance(Conformance):
+    """Shared wiring: patch the reader's HTTPS client with an in-memory API."""
+    module = None
+
+    def patch_api(self, api):
+        self.api = api
+        transport = patch('rest_client.http.client.HTTPSConnection', api.connection())
+        transport.start()
+        self.addCleanup(transport.stop)
+
+
+class SalesforceConformance(ApiConformance, unittest.TestCase):
+    def make_connector(self):
+        self.patch_api(SalesforceApi('client-id', SF_SECRET))
+        return salesforce_runtime.Salesforce()
+
+    def settings(self):
+        return {'instance_url': 'https://acme.my.salesforce.com', 'client_id': 'client-id',
+                'client_secret': SF_SECRET}
+
+    def tables(self):
+        return {'accounts': {'source': {'object': 'Account'},
+                             'columns': [{'name': 'Id', 'type': 'STRING'}, {'name': 'Name', 'type': 'STRING'},
+                                         {'name': 'AnnualRevenue', 'type': 'DECIMAL(18,2)'}]},
+                'invoices': {'source': {'object': 'Invoice__c'},
+                             'columns': [{'name': 'Id', 'type': 'STRING'}, {'name': 'Paid__c', 'type': 'BOOLEAN'}]}}
+
+    def rows(self, stream):
+        if stream == 'accounts':
+            return [{'Id': f'001{i}', 'Name': f'A{i}', 'AnnualRevenue': 1000.5 + i} for i in range(5)]
+        return [{'Id': 'a01', 'Paid__c': True}]
+
+    def load(self, stream, rows):
+        obj = 'Account' if stream == 'accounts' else 'Invoice__c'
+        fields = {'Id': 'id', 'Name': 'string', 'AnnualRevenue': 'currency'} if stream == 'accounts' \
+            else {'Id': 'id', 'Paid__c': 'boolean'}
+        self.api.load(obj, fields, rows)
+
+    def change_schema(self, stream):
+        self.api.objects['Account']['fields'].pop('AnnualRevenue')
+
+    def break_source(self, stream):
+        self.api.fail['Invoice__c'] = 500
+
+    def secret_values(self):
+        return [SF_SECRET, 'secret-row-value', 'sf-access']
+
+
+class HubSpotConformance(ApiConformance, unittest.TestCase):
+    def make_connector(self):
+        self.patch_api(HubSpotApi(HS_TOKEN))
+        return hubspot_runtime.HubSpot()
+
+    def settings(self):
+        return {'access_token': HS_TOKEN}
+
+    def tables(self):
+        return {'contacts': {'source': {'object': 'contacts'},
+                             'columns': [{'name': 'id', 'type': 'STRING'}, {'name': 'email', 'type': 'STRING'},
+                                         {'name': 'num_employees', 'type': 'BIGINT'}]},
+                'deals': {'source': {'object': 'deals'},
+                          'columns': [{'name': 'id', 'type': 'STRING'}, {'name': 'amount', 'type': 'DECIMAL(18,2)'},
+                                      {'name': 'archived', 'type': 'BOOLEAN'}]}}
+
+    def rows(self, stream):
+        if stream == 'contacts':
+            return [{'id': str(i), 'email': f'c{i}@example.invalid', 'num_employees': str(i)} for i in range(5)]
+        return [{'id': '9', 'amount': '12.50'}]
+
+    def load(self, stream, rows):
+        props = {'email': 'string', 'num_employees': 'number'} if stream == 'contacts' else {'amount': 'number'}
+        self.api.load(stream, props, rows)
+
+    def change_schema(self, stream):
+        self.api.objects['contacts']['props']['num_employees'] = 'string'
+
+    def break_source(self, stream):
+        self.api.fail['deals'] = 503
+
+    def secret_values(self):
+        return [HS_TOKEN, 'secret-row-value']
+
+
+class JiraConformance(ApiConformance, unittest.TestCase):
+    def make_connector(self):
+        self.patch_api(JiraApi('reader@example.invalid', JIRA_TOKEN))
+        self.api.fields = [{'id': 'summary', 'schema': {'type': 'string'}},
+                           {'id': 'status', 'schema': {'type': 'status'}},
+                           {'id': 'customfield_10016', 'schema': {'type': 'number'}}]
+        return jira_runtime.Jira()
+
+    def settings(self):
+        return {'site': 'https://acme.atlassian.net', 'email': 'reader@example.invalid', 'api_token': JIRA_TOKEN}
+
+    def tables(self):
+        return {'issues': {'source': {'object': 'issues', 'jql': 'project = DEMO ORDER BY created ASC'},
+                           'columns': [{'name': 'key', 'type': 'STRING'}, {'name': 'summary', 'type': 'STRING'},
+                                       {'name': 'status', 'type': 'STRING'},
+                                       {'name': 'customfield_10016', 'type': 'DECIMAL(10,1)'}]},
+                'projects': {'source': {'object': 'projects'},
+                             'columns': [{'name': 'id', 'type': 'STRING'}, {'name': 'key', 'type': 'STRING'},
+                                         {'name': 'isPrivate', 'type': 'BOOLEAN'}]}}
+
+    def rows(self, stream):
+        if stream == 'issues':
+            return [{'id': str(10000 + i), 'key': f'DEMO-{i}',
+                     'fields': {'summary': f'Task {i}', 'status': {'name': 'To Do', 'id': '1'},
+                                'customfield_10016': 3.0}} for i in range(5)]
+        return [{'id': '10000', 'key': 'DEMO', 'isPrivate': False}, {'id': '10001', 'key': 'OPS', 'isPrivate': True},
+                {'id': '10002', 'key': 'WEB', 'isPrivate': False}]
+
+    def load(self, stream, rows):
+        if stream == 'issues':
+            self.api.issues = list(rows)
+        else:
+            self.api.tables['projects'] = ('/rest/api/3/project/search', True, list(rows))
+
+    def change_schema(self, stream):
+        self.api.fields = [f for f in self.api.fields if f['id'] != 'summary']
+
+    def break_source(self, stream):
+        self.api.fail['projects'] = 500
+
+    def secret_values(self):
+        return [JIRA_TOKEN, 'secret-row-value']
+
+class S3Conformance(FilesConformance):
+    """S3 through an in-memory ListObjectsV2/GetObject API; orders is a prefix of two objects."""
+    kind, host, path_style = 's3', 'retail.s3.ap-southeast-2.amazonaws.com', False
+
+    def make_connector(self):
+        super().make_connector()
+        self.api = S3Api('AKIA' + 'SYNTHETIC0001', self.host, 'retail', self.path_style)
+        transport = patch('object_store_reader.http.client.HTTPSConnection', self.api.connection())
+        transport.start()
+        self.addCleanup(transport.stop)
+        return object_store_runtime.ObjectStore(self.kind)
+
+    def settings(self):
+        return {'bucket': 'retail', 'region': 'ap-southeast-2', 'access_key_id': 'AKIA' + 'SYNTHETIC0001',
+                'secret_access_key': 'synthetic-secret-key-value'}
+
+    def tables(self):
+        return {'customers': {'source': {'path': 'v1/customers.csv', 'format': 'csv'},
+                              'columns': [{'name': 'id', 'type': 'BIGINT'}, {'name': 'name', 'type': 'STRING'}]},
+                'orders': {'source': {'path': 'v1/orders', 'format': 'csv'},
+                           'columns': [{'name': 'amount', 'type': 'DECIMAL(10,2)'}]}}
+
+    def rows(self, stream):
+        return super().rows(stream) + ([{'amount': '3.00'}, {'amount': '7.25'}] if stream == 'orders' else [])
+
+    def load(self, stream, rows):
+        if stream == 'customers':
+            self.api.objects['v1/customers.csv'] = ('id,name\n' + ''.join(f"{r['id']},{r['name']}\n" for r in rows)).encode()
+            return
+        for key in [k for k in self.api.objects if k.startswith('v1/orders/')]:
+            del self.api.objects[key]
+        for i, row in enumerate(rows or [None]):
+            self.api.objects[f'v1/orders/part-{i}.csv'] = ('amount\n' + (f"{row['amount']}\n" if row else '')).encode()
+        self.api.objects['v1/orders/_SUCCESS'] = b''
+
+    def change_schema(self, stream):
+        self.api.objects['v1/customers.csv'] = b'id,name,extra\n1,Ada,x\n'
+
+    def break_source(self, stream):
+        self.api.fail['v1/orders/part-1.csv'] = 500
+
+    def secret_values(self):
+        return ['synthetic-secret-key-value', 'secret-row-value']
+
+
+class GcsConformance(S3Conformance):
+    kind, host, path_style = 'gcs', 'storage.googleapis.com', True
+
+    def settings(self):
+        return {'bucket': 'retail', 'access_key_id': 'AKIA' + 'SYNTHETIC0001',
+                'secret_access_key': 'synthetic-secret-key-value'}
+
+class LocalSftp:
+    """A transport serving a local directory as the SFTP server's file system."""
+
+    def __init__(self, root):
+        self.root, self.fail = root, set()
+
+    def list(self, path):
+        target = self.root / path
+        if target.is_file(): return [(target.name, target.stat().st_size, False)]
+        if not target.is_dir(): raise sftp_reader.SftpError('SFTP_NOT_FOUND')
+        return [(p.name, p.stat().st_size, p.is_dir()) for p in sorted(target.iterdir())]
+
+    def get(self, remote, local):
+        if remote in self.fail: raise sftp_reader.SftpError('SFTP_NOT_FOUND')
+        Path(local).write_bytes((self.root / remote).read_bytes())
+
+
+class SftpConformance(FilesConformance):
+    def make_connector(self):
+        super().make_connector()
+        self.transport = LocalSftp(self.root)
+        return sftp_runtime.Sftp(self.transport)
+
+    def settings(self):
+        return {'host': 'sftp.example.internal', 'user': 'reader', 'host_key': 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAISynthetic',
+                'private_key': '-----BEGIN OPENSSH ' + 'PRIVATE KEY-----\nsynthetic-key-material\n-----END OPENSSH PRIVATE KEY-----'}
+
+    def tables(self):
+        return {'customers': {'source': {'path': 'customers.csv', 'format': 'csv'},
+                              'columns': [{'name': 'id', 'type': 'BIGINT'}, {'name': 'name', 'type': 'STRING'}]},
+                'orders': {'source': {'path': 'orders', 'format': 'csv'},
+                           'columns': [{'name': 'amount', 'type': 'DECIMAL(10,2)'}]}}
+
+    def load(self, stream, rows):
+        if stream == 'customers':
+            return super().load(stream, rows)
+        folder = self.root / 'orders'
+        folder.mkdir(exist_ok=True)
+        for child in folder.iterdir():
+            child.unlink()
+        for i, row in enumerate(rows or [None]):
+            (folder / f'part-{i}.csv').write_text('amount\n' + (f"{row['amount']}\n" if row else ''))
+
+    def break_source(self, stream):
+        self.transport.fail.add('orders/part-0.csv')
+
+    def secret_values(self):
+        return ['synthetic-key-material']
 
 
 if __name__ == '__main__':

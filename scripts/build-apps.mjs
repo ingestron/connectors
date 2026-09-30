@@ -11,6 +11,16 @@ import {
   sharepointSettings,
   onedriveSettings,
   graphTableSource,
+  graphFileSource,
+  s3Settings,
+  gcsSettings,
+  sftpSettings,
+  fileTableSource,
+  salesforceSettings,
+  hubspotSettings,
+  jiraSettings,
+  objectTableSource,
+  jiraTableSource,
 } from "../src/app-settings.mjs";
 import {
   selectionSchema,
@@ -26,6 +36,15 @@ const graphFiles = {
   "graph_reader.py": read("runtime/graph_reader.py"),
   "files_reader.py": read("runtime/files_reader.py"),
 };
+const objectFiles = {
+  "object_store_runtime.py": read("runtime/object_store_runtime.py"),
+  "object_store_reader.py": read("runtime/object_store_reader.py"),
+  "files_reader.py": read("runtime/files_reader.py"),
+};
+const rest = (id) => ({
+  [`${id}_reader.py`]: read(`runtime/${id}_reader.py`),
+  "rest_client.py": read("runtime/rest_client.py"),
+});
 const connectors = [
   {
     id: "stripe",
@@ -55,9 +74,74 @@ const connectors = [
     runtime: "runtime/onedrive_runtime.py",
     files: graphFiles,
     settings: onedriveSettings,
-    tableSource: graphTableSource,
+    tableSource: graphFileSource,
     evidence:
       "Read-only Microsoft Graph file reads with app-only credentials; unit tests against a Graph mock",
+  },
+  {
+    id: "s3",
+    version: "1.0.0",
+    description: "Reviewed local snapshots of Amazon S3 objects",
+    runtime: "runtime/s3_runtime.py",
+    files: objectFiles,
+    settings: s3Settings,
+    tableSource: fileTableSource,
+    evidence:
+      "SigV4-signed S3 API reads; conformance suite against a mock and against an S3-compatible server in a local container",
+  },
+  {
+    id: "gcs",
+    description: "Reviewed local snapshots of Google Cloud Storage objects",
+    runtime: "runtime/gcs_runtime.py",
+    files: objectFiles,
+    settings: gcsSettings,
+    tableSource: fileTableSource,
+    evidence:
+      "HMAC-signed Cloud Storage XML API reads; conformance suite against a mock",
+  },
+  {
+    id: "sftp",
+    version: "1.0.0",
+    description: "Reviewed local snapshots of files on SFTP servers",
+    runtime: "runtime/sftp_runtime.py",
+    files: {
+      "sftp_reader.py": read("runtime/sftp_reader.py"),
+      "files_reader.py": read("runtime/files_reader.py"),
+    },
+    settings: sftpSettings,
+    tableSource: fileTableSource,
+    evidence:
+      "System OpenSSH sftp client with a pinned host key; conformance suite against a local transport and an SFTP server container",
+  },
+  {
+    id: "salesforce",
+    description: "Reviewed local snapshots of Salesforce objects",
+    runtime: "runtime/salesforce_runtime.py",
+    files: rest("salesforce"),
+    settings: salesforceSettings,
+    tableSource: objectTableSource,
+    evidence:
+      "Salesforce REST API (describe and SOQL query); conformance suite against a mock of the documented API",
+  },
+  {
+    id: "hubspot",
+    description: "Reviewed local snapshots of HubSpot CRM objects",
+    runtime: "runtime/hubspot_runtime.py",
+    files: rest("hubspot"),
+    settings: hubspotSettings,
+    tableSource: objectTableSource,
+    evidence:
+      "HubSpot CRM v3 API (properties and objects); conformance suite against a mock of the documented API",
+  },
+  {
+    id: "jira",
+    description: "Reviewed local snapshots of Jira Cloud issues and projects",
+    runtime: "runtime/jira_runtime.py",
+    files: rest("jira"),
+    settings: jiraSettings,
+    tableSource: jiraTableSource,
+    evidence:
+      "Jira Cloud REST API v3 (fields, enhanced JQL search); conformance suite against a mock of the documented API",
   },
 ];
 for (const c of connectors) {
@@ -109,7 +193,7 @@ for (const c of connectors) {
   const manifest = {
     apiVersion: "ingestron.connector/v1",
     id: c.id,
-    version: "0.1.0",
+    version: c.version ?? "0.1.0",
     description: c.description,
     connector: `singer:${runtimeId}`,
     documentation: `https://github.com/ingestron/connectors/blob/main/docs/${c.id}.md`,

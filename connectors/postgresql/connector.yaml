@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/postgresql/runtime.json
-  sha256: 47b7cd592ec84d56bf9c355cb27b7880522df2666c6624786af739ac6ccaca50
+  sha256: 2f091b18e2a67402647dd7f90b9f19bec1385fe27ff4341d1b8e7ace0791da6d
   contract: ingestron.snapshot/python/v1
 quality:
   library:

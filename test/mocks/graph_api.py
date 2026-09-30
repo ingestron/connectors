@@ -17,6 +17,7 @@ class GraphApi:
     def __init__(self, secret):
         self.secret, self.token = secret, 'graph-access-token'
         self.drives = {'drive-docs': {}, 'drive-user': {}}
+        self.lists = {}
         self.fail, self.truncate, self.page_size, self.requests = {}, set(), 2, []
 
     def put(self, drive, path, content):
@@ -57,6 +58,22 @@ class GraphApi:
         path = unquote(url.path)
         if path == '/v1.0/sites/contoso.sharepoint.com:/sites/finance':
             return 200, {'id': SITE_ID}
+        prefix = f'/v1.0/sites/{SITE_ID}/lists/'
+        if path.startswith(prefix):
+            name, _, rest = path[len(prefix):].partition('/')
+            found = self.lists.get(name)
+            if found is None: return 404, {'error': {'code': 'itemNotFound'}}
+            if name in self.fail: return self.fail[name], {'error': {'message': 'secret-row-value'}}
+            if rest == 'columns':
+                return 200, {'value': [{'name': c, 'displayName': c} for c in found['columns']]}
+            if rest == 'items':
+                start = int(parse_qs(url.query).get('$skiptoken', ['0'])[0])
+                items = found['items'][start:start + self.page_size]
+                page = {'value': [{'id': str(start + i + 1), 'fields': dict(f)} for i, f in enumerate(items)]}
+                if start + self.page_size < len(found['items']):
+                    page['@odata.nextLink'] = (f'https://graph.microsoft.com{url.path}?$top=200'
+                                               f'&$skiptoken={start + self.page_size}')
+                return 200, page
         if path == f'/v1.0/sites/{SITE_ID}/drives':
             return 200, {'value': [{'id': 'drive-docs', 'name': 'Documents', 'driveType': 'documentLibrary',
                                     'webUrl': 'https://contoso.sharepoint.com/sites/finance/Shared%20Documents'}]}
