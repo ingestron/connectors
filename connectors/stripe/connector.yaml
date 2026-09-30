@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/stripe/runtime.json
-  sha256: b28134896114a2e76606a719baccf06c37b91efc84f961c8260280bdf34ef98b
+  sha256: 19a64b0f294c692cafe8950123e0147420a9a600131c176d081cad652587afc3
   contract: ingestron.snapshot/python/v1
 quality:
   library:

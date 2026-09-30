@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/sftp/runtime.json
-  sha256: 2c294f243b75662935a1e017eec8ed5908540f22d1bd90c07ce57b34b957358d
+  sha256: 59c4915a385f128f9ce6e4e8303d9ab1cb2c43a782a61a700661172f690072fb
   contract: ingestron.snapshot/python/v1
 quality:
   library:

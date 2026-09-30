@@ -35,7 +35,8 @@ from pathlib import Path
 
 import connector_kit as kit
 
-TYPES = {'integer': 'integer', 'string': 'string', 'number': 'number', 'boolean': 'boolean'}
+# Runtime columns carry the contract's physical types.
+TYPES = {'BIGINT': 'integer', 'STRING': 'string', 'DOUBLE': 'number', 'BOOLEAN': 'boolean'}
 
 
 class ${className}(kit.TableConnector):
@@ -47,7 +48,7 @@ class ${className}(kit.TableConnector):
 
     def table(self, source, columns):
         return {'path': source['path'],
-                'columns': {c['name']: TYPES[c.get('logicalType', 'string')] for c in columns}}
+                'columns': {c['name']: TYPES.get(c['type'].upper(), 'string') for c in columns}}
 
     def scan(self, settings, table, emit=None):
         path = Path(table['path'])
@@ -62,6 +63,18 @@ class ${className}(kit.TableConnector):
             for row in rows:
                 emit({n: row.get(n) for n in names})
         return schema
+
+    def catalogue(self, settings, source):
+        # Every field the source offers, before a contract exists.
+        path = Path(source['path'])
+        if not path.is_file():
+            raise kit.SourceError('SOURCE_UNAVAILABLE')
+        rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+        kinds = {bool: 'boolean', int: 'integer', float: 'number'}
+        names = sorted({key for row in rows for key in row})
+        return [{'name': n, 'type': next((kinds[type(r[n])] for r in rows if r.get(n) is not None
+                                          and type(r[n]) in kinds), 'string'), 'nullable': True}
+                for n in names]
 
 
 connector = ${className}()
@@ -96,8 +109,8 @@ class ${className}Conformance(Conformance, unittest.TestCase):
 
     def tables(self):
         return {name: {'source': {'path': str(self.root / f'{name}.jsonl')},
-                       'columns': [{'name': 'id', 'logicalType': 'integer'},
-                                   {'name': 'label', 'logicalType': 'string'}]}
+                       'columns': [{'name': 'id', 'type': 'BIGINT'},
+                                   {'name': 'label', 'type': 'STRING'}]}
                 for name in ('first', 'second')}
 
     def rows(self, stream):

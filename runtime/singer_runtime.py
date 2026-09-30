@@ -59,6 +59,8 @@ def project_selection(project):
     if 'tables' not in project: return project['selection']
     selected = {}
     for name, table in project['tables'].items():
+        # Discovery-only tables (no contract yet) select nothing, as in the provider.
+        if not table['columns'] and 'contract' not in table: continue
         fields = {}
         for column in table['columns']:
             field = field_from_column(column['type'], column['required'])
@@ -71,7 +73,7 @@ def project_selection(project):
 
 def project_contracts(project):
     if 'tables' not in project: return None
-    return {name:table['contract'] for name,table in project['tables'].items()}
+    return {name:table['contract'] for name,table in project['tables'].items() if 'contract' in table}
 
 
 def runtime_identity(config, folder):
@@ -215,6 +217,33 @@ def discover(config, folder):
     return {'apiVersion':'ingestron.singer-discovery/v1','identity':identity,'catalog':catalog,'applied':False}
 
 
+def json_kind(schema):
+    types = schema.get('type', 'string') if isinstance(schema, dict) else 'string'
+    types = [t for t in (types if isinstance(types, list) else [types]) if t != 'null']
+    kind = types[0] if len(types) == 1 else 'string'
+    return {'integer': 'integer', 'number': 'number', 'boolean': 'boolean'}.get(kind, 'string')
+
+
+def catalogue(config, folder):
+    """Every field each selected table offers, before any contract (PB-064 phase 6).
+
+    Singer connectors describe their streams in discovery; kit connectors
+    replace this with their own source metadata.
+    """
+    identity = runtime_identity(config, folder)
+    executable = Path(sys.executable).parent / CONNECTORS[config['connector']][2]
+    catalog = read_catalog(executable, source_config(config), config['timeoutSeconds'], protocol_for(config))
+    streams = {s['tap_stream_id']: s for s in catalog['streams']}
+    tables = {}
+    for name, table in config.get('projectLock', {}).get('tables', {}).items():
+        stream = streams.get(table['source'].get('stream'))
+        check(stream is not None, 'Selected stream absent from discovery')
+        properties = stream['schema'].get('properties', {})
+        tables[name] = {'columns': [{'name': field, 'type': json_kind(spec), 'nullable': True}
+                                    for field, spec in sorted(properties.items())]}
+    return {'apiVersion': 'ingestron.source-catalogue/v1', 'identity': identity, 'tables': tables}
+
+
 def protocol_for(config):
     return next(row.get("protocol", "singer") for row in CATALOGUE if row["id"] == config["connector"])
 
@@ -356,7 +385,7 @@ def execute(config, folder, output, run_id, raw_config=None):
 
 def main():
     parser = argparse.ArgumentParser(description='Customer-operated Singer preview')
-    parser.add_argument('action', choices=['discover','review','approve','run'])
+    parser.add_argument('action', choices=['catalogue','discover','review','approve','run'])
     parser.add_argument('--config', default='connector.json')
     parser.add_argument('--selection')
     parser.add_argument('--discovery', default='discovery.json')
@@ -366,7 +395,8 @@ def main():
     try:
         folder = Path(args.config).resolve().parent
         config = load(args.config)
-        if args.action == 'discover': result = discover(config, folder)
+        if args.action == 'catalogue': result = catalogue(config, folder)
+        elif args.action == 'discover': result = discover(config, folder)
         elif args.action == 'review':
             discovered = load(args.discovery)
             check(discovered['identity'] == runtime_identity(config, folder), 'Discovery differs from current project/runtime')

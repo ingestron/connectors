@@ -19,6 +19,11 @@ class Files(kit.TableConnector):
         schema, _ = scan(table, emit)
         return schema
 
+    def catalogue(self, settings, source):
+        # Infer from the data itself; text columns get suggested types from a sample.
+        schema, rows = kit.sampled(lambda emit: self.scan(settings, self.table(source, []), emit))
+        return kit.columns_from_schema(schema, rows)
+
 
 connector = Files()
 workflow = kit.install(connector)

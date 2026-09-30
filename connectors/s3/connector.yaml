@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/s3/runtime.json
-  sha256: 1cd7df7baf918ccb3ea363a71418b56fccf5974ba244966f35b0a2432554ff4c
+  sha256: 3a01d8ef2a5f23ff4e32e57013629f4b2f54c4f3b0ffd750ae02b925e5753c56
   contract: ingestron.snapshot/python/v1
 quality:
   library:

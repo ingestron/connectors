@@ -26,7 +26,7 @@ class Scaffold(unittest.TestCase):
                 cwd=work, capture_output=True, text=True,
                 env={'PYTHONPATH': str(work / 'runtime'), 'PATH': '/usr/bin:/bin'})
             self.assertEqual(result.returncode, 0, result.stderr[-2000:])
-            self.assertIn('Ran 7 tests', result.stderr)
+            self.assertIn('Ran 8 tests', result.stderr)
             again = subprocess.run(['node', str(ROOT / 'scripts' / 'new-connector.mjs'), 'demo-source',
                                     '--out', str(work)], capture_output=True, text=True)
             self.assertNotEqual(again.returncode, 0)

@@ -33,6 +33,12 @@ class Stripe(kit.TableConnector):
         except reader.StripeError as error:
             raise kit.SourceError(error.code) from None
 
+    def catalogue(self, settings, source):
+        try:
+            return reader.catalogue(settings, source['object'])
+        except reader.StripeError as error:
+            raise kit.SourceError(error.code) from None
+
 
 connector = Stripe()
 workflow = kit.install(connector)

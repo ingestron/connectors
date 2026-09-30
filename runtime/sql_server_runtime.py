@@ -1,6 +1,6 @@
 """Multi-table SQL snapshots through the reviewed local execution boundary."""
 import connector_kit as kit
-from sql_server_reader import scan as read_sql, SQLSourceError
+from sql_server_reader import scan as read_sql, catalogue as read_catalogue, SQLSourceError
 
 
 class SqlServer(kit.TableConnector):
@@ -29,6 +29,13 @@ class SqlServer(kit.TableConnector):
         extra = {'connect': self.connect} if self.connect else {}
         schema, _ = scan({'connection': settings['connection'], 'object': table}, emit, **extra)
         return schema
+
+    def catalogue(self, settings, source):
+        extra = {'connect': self.connect} if self.connect else {}
+        try:
+            return read_catalogue({'connection': settings['connection'], 'object': source}, **extra)
+        except SQLSourceError as error:
+            raise kit.SourceError(error.code) from None
 
 
 def scan(*args, **kwargs):

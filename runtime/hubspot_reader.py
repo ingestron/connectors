@@ -56,6 +56,16 @@ def _value(value, expected):
     raise ApiError('HUBSPOT_SCHEMA')
 
 
+def catalogue(settings, obj):
+    """Record fields and every property of the object."""
+    token = settings_for(settings)
+    props = properties(token, obj)
+    return ([{'name': n, 'type': k, 'nullable': n != 'id', **({'key': True} if n == 'id' else {})}
+             for n, k in RECORD.items()]
+            + [{'name': n, 'type': 'decimal' if k == 'number' else k, 'nullable': True}
+               for n, k in sorted(props.items()) if n not in RECORD])
+
+
 def scan(settings, table, emit=None):
     token, obj, columns = settings_for(settings), table['object'], table['columns']
     fields = {**properties(token, obj), **RECORD}

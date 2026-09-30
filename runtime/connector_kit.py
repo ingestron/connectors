@@ -57,6 +57,41 @@ class TableConnector:
     def scan(self, settings, table, emit=None):
         raise NotImplementedError
 
+    def catalogue(self, settings, source):
+        """Every field one table source offers, before a contract exists:
+        [{'name', 'type', 'nullable', 'key'?, 'sourceType'?, 'supported'?}]."""
+        workflow.check(False, f'{self.name} cannot list fields before a contract yet')
+
+
+SAMPLE = 1000
+_INTEGER = __import__('re').compile(r'-?(0|[1-9][0-9]*)')
+_DECIMAL = __import__('re').compile(r'-?(0|[1-9][0-9]*)\.[0-9]+')
+
+
+def columns_from_schema(schema, sample=(), keys=()):
+    """Catalogue columns from a discovered JSON Schema. Text columns are
+    suggested as integer, decimal or boolean when every sampled value fits."""
+    columns = []
+    for name, spec in schema.get('properties', {}).items():
+        types = spec.get('type', 'string')
+        types = types if isinstance(types, list) else [types]
+        kind = next((t for t in types if t != 'null'), 'string')
+        values = [row.get(name) for row in sample if row.get(name) not in (None, '')]
+        if kind == 'string' and values and all(isinstance(v, str) for v in values):
+            if all(_INTEGER.fullmatch(v) for v in values): kind = 'integer'
+            elif all(_INTEGER.fullmatch(v) or _DECIMAL.fullmatch(v) for v in values): kind = 'decimal'
+            elif all(v in ('true', 'false') for v in values): kind = 'boolean'
+        columns.append({'name': name, 'type': kind, 'nullable': 'null' in types or name not in schema.get('required', []),
+                        **({'key': True} if name in keys else {})})
+    return columns
+
+
+def sampled(scan):
+    """Run scan(emit) keeping the first SAMPLE rows for type suggestions."""
+    rows = []
+    schema = scan(lambda row: rows.append(row) if len(rows) < SAMPLE else None)
+    return schema, rows
+
 
 def install(connector):
     """Wire a table connector into the shared reviewed snapshot workflow."""
@@ -114,6 +149,27 @@ def install(connector):
 
     base_review = workflow.review
 
+    def catalogue(config, folder):
+        """Fields per table from the source itself; no contract needed (PB-064 phase 6)."""
+        identity = workflow.runtime_identity(config, folder)
+        workflow.check('projectLock' in config and 'sourceSettings' in config,
+                       f'{connector.name} discovery requires a locked project')
+        settings = connector.settings(workflow.resolve_secrets(config['sourceSettings']))
+        tables = config['projectLock']['tables']
+        workflow.check(isinstance(tables, dict) and 1 <= len(tables) <= 100,
+                       f'Select 1–100 {connector.name} tables')
+        result = {}
+        for stream, table in tables.items():
+            workflow.safe_name(stream)
+            source = dict(table['source'])
+            keys = set(source) - {'stream'}
+            workflow.check(source.pop('stream', None) == stream
+                           and set(connector.table_keys) <= keys
+                           <= set(connector.table_keys) | set(connector.optional_keys),
+                           f'{connector.name} table source differs from its stream identity')
+            result[stream] = {'columns': connector.catalogue(settings, source)}
+        return {'apiVersion': 'ingestron.source-catalogue/v1', 'identity': identity, 'tables': result}
+
     def review(discovery, selection, authored_contracts=None):
         streams = [s['tap_stream_id'] for s in discovery['catalog']['streams']]
         workflow.check(set(selection) == set(streams) and len(streams) == len(set(streams)),
@@ -121,9 +177,11 @@ def install(connector):
         workflow.CATALOGUE[0]['supportedStreams'] = streams
         return base_review(discovery, selection, authored_contracts)
 
+    connector.catalogue_config = catalogue
     connector.source_config = source_config
     connector.output = output
     connector.review = review
+    workflow.catalogue = catalogue
     workflow.source_config = source_config
     workflow.tap_output = output
     workflow.review = review

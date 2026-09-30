@@ -42,6 +42,15 @@ class GraphFiles(kit.TableConnector):
         except reader.GraphError as error:
             raise kit.SourceError(error.code) from None
 
+    def catalogue(self, settings, source):
+        try:
+            if source.get('entity') == 'list':
+                return reader.list_catalogue(settings, source)
+        except reader.GraphError as error:
+            raise kit.SourceError(error.code) from None
+        schema, rows = kit.sampled(lambda emit: self.scan(settings, self.table(source, []), emit))
+        return kit.columns_from_schema(schema, rows)
+
 
 def install(kind):
     connector = GraphFiles(kind)

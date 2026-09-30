@@ -35,6 +35,11 @@ class ObjectStore(kit.TableConnector):
         except reader.StoreError as error:
             raise kit.SourceError(error.code) from None
 
+    def catalogue(self, settings, source):
+        # Infer from the data itself; text columns get suggested types from a sample.
+        schema, rows = kit.sampled(lambda emit: self.scan(settings, self.table(source, []), emit))
+        return kit.columns_from_schema(schema, rows)
+
 
 def install(kind):
     connector = ObjectStore(kind)
