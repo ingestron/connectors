@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/azure-blob/runtime.json
-  sha256: f0a92f7deb75d0a511cedd60e0824646dee07964b85031f1a8daf7300a8a5c83
+  sha256: 81a710e2a35412fc53c12f8e6366b78f5c3fb7f2d8d9815e3cb9f2801c693bf2
   contract: ingestron.snapshot/python/v1
 quality:
   library:

@@ -1,6 +1,7 @@
-"""Azure Blob transport for the existing file and reviewed snapshot workflow."""
-import files_runtime
+"""Azure Blob transport for the reviewed single-object snapshot workflow."""
+import connector_kit as kit
 from azure_blob_reader import scan
-files_runtime.scan = scan
-runtime_identity = files_runtime.runtime_identity
-if __name__ == '__main__': files_runtime.workflow.main()
+
+workflow = kit.install_single(scan)
+runtime_identity = workflow.runtime_identity
+if __name__ == '__main__': workflow.main()

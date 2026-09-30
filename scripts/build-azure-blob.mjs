@@ -12,11 +12,11 @@ const sha = (v) => createHash("sha256").update(v).digest("hex");
 const read = (p) => readFileSync(p, "utf8");
 const files = {
   "singer_runtime.py": read("runtime/azure_blob_runtime.py"),
-  "files_runtime.py": read("runtime/files_runtime.py"),
   "azure_blob_reader.py": read("runtime/azure_blob_reader.py"),
   "snapshot_runtime.py": read("runtime/singer_runtime.py"),
   "files_reader.py": read("runtime/files_reader.py"),
   "singer_bridge.py": read("runtime/singer_bridge.py"),
+  "connector_kit.py": read("runtime/connector_kit.py"),
   "quality_rules.py": read("runtime/quality_rules.py"),
   "singer_inventory.py": read("runtime/singer_inventory.py"),
   "connectors.json": JSON.stringify([

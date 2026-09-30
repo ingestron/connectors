@@ -28,8 +28,8 @@ class FileFlow(unittest.TestCase):
                     'columns': [{'name': 'amount', 'type': 'DECIMAL(10,2)'}]},
             }}}
             source = runtime.source_config(config)
-            self.assertEqual(source['files']['customers']['types'], {'id': 'integer', 'name': 'string'})
-            self.assertEqual(source['files']['orders']['types'], {'amount': 'decimal'})
+            self.assertEqual(source['objects']['customers']['types'], {'id': 'integer', 'name': 'string'})
+            self.assertEqual(source['objects']['orders']['types'], {'amount': 'decimal'})
             catalog = json.loads(b''.join(runtime.file_output(None, source, None, 10, True)))
             self.assertEqual([s['tap_stream_id'] for s in catalog['streams']], ['customers', 'orders'])
             for stream in catalog['streams']:
