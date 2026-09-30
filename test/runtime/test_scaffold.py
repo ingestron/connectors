@@ -20,7 +20,9 @@ class Scaffold(unittest.TestCase):
                             '--label', 'Demo source', '--out', str(work)],
                            check=True, capture_output=True, text=True)
             result = subprocess.run(
-                [sys.executable, '-m', 'unittest', 'test/runtime/test_conformance_demo_source.py'],
+                # Run the file directly: '-m unittest test/...' can resolve the standard
+                # library's own `test` package instead of this directory.
+                [sys.executable, 'test/runtime/test_conformance_demo_source.py'],
                 cwd=work, capture_output=True, text=True,
                 env={'PYTHONPATH': str(work / 'runtime'), 'PATH': '/usr/bin:/bin'})
             self.assertEqual(result.returncode, 0, result.stderr[-2000:])
