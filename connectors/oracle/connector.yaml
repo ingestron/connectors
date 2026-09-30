@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/oracle/runtime.json
-  sha256: bad17be6dd451ab9443f29a5a37cc4144c074d4019a3eee68c1dd74519d386ed
+  sha256: a3fc251fd791c78291fa3e703c85a862a055309174e7b5ac679dce84c29950f8
   contract: ingestron.snapshot/python/v1
 quality:
   library:

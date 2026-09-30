@@ -1,4 +1,4 @@
-"""Read one bounded Azure blob over HTTPS, then reuse the local format readers."""
+"""Read bounded Azure blobs over HTTPS, then reuse the local format readers."""
 import http.client
 import re
 import tempfile
@@ -9,13 +9,12 @@ from files_reader import scan as scan_file, MAX_BYTES, require
 
 SAS_FIELDS = {'sv','ss','srt','sp','st','se','sip','spr','sig','sr','si','skoid','sktid','skt','ske','sks','skv','saoid','suoid','scid','ses'}
 
-def request_target(settings):
+def endpoint(settings):
+    """Validate the connection: public-cloud account, container and read-only SAS."""
     account = settings.get('account', '')
     container = settings.get('container', '')
-    blob = settings.get('blob', '')
     require(isinstance(account,str) and re.fullmatch(r'[a-z0-9]{3,24}',account), 'Use an Azure public-cloud storage account name')
     require(isinstance(container,str) and re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])',container) and '--' not in container, 'Use a storage container name')
-    require(isinstance(blob,str) and 0 < len(blob) <= 1024 and all(ord(c)>=32 and ord(c)!=127 for c in blob) and not blob.startswith('/') and all(p not in ('','.','..') for p in blob.split('/')), 'Use one explicit blob path without traversal or empty segments')
     token = settings.get('sas_token')
     require(isinstance(token,str) and 0 < len(token) <= 8192, 'Set the SAS token through its secret reference')
     try: pairs = parse_qsl(token.lstrip('?'),keep_blank_values=True,strict_parsing=True)
@@ -23,10 +22,19 @@ def request_target(settings):
     sas = dict(pairs)
     require(len(sas)==len(pairs) and set(sas)<=SAS_FIELDS and all(sas.values()) and all(k in sas for k in ('sv','sp','se','sig')), 'Use a time-limited SAS token with explicit read permissions')
     require('r' in sas['sp'] and set(sas['sp'])<=set('rl') and sas.get('spr')=='https', 'Use an HTTPS-only SAS token with read or read/list permissions')
-    return account+'.blob.core.windows.net', '/'+container+'/'+quote(blob,safe='/')+'?'+urlencode(pairs)
+    return account+'.blob.core.windows.net', container, urlencode(pairs)
 
-def download(settings, destination):
-    host,target = request_target(settings)
+def blob_path(blob):
+    """Validate one table's blob path within the container."""
+    require(isinstance(blob,str) and 0 < len(blob) <= 1024 and all(ord(c)>=32 and ord(c)!=127 for c in blob) and not blob.startswith('/') and all(p not in ('','.','..') for p in blob.split('/')), 'Use one explicit blob path without traversal or empty segments')
+    return blob
+
+def request_target(settings, blob):
+    host, container, query = endpoint(settings)
+    return host, '/'+container+'/'+quote(blob_path(blob),safe='/')+'?'+query
+
+def download(settings, blob, destination):
+    host,target = request_target(settings, blob)
     deadline=time.monotonic()+60
     connection=None
     try:
@@ -63,8 +71,9 @@ def download(settings, destination):
     finally:
         if connection is not None: connection.close()
 
-def scan(settings, emit=None):
+def scan(settings, table, emit=None):
+    """Download one table's blob privately, then apply the shared file reader."""
     with tempfile.TemporaryDirectory(prefix='ingestron-blob-') as folder:
         path=Path(folder).resolve()/'input'
-        download(settings,path)
-        return scan_file({'path':str(path),'format':settings['format'],'types':settings.get('types',{})},emit)
+        download(settings,table['path'],path)
+        return scan_file({'path':str(path),'format':table['format'],'types':table['types']},emit)

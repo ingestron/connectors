@@ -35,9 +35,22 @@ schema-drift checks, review of every selected table, and error codes. The shared
 runtime then owns projection to the reviewed contract, type conversion, quality
 rules, atomic commit and receipts. Connectors never write outputs or state.
 
-`install(connector)` wires a table connector into the runtime; `install_single(scan)`
-wires a single-object connector such as Azure Blob. The GitHub connector uses the
-Singer adapter path, which speaks the same runtime contract.
+`install(connector)` wires a table connector into the runtime. The GitHub
+connector uses the Singer adapter path, which speaks the same runtime contract.
+
+## Connection and table settings
+
+Every connector splits its settings the same way, so a flow reads alike across
+sources and a native provider route can reuse the table sources:
+
+| Where                          | Holds                                | Examples                                        |
+| ------------------------------ | ------------------------------------ | ----------------------------------------------- |
+| Connection `settings`          | Endpoint, scope and credentials      | host, database, account, container, SAS         |
+| `flows[].tables.<name>.source` | One object in the source's own terms | `{schema, table}`, `{path, format}`, `{stream}` |
+| The table's ODCS contract      | Columns, types and quality rules     | never a second column list or `types` map       |
+
+Declare the connection shape as `definition.settingsSchema` and the table shape
+as `definition.tableSourceSchema`. Credentials are always `$secret` references.
 
 ## Conformance
 
@@ -52,6 +65,14 @@ also run it against real engines in local containers:
 ```sh
 pnpm test:containers        # Docker required; synthetic data only
 ```
+
+## Connector page
+
+Each `docs/<id>.md` uses the same sections: a one-paragraph summary, a table of
+package, kind, maturity, licence and cost, then **Install**, **Connection**
+(with a `connections` and `flows` example), **Tables** (the `source` keys),
+**Types**, **Behaviour and limits**, **Evidence** and **References**. The
+scaffold creates this outline.
 
 ## Maturity and reference records
 

@@ -15,8 +15,9 @@ Table connectors implement:
         for every row. Raise SourceError(code) for failures users can act on;
         codes and messages are declared in `errors` and never carry source data.
 
-Single-object connectors (one `records` stream per connection) implement only
-scan(settings, emit=None) -> (schema, count).
+The connection holds the endpoint, scope and credentials; each table's source
+names one object in the source's own terms ({schema, table} for databases,
+{path, format} for files and object stores, {stream} for APIs).
 """
 import tempfile
 
@@ -125,24 +126,3 @@ def install(connector):
     workflow.review = review
     return workflow
 
-
-def install_single(scan):
-    """Wire a single-object connector (one `records` stream) into the workflow."""
-
-    def output(executable, source, catalog, timeout, discover=False, protocol='singer'):
-        if discover:
-            schema, _ = scan(source)
-            yield canonical({'streams': [{'tap_stream_id': 'records', 'stream': 'records',
-                                          'schema': schema, 'metadata': []}]}).encode()
-            return
-        selected = next(s for s in catalog['streams'] if s['tap_stream_id'] == 'records')
-        with tempfile.TemporaryFile(mode='w+b') as spool:
-            schema, _ = scan(source, lambda row: _spool_line(spool, 'records', row))
-            workflow.check(digest(schema) == digest(selected['schema']),
-                           'Source schema changed; rediscover and review')
-            yield (canonical({'type': 'SCHEMA', 'stream': 'records', 'schema': schema}) + '\n').encode()
-            spool.seek(0)
-            yield from spool
-
-    workflow.tap_output = output
-    return workflow

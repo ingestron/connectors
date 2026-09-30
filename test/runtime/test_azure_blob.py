@@ -4,7 +4,8 @@ from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'runtime'))
 import azure_blob_reader as reader
 
-SETTINGS={'account':'sampleaccount','container':'samples','blob':'retail/a b.csv','sas_token':'sv=2023-11-03&sp=rl&se=2030-01-01&spr=https&sig=synthetic','format':'csv','types':{'id':'integer'}}
+SETTINGS={'account':'sampleaccount','container':'samples','sas_token':'sv=2023-11-03&sp=rl&se=2030-01-01&spr=https&sig=synthetic'}
+TABLE={'path':'retail/a b.csv','format':'csv','types':{'id':'integer'}}
 class Response:
  def __init__(self,status=200,body=b'id\n1\n',headers=None):
   self.status=status;self.body=body;self.headers={'ETag':'"v1"','Content-Length':str(len(body)),**(headers or {})}
@@ -21,7 +22,7 @@ class AzureBlob(unittest.TestCase):
  def setUp(self):Connection.responses=[Response(),Response()];Connection.requests=[]
  def run_scan(self):
   with patch.object(reader.http.client,'HTTPSConnection',Connection):
-   rows=[];schema,n=reader.scan(SETTINGS,rows.append);return rows,n
+   rows=[];schema,n=reader.scan(SETTINGS,TABLE,rows.append);return rows,n
  def test_read_uses_if_match_and_existing_reader(self):
   rows,n=self.run_scan();self.assertEqual(rows,[{'id':1}]);self.assertEqual(n,1)
   a,b=Connection.requests;self.assertEqual(a[0],'sampleaccount.blob.core.windows.net');self.assertEqual(a[1],'HEAD');self.assertEqual(b[1],'GET');self.assertEqual(b[3]['If-Match'],'"v1"');self.assertIn('/retail/a%20b.csv?',b[2])
@@ -32,14 +33,16 @@ class AzureBlob(unittest.TestCase):
    with self.subTest(index=index,status=response.status),self.assertRaises(ValueError) as error:self.run_scan()
    self.assertNotIn('synthetic',str(error.exception))
  def test_endpoint_path_and_sas_validation(self):
-  cases=[('account','evil.example'),('container','../x'),('blob','../file'),('blob','a//b'),('blob','/a'),('blob','a\n'),('sas_token',SETTINGS['sas_token']+'&comp=list'),('sas_token',SETTINGS['sas_token']+'&sig=duplicate'),('sas_token',SETTINGS['sas_token'].replace('sp=rl','sp=rwd')),('sas_token',SETTINGS['sas_token'].replace('spr=https','spr=http'))]
+  for blob in ['../file','a//b','/a','a\n','']:
+   with self.subTest(blob=blob),self.assertRaises(ValueError):reader.request_target(SETTINGS,blob)
+  cases=[('account','evil.example'),('container','../x'),('sas_token',SETTINGS['sas_token']+'&comp=list'),('sas_token',SETTINGS['sas_token']+'&sig=duplicate'),('sas_token',SETTINGS['sas_token'].replace('sp=rl','sp=rwd')),('sas_token',SETTINGS['sas_token'].replace('spr=https','spr=http'))]
   for key,value in cases:
-   with self.subTest(key=key),self.assertRaises(ValueError):reader.request_target({**SETTINGS,key:value})
+   with self.subTest(key=key),self.assertRaises(ValueError):reader.request_target({**SETTINGS,key:value},TABLE['path'])
  def test_network_error_does_not_expose_token(self):
-  with patch.object(reader.http.client,'HTTPSConnection',side_effect=OSError('secret synthetic')),self.assertRaises(ValueError) as error:reader.scan(SETTINGS)
+  with patch.object(reader.http.client,'HTTPSConnection',side_effect=OSError('secret synthetic')),self.assertRaises(ValueError) as error:reader.scan(SETTINGS,TABLE)
   self.assertNotIn('synthetic',str(error.exception))
  def test_failed_download_removes_private_temporary_file(self):
   paths=[]
-  def fail(settings,path):paths.append(path);path.write_text('private');raise ValueError('failed')
-  with patch.object(reader,'download',fail),self.assertRaises(ValueError):reader.scan(SETTINGS)
+  def fail(settings,blob,path):paths.append(path);path.write_text('private');raise ValueError('failed')
+  with patch.object(reader,'download',fail),self.assertRaises(ValueError):reader.scan(SETTINGS,TABLE)
   self.assertFalse(paths[0].exists());self.assertFalse(paths[0].parent.exists())

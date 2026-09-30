@@ -121,10 +121,42 @@ if __name__ == '__main__':
 `,
   [`docs/${id}.md`]: `# ${label}
 
-Describe what this connector reads, how to install it, the connection and table
-settings, supported column types, limits and the evidence behind its maturity.
+One paragraph: what this connector reads, into what, and what it never does.
+
+| Package  | \`${id}@0.1.0\` |
+| -------- | --- |
+| Kind     | \`${id}\` |
+| Maturity | preview: conformance suite against fakes |
+| Licence  | Adapter Apache-2.0; upstream … |
+| Cost     | … |
+
+## Install
+
+\`\`\`sh
+ingestron connector install ${id}@0.1.0
+\`\`\`
+
+## Connection
+
+Access, permissions and credentials (always \`$secret\` references), with a
+\`connections\` and \`flows\` example.
+
+## Tables
+
+| \`source\` key | Meaning |
+| --- | --- |
+| \`path\` | … |
+
+## Types
+
+## Behaviour and limits
+
+## Evidence
+
 Start as preview; move to verified only with recorded tests against the real
 service.
+
+## References
 `,
 };
 for (const [path, content] of Object.entries(files)) {

@@ -26,6 +26,16 @@ def local_path(settings):
     require(stat.S_ISREG(info.st_mode) and info.st_size <= MAX_BYTES, 'Use one regular file up to 64 MiB')
     return path
 
+def parser_kind(native_type):
+    """Map a contracted column type to the reader's parser type."""
+    kind = native_type.upper()
+    if kind == 'STRING': return 'string'
+    if kind in ('BIGINT', 'INT', 'INTEGER', 'SMALLINT'): return 'integer'
+    if kind.startswith('DECIMAL('): return 'decimal'
+    if kind in ('DOUBLE', 'FLOAT'): return 'number'
+    if kind == 'BOOLEAN': return 'boolean'
+    raise ValueError('File input does not support the contracted column type')
+
 def unique_object(pairs):
     result = {}
     for key,value in pairs:

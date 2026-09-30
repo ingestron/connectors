@@ -1,16 +1,6 @@
 """Several contracted local files through the reviewed snapshot workflow."""
 import connector_kit as kit
-from files_reader import scan
-
-
-def parser_kind(native_type):
-    kind = native_type.upper()
-    if kind == 'STRING': return 'string'
-    if kind in ('BIGINT', 'INT', 'INTEGER', 'SMALLINT'): return 'integer'
-    if kind.startswith('DECIMAL('): return 'decimal'
-    if kind in ('DOUBLE', 'FLOAT'): return 'number'
-    if kind == 'BOOLEAN': return 'boolean'
-    raise ValueError('File input does not support the contracted column type')
+from files_reader import scan, parser_kind
 
 
 class Files(kit.TableConnector):

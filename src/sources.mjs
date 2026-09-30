@@ -60,7 +60,7 @@ export const sources = {
       network: ["public"],
       maturity: "preview",
       verified,
-      note: "Tested against a loopback server only; no live storage account",
+      note: "Conformance suite and installed runs against a loopback server only; no live storage account",
     },
   },
   "sql-server": {

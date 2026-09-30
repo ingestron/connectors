@@ -9,7 +9,15 @@ import { settings } from "../src/settings.mjs";
 import { conforms, runtimeContract } from "../src/connection-contract.mjs";
 const sha = (v) => createHash("sha256").update(v).digest("hex");
 test("released source assets bind schema, code, requirements and licence to one digest", () => {
-  for (const source of ["github", "files", "azure-blob", "sql-server"]) {
+  for (const source of [
+    "github",
+    "files",
+    "azure-blob",
+    "sql-server",
+    "postgresql",
+    "mysql",
+    "oracle",
+  ]) {
     const m = parse(
       readFileSync(`connectors/${source}/connector.yaml`, "utf8"),
     );
@@ -121,6 +129,51 @@ test("source-owned bounds and credential references reject invalid configuration
       }),
       true,
     );
+  }
+});
+
+test("every table connector keeps endpoint and credentials on the connection and objects on the table", () => {
+  const blob = parse(
+    readFileSync("connectors/azure-blob/connector.yaml", "utf8"),
+  );
+  const connection = {
+    account: "sampleaccount",
+    container: "samples",
+    sas_token: { $secret: { env: "AZURE_STORAGE_SAS" } },
+  };
+  assert.equal(conforms(blob.definition.settingsSchema, connection), true);
+  for (const legacy of [{ blob: "a.csv" }, { format: "csv" }, { types: {} }])
+    assert.equal(
+      conforms(blob.definition.settingsSchema, { ...connection, ...legacy }),
+      false,
+    );
+  assert.equal(
+    conforms(blob.definition.tableSourceSchema, {
+      path: "retail/v1/csv/customers.csv",
+      format: "csv",
+    }),
+    true,
+  );
+  assert.equal(
+    conforms(blob.definition.tableSourceSchema, {
+      path: "customers.csv",
+      format: "csv",
+      types: { id: "integer" },
+    }),
+    false,
+  );
+  for (const source of [
+    "files",
+    "azure-blob",
+    "sql-server",
+    "postgresql",
+    "mysql",
+    "oracle",
+  ]) {
+    const m = parse(
+      readFileSync(`connectors/${source}/connector.yaml`, "utf8"),
+    );
+    assert.ok(m.definition.tableSourceSchema, source);
   }
 });
 

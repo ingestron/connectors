@@ -5,10 +5,13 @@ import tempfile
 import unittest
 from decimal import Decimal
 from pathlib import Path
+from unittest.mock import patch
+import hashlib
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'conformance'))
 from harness import Conformance, singer_runtime
 _before = (singer_runtime.source_config, singer_runtime.tap_output, singer_runtime.review)
+import azure_blob_runtime
 import files_table_runtime
 import sql_server_runtime
 singer_runtime.source_config, singer_runtime.tap_output, singer_runtime.review = _before
@@ -50,6 +53,72 @@ class FilesConformance(Conformance, unittest.TestCase):
 
     def secret_values(self):
         return []
+
+
+SAS = 'sv=2023-11-03&sp=r&se=2030-01-01&spr=https&sig=secret-signature'
+
+
+class BlobResponse:
+    def __init__(self, status, body=b'', etag=''):
+        self.status, self.body = status, body
+        self.headers = {'Content-Length': str(len(body)), 'ETag': etag}
+
+    def getheader(self, key, default=None):
+        return self.headers.get(key, default)
+
+    def read(self, n):
+        chunk, self.body = self.body[:n], self.body[n:]
+        return chunk
+
+    def close(self):
+        pass
+
+
+def blob_transport(root):
+    """An HTTPS stand-in serving /<container>/<blob> from a local directory."""
+    class Connection:
+        def __init__(self, host, timeout):
+            assert host == 'sampleaccount.blob.core.windows.net'
+
+        def request(self, method, target, headers):
+            path = root / target.split('?')[0].split('/', 2)[2]
+            if not path.is_file():
+                self.response = BlobResponse(404)
+                return
+            body = path.read_bytes()
+            etag = '"' + hashlib.sha256(body).hexdigest() + '"'
+            self.response = BlobResponse(200, body if method == 'GET' else b'', etag)
+            self.response.headers['Content-Length'] = str(len(body))
+
+        def getresponse(self):
+            return self.response
+
+        def close(self):
+            pass
+    return Connection
+
+
+class AzureBlobConformance(FilesConformance):
+    """Azure Blob shares the file reader; tables name blob paths in one container."""
+
+    def make_connector(self):
+        super().make_connector()
+        http = patch('azure_blob_reader.http.client.HTTPSConnection', blob_transport(self.root))
+        http.start()
+        self.addCleanup(http.stop)
+        return azure_blob_runtime.AzureBlob()
+
+    def settings(self):
+        return {'account': 'sampleaccount', 'container': 'samples', 'sas_token': SAS}
+
+    def tables(self):
+        tables = super().tables()
+        for stream, table in tables.items():
+            table['source']['path'] = f'{stream}.csv'
+        return tables
+
+    def secret_values(self):
+        return ['secret-signature']
 
 
 class FakeSql:

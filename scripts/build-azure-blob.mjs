@@ -2,7 +2,10 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { stringify } from "yaml";
 import { format } from "prettier";
-import { azureBlobSettings } from "../src/azure-blob-settings.mjs";
+import {
+  azureBlobSettings,
+  azureBlobTableSource,
+} from "../src/azure-blob-settings.mjs";
 import {
   selectionSchema,
   runtimeContract,
@@ -59,8 +62,8 @@ writeFileSync(dir + "/UPSTREAM-LICENSE.txt", files["UPSTREAM-LICENSE.txt"]);
 const manifest = {
   apiVersion: "ingestron.connector/v1",
   id: "azure-blob",
-  version: "1.3.0",
-  description: "Reviewed local snapshots from one Azure Blob or ADLS Gen2 file",
+  version: "2.0.0",
+  description: "Reviewed local snapshots from Azure Blob or ADLS Gen2 files",
   connector: "singer:azure-blob@23.0.1",
   documentation:
     "https://github.com/ingestron/connectors/blob/main/docs/azure-blob.md",
@@ -81,12 +84,16 @@ const manifest = {
   },
   quality,
   source: sources["azure-blob"],
-  definition: { settingsSchema: azureBlobSettings, selectionSchema },
+  definition: {
+    settingsSchema: azureBlobSettings,
+    selectionSchema,
+    tableSourceSchema: azureBlobTableSource,
+  },
   execution: {
     local: {
       modes: ["local"],
       evidence:
-        "Bounded Azure Blob read into local snapshots; source-only HTTPS SAS access",
+        "Bounded Azure Blob reads into local snapshots, several tables per connection; source-only HTTPS SAS access",
     },
   },
 };

@@ -11,7 +11,7 @@ os.environ['AZURE_STORAGE_SAS']='sv=2023-11-03&sp=rl&se=2030-01-01&spr=https&sig
 if WORK.exists():shutil.rmtree(WORK)
 WORK.mkdir(parents=True)
 PUBLIC=os.environ.get('INGESTRON_TEST_PUBLIC_SOURCE')=='1'
-ARCHIVE=Path(os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE',str(ROOT/'build/release/azure-blob-retail-1.1.0.zip')))
+ARCHIVE=Path(os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE',str(ROOT/'build/release/azure-blob-retail-2.0.0.zip')))
 if not os.environ.get('INGESTRON_TEST_RETAIL_ARCHIVE'):
  subprocess.run(['python3',str(ROOT/'scripts/package-azure-retail.py')],cwd=ROOT,check=True)
 records=[]
@@ -34,12 +34,11 @@ with tempfile.TemporaryDirectory() as tmp:
   project=WORK/fmt;project.mkdir()
   with zipfile.ZipFile(ARCHIVE) as archive: archive.extractall(project)
   command(['python3','setup-azure.py','--account','sampleaccount','--format',fmt],project)
-  project_file=project/'project.yaml'
-  project_config=yaml.safe_load(project_file.read_text())
-  project_config['providers']['packages']['files']=f'ingestron/connectors/connectors/azure-blob/connector.yaml@{SOURCE_VERSION}'
-  project_file.write_text(yaml.safe_dump(project_config,sort_keys=False))
-  cli(project,'plugin','install','ingestron/provider-local@0.4.3')
-  cli(project,'plugin','install',f'ingestron/connectors/connectors/azure-blob/connector.yaml@{SOURCE_VERSION}','--tag-prefix','azure-blob-',* ([] if PUBLIC else ['--from-git',str(origin)]))
+  project_config=yaml.safe_load((project/'project.yaml').read_text())
+  assert project_config['packages']['azure-blob']==f'azure-blob@{SOURCE_VERSION}'
+  assert set(project_config['connections'])=={'retail_blob'} and len(project_config['flows'][0]['tables'])==3
+  cli(project,'provider','install','ingestron/provider-local@0.4.3')
+  cli(project,'connector','install',f'ingestron/connectors/connectors/azure-blob/connector.yaml@{SOURCE_VERSION}','--tag-prefix','azure-blob-',* ([] if PUBLIC else ['--from-git',str(origin)]))
   cli(project,'check');cli(project,'build');cli(project,'runtime','prepare')
   python=next((project/'.ingestron/runtimes').glob('*/bin/python'))
   site=Path(subprocess.check_output([str(python),'-c','import sysconfig; print(sysconfig.get_paths()["purelib"])'],text=True).strip())
@@ -55,18 +54,18 @@ with tempfile.TemporaryDirectory() as tmp:
    if fmt=='csv':
     path=project/'data/csv/orders.csv';original=path.read_bytes()
     path.write_text(path.read_text().replace('1001','oops'))
-    cli(project,'run','--flow','orders_local','--run-id','bad-input',ok=False)
+    cli(project,'run','--flow','retail_local','--run-id','bad-input',ok=False)
     assert not list((project/'build/generated/data').rglob('bad-input/commit.json'))
     path.write_bytes(original);cli(project,'run','--retry','bad-input')
     path.write_text(path.read_text().replace('order_id','changed_id'))
-    cli(project,'run','--flow','orders_local','--run-id','drift',ok=False)
+    cli(project,'run','--flow','retail_local','--run-id','drift',ok=False)
     assert not list((project/'build/generated/data').rglob('drift/commit.json'))
     path.write_bytes(original)
     first=files[0];saved=first.read_bytes();first.write_bytes(b'changed')
     cli(project,'run','--retry','retail-001',ok=False);first.write_bytes(saved)
    for failure in ['denied','changed']:
     transport.mode['value']=failure
-    cli(project,'run','--flow','orders_local','--run-id',failure,ok=False)
+    cli(project,'run','--flow','retail_local','--run-id',failure,ok=False)
     assert not list((project/'build/generated/data').rglob(f'{failure}/commit.json'))
     transport.mode['value']='normal';cli(project,'run','--retry',failure)
    assert 'HEAD' in transport.observed and 'GET' in transport.observed

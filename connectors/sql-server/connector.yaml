@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/sql-server/runtime.json
-  sha256: 03eb1f814f32b4b3bde9182c5ddeb78a2afda2953707d779962ae757a5456626
+  sha256: a06314c475edee715c2582d1ee8de5bc056dd38ccda6767a6750a5ff700a4952
   contract: ingestron.snapshot/python/v1
 quality:
   library:
