@@ -6,7 +6,7 @@ entry chooses one blob and its format, and its ODCS contract chooses the columns
 and types. ADLS Gen2 files use the account's Blob endpoint. The connector does
 not run Azure compute, list folders, expand wildcards or write to storage.
 
-| Package  | `azure-blob@2.0.0`                                                      |
+| Package  | `azure-blob@2.1.0`                                                      |
 | -------- | ----------------------------------------------------------------------- |
 | Kind     | `azure-blob`                                                            |
 | Maturity | preview: conformance suite and installed runs against a loopback server |
@@ -16,7 +16,7 @@ not run Azure compute, list folders, expand wildcards or write to storage.
 ## Install
 
 ```sh
-ingestron connector install azure-blob@2.0.0
+ingestron connector install azure-blob@2.1.0
 ```
 
 ## Connection

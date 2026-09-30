@@ -210,3 +210,18 @@ and SQL Server containers. Attach `build/release/azure-blob-retail-2.0.0.zip`
 (`python3 scripts/package-azure-retail.py`) to the `azure-blob-2.0.0` tag, then
 repeat the Azure Blob check with `INGESTRON_TEST_PUBLIC_SOURCE=1`. Earlier tags
 and downloads stay unchanged.
+
+## Discovery, bridges, SaaS and portable parity — core 0.12.14 (PB-064 phases 4–7)
+
+Released together with CLI 0.17.8 and core 0.12.14: new connectors Stripe,
+SharePoint, OneDrive, GCS, Salesforce, HubSpot and Jira 0.1.0 (preview) and
+S3 and SFTP 1.0.0 (verified against container servers); GitHub 1.36.0, Files
+1.5.0, SQL Server 1.5.0, Azure Blob 2.1.0 and PostgreSQL, MySQL and Oracle
+1.1.0 gain the discovery catalogue; local provider 0.4.6, ADF 4.7.0 and
+Databricks 3.7.0.
+
+Before tagging, with the published CLI: `pnpm validate`, `pnpm test:containers`,
+`pnpm acceptance`, `pnpm acceptance:files:tables`, `pnpm acceptance:retail`,
+`pnpm acceptance:azure-blob`, `pnpm acceptance:postgresql`,
+`pnpm acceptance:apps` and `pnpm acceptance:discovery`. Earlier tags and
+downloads stay unchanged.

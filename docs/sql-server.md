@@ -6,7 +6,7 @@ names a schema and table, and its ODCS contract chooses the columns. The
 connector reads table metadata during discovery and rows after you approve the
 contracts. It does not run arbitrary SQL or write to the database.
 
-| Package  | `sql-server@1.4.0`                                                                       |
+| Package  | `sql-server@1.5.0`                                                                       |
 | -------- | ---------------------------------------------------------------------------------------- |
 | Kind     | `sql-server`                                                                             |
 | Maturity | verified: conformance suite against SQL Server 2022 in a local container                 |
@@ -16,7 +16,7 @@ contracts. It does not run arbitrary SQL or write to the database.
 ## Install
 
 ```sh
-ingestron connector install sql-server@1.4.0
+ingestron connector install sql-server@1.5.0
 ```
 
 The [stand-alone example](../examples/sql-server/project.template.yaml) selects
@@ -31,8 +31,8 @@ does not accept a raw connection string or a certificate-bypass setting.
 
 ```yaml
 packages:
-  local: local@0.4.4
-  sql-server: sql-server@1.4.0
+  local: local@0.4.6
+  sql-server: sql-server@1.5.0
 connections:
   northwind:
     package: sql-server

@@ -20,7 +20,7 @@ import pyarrow.parquet as parquet
 ROOT = Path(__file__).resolve().parents[1]
 CLI = Path(os.environ.get('INGESTRON_TEST_CLI', ROOT / 'node_modules/ingestron/build/cli/cli/index.js')).resolve()
 VERSION = yaml.safe_load((ROOT / 'connectors/postgresql/connector.yaml').read_text())['version']
-PROVIDER_VERSION = os.environ.get('INGESTRON_TEST_PROVIDER_VERSION', '0.4.5')
+PROVIDER_VERSION = os.environ.get('INGESTRON_TEST_PROVIDER_VERSION', '0.4.6')
 PASSWORD = 'Synthetic-Pass-2026'
 WORK = ROOT / 'build/postgresql-acceptance'
 shutil.rmtree(WORK, ignore_errors=True)

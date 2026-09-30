@@ -6,7 +6,7 @@ chooses its file and format, and its ODCS contract chooses the output columns
 and types. The connector does not watch directories or apply incremental
 changes.
 
-| Package  | `files@1.4.0`                                                  |
+| Package  | `files@1.5.0`                                                  |
 | -------- | -------------------------------------------------------------- |
 | Kind     | `local-files`                                                  |
 | Maturity | verified: installed runs read real files in every format       |
@@ -16,7 +16,7 @@ changes.
 ## Install
 
 ```sh
-ingestron connector install files@1.4.0
+ingestron connector install files@1.5.0
 ```
 
 Use [this two-file project](../examples/files/project.template.yaml) as a starting

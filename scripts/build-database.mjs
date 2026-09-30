@@ -90,7 +90,7 @@ for (const c of connectors) {
   const manifest = {
     apiVersion: "ingestron.connector/v1",
     id: c.id,
-    version: "1.0.0",
+    version: "1.1.0",
     description: `Reviewed local snapshots from ${c.label} tables`,
     connector: `singer:${runtimeId}`,
     documentation: `https://github.com/ingestron/connectors/blob/main/docs/${c.id}.md`,

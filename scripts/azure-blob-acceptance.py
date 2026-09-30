@@ -35,7 +35,10 @@ with tempfile.TemporaryDirectory() as tmp:
   with zipfile.ZipFile(ARCHIVE) as archive: archive.extractall(project)
   command(['python3','setup-azure.py','--account','sampleaccount','--format',fmt],project)
   project_config=yaml.safe_load((project/'project.yaml').read_text())
-  assert project_config['packages']['azure-blob']==f'azure-blob@{SOURCE_VERSION}'
+  # The download pins the release it shipped with; qualify the candidate in its place.
+  assert project_config['packages']['azure-blob'].startswith('azure-blob@2.')
+  project_config['packages']['azure-blob']=f'azure-blob@{SOURCE_VERSION}'
+  (project/'project.yaml').write_text(yaml.safe_dump(project_config,sort_keys=False))
   assert set(project_config['connections'])=={'retail_blob'} and len(project_config['flows'][0]['tables'])==3
   cli(project,'provider','install','ingestron/provider-local@0.4.3')
   cli(project,'connector','install',f'ingestron/connectors/connectors/azure-blob/connector.yaml@{SOURCE_VERSION}','--tag-prefix','azure-blob-',* ([] if PUBLIC else ['--from-git',str(origin)]))

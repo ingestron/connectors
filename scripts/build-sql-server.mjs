@@ -62,7 +62,7 @@ writeFileSync(dir + "/UPSTREAM-LICENSE.txt", files["UPSTREAM-LICENSE.txt"]);
 const manifest = {
   apiVersion: "ingestron.connector/v1",
   id: "sql-server",
-  version: "1.4.0",
+  version: "1.5.0",
   description:
     "Reviewed local snapshots from multiple SQL Server or Azure SQL tables",
   connector: "singer:sql-server@1.15.0",

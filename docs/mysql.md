@@ -7,7 +7,7 @@ the columns. The connector reads table metadata during discovery and rows after
 you approve the contracts. It does not run arbitrary SQL or write to the
 database.
 
-| Package  | `mysql@1.0.0`                                                          |
+| Package  | `mysql@1.1.0`                                                          |
 | -------- | ---------------------------------------------------------------------- |
 | Kind     | `mysql`                                                                |
 | Maturity | verified: conformance suite against a real server in a local container |
@@ -17,7 +17,7 @@ database.
 ## Install
 
 ```sh
-ingestron connector install mysql@1.0.0
+ingestron connector install mysql@1.1.0
 ```
 
 ## Connection

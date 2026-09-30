@@ -32,7 +32,7 @@
     "acceptance:discovery": "build/singer-github/bin/python scripts/discovery-acceptance.py"
   },
   "devDependencies": {
-    "ingestron": "0.17.7",
+    "ingestron": "0.17.8",
     "prettier": "3.9.6",
     "yaml": "2.9.0"
   },
