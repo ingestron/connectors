@@ -1,7 +1,7 @@
 apiVersion: ingestron.connector/v1
 id: azure-blob
-version: 1.2.0
-description: Reviewed local snapshots from one Azure Blob or ADLS Gen2 file
+version: 2.0.0
+description: Reviewed local snapshots from Azure Blob or ADLS Gen2 files
 connector: singer:azure-blob@23.0.1
 documentation: https://github.com/ingestron/connectors/blob/main/docs/azure-blob.md
 upstream:
@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/azure-blob/runtime.json
-  sha256: f0a92f7deb75d0a511cedd60e0824646dee07964b85031f1a8daf7300a8a5c83
+  sha256: c3f2f6ec0337411bdf2d3145dcad337e58356dbc6a80f7406ee68969a26fb0e0
   contract: ingestron.snapshot/python/v1
 quality:
   library:
@@ -26,6 +26,32 @@ quality:
     rowCount: at-load
   sql: unsupported
   engines: []
+source:
+  kind: azure-blob
+  capabilities:
+    - snapshot
+    - discovery
+  reference:
+    docs: https://github.com/ingestron/connectors/blob/main/docs/azure-blob.md
+    vendorStatus: not-applicable
+    licence: Apache-2.0; upstream pyarrow Apache-2.0
+    cost:
+      model: none
+      pricing: https://azure.microsoft.com/pricing/details/storage/blobs/
+      note: Azure Storage read and egress charges apply
+    access:
+      model: subscription
+      url: https://learn.microsoft.com/azure/storage/blobs/
+      note: An existing storage account and a read-only SAS token
+    auth:
+      - sas
+    network:
+      - public
+    maturity: preview
+    verified: 2026-09-30
+    note:
+      Conformance suite and installed runs against a loopback server only; no
+      live storage account
 definition:
   settingsSchema:
     type: object
@@ -38,10 +64,6 @@ definition:
         type: string
         minLength: 3
         maxLength: 63
-      blob:
-        type: string
-        minLength: 1
-        maxLength: 1024
       sas_token:
         type: object
         properties:
@@ -57,30 +79,10 @@ definition:
         required:
           - $secret
         additionalProperties: false
-      format:
-        type: string
-        enum:
-          - csv
-          - tsv
-          - json
-          - jsonl
-          - parquet
-      types:
-        type: object
-        additionalProperties:
-          type: string
-          enum:
-            - string
-            - integer
-            - decimal
-            - number
-            - boolean
     required:
       - account
       - container
-      - blob
       - sas_token
-      - format
     additionalProperties: false
   selectionSchema:
     type: object
@@ -119,8 +121,28 @@ definition:
         - name
         - fields
       additionalProperties: false
+  tableSourceSchema:
+    type: object
+    properties:
+      path:
+        type: string
+        minLength: 1
+        maxLength: 1024
+      format:
+        type: string
+        enum:
+          - csv
+          - tsv
+          - json
+          - jsonl
+          - parquet
+    required:
+      - path
+      - format
+    additionalProperties: false
 execution:
   local:
     modes:
       - local
-    evidence: Bounded Azure Blob read into local snapshots; source-only HTTPS SAS access
+    evidence: Bounded Azure Blob reads into local snapshots, several tables per
+      connection; source-only HTTPS SAS access

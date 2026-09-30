@@ -8,8 +8,8 @@ importers:
   .:
     devDependencies:
       ingestron:
-        specifier: 0.17.6
-        version: 0.17.6(zod@4.6.5)
+        specifier: 0.17.7
+        version: 0.17.7(zod@4.6.5)
       prettier:
         specifier: 3.9.6
         version: 3.9.6
@@ -41,10 +41,10 @@ packages:
     peerDependencies:
       hono: ^4
 
-  "@ingestron/core@0.12.12":
+  "@ingestron/core@0.12.13":
     resolution:
       {
-        integrity: sha512-mc6WVHD8XY6w3Q1rHY+qaw5o3XCbrdG0PwvCXvucpQ6ibQOzog9c72YuYbhddYjF5ZkG4FKDrZPea2yFrQSPog==,
+        integrity: sha512-kd5tyRrTu+ULgRsfg1B2Q73Lt9up9KaFLgxca2lwn05SWEQ2LKz7XYusP/LjtgfuPw9Bimwc8s8tHZRY+wZD5Q==,
       }
     engines: { node: ">=22.12.0" }
 
@@ -439,10 +439,10 @@ packages:
       }
     engines: { node: ">=0.10.0" }
 
-  ingestron@0.17.6:
+  ingestron@0.17.7:
     resolution:
       {
-        integrity: sha512-mFOFGIP+B9lNfUcsdB+MAZWXmFsTAT8/2CUDbsfeCjnME5rTAbCgTMQUbVhDq+q4oittKRVLr/Zyk+bji4vp5Q==,
+        integrity: sha512-PQmx4Gj/lE0Wpjc47Ya1bC4E7s5nSqgDjzYJ0VJNCDFHqpHmj04tyOBkrVYwuL6XRyrv8z3VFzu5AddpMKQvUg==,
       }
     engines: { node: ">=22.12.0" }
     hasBin: true
@@ -832,7 +832,7 @@ snapshots:
     dependencies:
       hono: 4.13.8
 
-  "@ingestron/core@0.12.12":
+  "@ingestron/core@0.12.13":
     dependencies:
       "@lezer/python": 1.1.19
       ajv: 8.20.0
@@ -1108,10 +1108,10 @@ snapshots:
     dependencies:
       safer-buffer: 2.1.2
 
-  ingestron@0.17.6(zod@4.6.5):
+  ingestron@0.17.7(zod@4.6.5):
     dependencies:
       "@clack/prompts": 1.7.0
-      "@ingestron/core": 0.12.12
+      "@ingestron/core": 0.12.13
       "@modelcontextprotocol/sdk": 1.30.0(zod@4.6.5)
       commander: 15.0.0
       yaml: 2.9.0

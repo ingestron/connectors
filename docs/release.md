@@ -193,3 +193,20 @@ checks and builds offline. Databricks 3.5.0 and ADF 4.5.0 add SQL and engine
 rules and need core 0.12.12; their example projects with SQL, Databricks and Soda
 rules check and build from the public tags. All latest releases gain core
 0.12.12; the new providers are qualified for it only.
+
+## Connector kit and database connectors — core 0.12.13 (PB-064)
+
+Released together with CLI 0.17.7 and core 0.12.13: GitHub 1.35.0, Files 1.4.0,
+SQL Server 1.4.0, Azure Blob 2.0.0 (breaking: the connection holds the account,
+container and SAS; each table holds `{path, format}`), PostgreSQL, MySQL and
+Oracle 1.0.0, local provider 0.4.5, ADF 4.6.0 and Databricks 3.6.0.
+
+Before tagging, on the candidate tree with the published CLI:
+`pnpm validate`, `pnpm acceptance`, `pnpm acceptance:files:tables`,
+`pnpm acceptance:retail`, `pnpm acceptance:azure-blob` (five formats) and
+`pnpm acceptance:postgresql`; with Docker, `INGESTRON_TEST_CONTAINERS=1
+pnpm runtime:test` runs the conformance suite against PostgreSQL, MySQL, Oracle
+and SQL Server containers. Attach `build/release/azure-blob-retail-2.0.0.zip`
+(`python3 scripts/package-azure-retail.py`) to the `azure-blob-2.0.0` tag, then
+repeat the Azure Blob check with `INGESTRON_TEST_PUBLIC_SOURCE=1`. Earlier tags
+and downloads stay unchanged.

@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: github
-version: 1.34.0
+version: 1.35.0
 description: github customer-operated full snapshot connector
 connector: singer:github@1.29.2
 documentation: https://github.com/ingestron/connectors/blob/main/docs/github.md
@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/github/runtime.json
-  sha256: be6a3808af8e5b0e609f90def84d31008e39581f531dde446eee3bdcd4b7f309
+  sha256: b526b127c5118994c8464f7c3e4c83547f19381ddb943c0032e6c2dc93ea437f
   contract: ingestron.snapshot/python/v1
 quality:
   library:
@@ -26,6 +26,30 @@ quality:
     rowCount: at-load
   sql: unsupported
   engines: []
+source:
+  kind: github
+  capabilities:
+    - snapshot
+    - discovery
+  reference:
+    docs: https://github.com/ingestron/connectors/blob/main/docs/github.md
+    vendorStatus: not-applicable
+    licence: Apache-2.0; upstream MeltanoLabs tap-github Apache-2.0
+    cost:
+      model: none
+      note: GitHub API rate limits apply
+    access:
+      model: free
+      url: https://docs.github.com/rest
+      note: Public repositories anonymously; a token for private repositories
+    auth:
+      - anonymous
+      - token
+    network:
+      - public
+    maturity: verified
+    verified: 2026-09-30
+    note: A bounded anonymous live run against a public repository passed
 definition:
   settingsSchema:
     type: object

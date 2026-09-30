@@ -9,7 +9,15 @@ import { settings } from "../src/settings.mjs";
 import { conforms, runtimeContract } from "../src/connection-contract.mjs";
 const sha = (v) => createHash("sha256").update(v).digest("hex");
 test("released source assets bind schema, code, requirements and licence to one digest", () => {
-  for (const source of ["github", "files", "azure-blob", "sql-server"]) {
+  for (const source of [
+    "github",
+    "files",
+    "azure-blob",
+    "sql-server",
+    "postgresql",
+    "mysql",
+    "oracle",
+  ]) {
     const m = parse(
       readFileSync(`connectors/${source}/connector.yaml`, "utf8"),
     );
@@ -124,6 +132,51 @@ test("source-owned bounds and credential references reject invalid configuration
   }
 });
 
+test("every table connector keeps endpoint and credentials on the connection and objects on the table", () => {
+  const blob = parse(
+    readFileSync("connectors/azure-blob/connector.yaml", "utf8"),
+  );
+  const connection = {
+    account: "sampleaccount",
+    container: "samples",
+    sas_token: { $secret: { env: "AZURE_STORAGE_SAS" } },
+  };
+  assert.equal(conforms(blob.definition.settingsSchema, connection), true);
+  for (const legacy of [{ blob: "a.csv" }, { format: "csv" }, { types: {} }])
+    assert.equal(
+      conforms(blob.definition.settingsSchema, { ...connection, ...legacy }),
+      false,
+    );
+  assert.equal(
+    conforms(blob.definition.tableSourceSchema, {
+      path: "retail/v1/csv/customers.csv",
+      format: "csv",
+    }),
+    true,
+  );
+  assert.equal(
+    conforms(blob.definition.tableSourceSchema, {
+      path: "customers.csv",
+      format: "csv",
+      types: { id: "integer" },
+    }),
+    false,
+  );
+  for (const source of [
+    "files",
+    "azure-blob",
+    "sql-server",
+    "postgresql",
+    "mysql",
+    "oracle",
+  ]) {
+    const m = parse(
+      readFileSync(`connectors/${source}/connector.yaml`, "utf8"),
+    );
+    assert.ok(m.definition.tableSourceSchema, source);
+  }
+});
+
 test("official catalogue contains only qualified exact releases and stable identities", () => {
   const c = JSON.parse(readFileSync("catalogue.json", "utf8"));
   assert.equal(c.apiVersion, "ingestron.catalogue/v1");
@@ -134,6 +187,9 @@ test("official catalogue contains only qualified exact releases and stable ident
     "files",
     "github",
     "local",
+    "mysql",
+    "oracle",
+    "postgresql",
     "sql-server",
   ]);
   assert.equal(c.plugins.github.repository, "ingestron/connectors");
@@ -143,24 +199,24 @@ test("official catalogue contains only qualified exact releases and stable ident
   assert.equal(c.plugins.local.path, "plugin/provider.yaml");
   assert.equal(c.plugins.local.tagPrefix, "");
   assert.deepEqual(c.plugins.local.releases.at(-1), {
-    version: "0.4.4",
-    coreVersions: ["0.12.10", "0.12.11", "0.12.12"],
+    version: "0.4.5",
+    coreVersions: ["0.12.13"],
   });
   for (const [name, repository, version] of [
-    ["adf", "ingestron/provider-adf", "4.5.0"],
-    ["databricks", "ingestron/provider-databricks", "3.5.0"],
+    ["adf", "ingestron/provider-adf", "4.6.0"],
+    ["databricks", "ingestron/provider-databricks", "3.6.0"],
   ]) {
     assert.equal(c.plugins[name].repository, repository);
     assert.equal(c.plugins[name].path, "plugin/provider.yaml");
     assert.equal(c.plugins[name].tagPrefix, "");
     assert.deepEqual(c.plugins[name].releases.at(-1), {
       version,
-      coreVersions: ["0.12.12"],
+      coreVersions: ["0.12.13"],
     });
   }
   assert.deepEqual(c.plugins.files.releases.at(-1), {
-    version: "1.3.0",
-    coreVersions: ["0.12.10", "0.12.11", "0.12.12"],
+    version: "1.4.0",
+    coreVersions: ["0.12.13"],
   });
   for (const p of Object.values(c.plugins)) {
     assert.ok(
@@ -177,6 +233,7 @@ test("official catalogue contains only qualified exact releases and stable ident
             "0.12.10",
             "0.12.11",
             "0.12.12",
+            "0.12.13",
           ].includes(version),
         ),
       "Every latest official shortcut must retain a qualified published core",

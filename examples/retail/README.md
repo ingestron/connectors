@@ -45,6 +45,12 @@ To compare formats, use a fresh copy and run `python3 setup.py --format parquet`
 (or `tsv`, `json`, `jsonl`). Do not overwrite an approved review with a different
 source selection.
 
+To read the same files from Azure instead, upload `data/<format>/` to a container
+under `retail/v1/`, then run `python3 setup-azure.py --account <name>` in a fresh
+copy (options `--container`, `--prefix`, `--format`). It writes one Azure Blob
+2.0.0 connection with the three blob paths as tables; set `AZURE_STORAGE_SAS`
+to a read-only SAS before discovery. See [Azure Blob](../../docs/azure-blob.md).
+
 For a rejection exercise, change a numeric value in a copied CSV input to
 invalid text and use a new run ID. Expect no committed output for that run.
 Restore the file and retry the failed run. A changed path, format or contract
