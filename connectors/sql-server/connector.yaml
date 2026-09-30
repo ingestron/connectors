@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: sql-server
-version: 1.3.0
+version: 1.4.0
 description: Reviewed local snapshots from multiple SQL Server or Azure SQL tables
 connector: singer:sql-server@1.15.0
 documentation: https://github.com/ingestron/connectors/blob/main/docs/sql-server.md
@@ -26,6 +26,38 @@ quality:
     rowCount: at-load
   sql: unsupported
   engines: []
+source:
+  kind: sql-server
+  capabilities:
+    - snapshot
+    - discovery
+  reference:
+    docs: https://github.com/ingestron/connectors/blob/main/docs/sql-server.md
+    vendorStatus: not-applicable
+    licence: Apache-2.0; upstream mssql-python MIT, bundled ODBC binary under
+      Microsoft terms
+    cost:
+      model: none
+      note: Database compute and egress charges apply
+    access:
+      model: free
+      url: https://www.microsoft.com/sql-server/sql-server-downloads
+      note: SQL Server Developer edition or an existing SQL Server or Azure SQL
+        database
+    auth:
+      - sql-password
+      - entra-default
+      - entra-managed-identity
+      - entra-service-principal
+    network:
+      - public
+      - private-network
+      - on-premises
+    maturity: preview
+    verified: 2026-09-30
+    note:
+      Multi-table reads tested synthetically; an earlier single-table release
+      read Northwind live
 definition:
   settingsSchema:
     type: object
