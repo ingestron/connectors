@@ -1,0 +1,322 @@
+/** Offline copied-project preparation through the immutable shared host and installed compiler. */
+import assert from "node:assert/strict";
+import {
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  realpathSync,
+  writeFileSync,
+  utimesSync,
+} from "node:fs";
+import { resolve, join } from "node:path";
+import { createHash } from "node:crypto";
+import { createRequire } from "node:module";
+import { createHost } from "./checkpoint-upgrade-host-acceptance.mjs";
+const required = (name) => {
+  assert.ok(process.env["INGESTRON_ACCEPTANCE_" + name], name);
+  return resolve(process.env["INGESTRON_ACCEPTANCE_" + name]);
+};
+const fixtures = required("FIXTURES"),
+  output = required("OUTPUT"),
+  cli = required("CLI"),
+  proof = required("PROOF");
+const { parse } = createRequire(join(cli, "package.json"))("yaml");
+const sha = (value) => createHash("sha256").update(value).digest("hex");
+const hashFile = (path) => sha(readFileSync(path));
+const cliVersion = JSON.parse(
+  readFileSync(join(cli, "package.json"), "utf8"),
+).version;
+const coreVersion = JSON.parse(
+  readFileSync(
+    resolve(realpathSync(cli), "../@ingestron/core/package.json"),
+    "utf8",
+  ),
+).version;
+assert.ok(
+  ["0.17.18/0.12.42", "0.17.18/0.12.43", "0.17.20/0.12.47", "0.17.21/0.12.51"].includes(
+    cliVersion + "/" + coreVersion,
+  ),
+);
+mkdirSync(output, { recursive: true });
+const root = mkdtempSync(join(output, "native-assets-"));
+const walk = (p) =>
+  readdirSync(p, { withFileTypes: true }).flatMap((e) =>
+    e.isDirectory() ? walk(join(p, e.name)) : [join(p, e.name)],
+  );
+const cases = [
+  {
+    id: "adf_retail",
+    alias: "landing",
+    reference: "ingestron/provider-adf/plugin/provider.yaml@4.10.0",
+    files: 23,
+  },
+  {
+    id: "databricks_retail",
+    alias: "workspace",
+    reference:
+      "ingestron/provider-databricks/plugin/provider.yaml@" +
+      (["0.12.47", "0.12.51"].includes(coreVersion) ? "3.13.0" : "3.10.0"),
+    files: 14,
+  },
+  {
+    id: "fabric_retail",
+    alias: "fabric",
+    reference:
+      "ingestron-io/ingestron-plugin-fabric/current-provider/plugin/provider.yaml@0.3.0",
+    files: 10,
+  },
+];
+const checks = [],
+  projects = [];
+let result = "failed",
+  failure;
+try {
+  for (const item of cases) {
+    const fixture = join(fixtures, item.id),
+      project = join(root, item.id);
+    const originals = Object.fromEntries(
+      [
+        "project.yaml",
+        "packages.lock.yaml",
+        ...walk(join(fixture, "flows")).map((p) => p.slice(fixture.length + 1)),
+        ...walk(join(fixture, "contracts")).map((p) =>
+          p.slice(fixture.length + 1),
+        ),
+      ].map((p) => [p, hashFile(join(fixture, p))]),
+    );
+    cpSync(fixture, project, {
+      recursive: true,
+      filter: (path) =>
+        ![
+          "build",
+          "runs",
+          "runtimes",
+          "scheduler",
+          "studio-jobs",
+          ".local",
+          "source-access",
+        ].includes(path.split("/").at(-1)),
+    });
+    const host = await createHost({
+      project,
+      cli,
+      flow: "retail_bronze",
+      baseline: "unused",
+      record: (check) => checks.push(check),
+    });
+    try {
+      const snapshot = await host.request("snapshot", { environment: "dev" });
+      const provider = Object.values(snapshot.providers).find(
+        (p) => p.reference === item.reference,
+      );
+      assert.ok(provider, "Exact original immutable provider reference");
+      assert.ok(provider.capabilities.delivery);
+      assert.equal(snapshot.datasets.length, 3);
+      async function prepare() {
+        const current = await host.request("snapshot", { environment: "dev" });
+        let job = await host.request("start", {
+          environment: "dev",
+          operation: "prepare",
+          request: { flow: "retail_bronze", revision: current.revision },
+        });
+        const deadline = Date.now() + 180000;
+        while (job.status === "running" && Date.now() < deadline) {
+          await new Promise((r) => setTimeout(r, 50));
+          job = (await host.request("jobs")).find((j) => j.id === job.id);
+          assert.ok(job);
+        }
+        assert.equal(job.status, "succeeded", job.error);
+        assert.deepEqual(
+          job.result.stages.map((s) => s.operation),
+          ["validate", "build"],
+        );
+        assert.ok(job.result.stages.every((s) => s.status === "succeeded"));
+        return job;
+      }
+      await prepare();
+      const inventory = await host.request("artifacts", {
+        environment: "dev",
+        flow: "retail_bronze",
+      });
+      assert.equal(inventory.truncated, false);
+      assert.equal(inventory.entries.length, item.files);
+      const assets = [];
+      for (const entry of inventory.entries) {
+        assert.ok(
+          entry.previewable,
+          "Every fixture asset is bounded readable text",
+        );
+        const read = await host.request("artifact.read", {
+          environment: "dev",
+          flow: "retail_bronze",
+          path: entry.path,
+          size: entry.size,
+          modifiedAt: entry.modifiedAt,
+        });
+        assert.equal(read.path, entry.path);
+        assert.equal(read.modifiedAt, entry.modifiedAt);
+        assert.equal(Buffer.byteLength(read.content), entry.size);
+        assert.equal(sha(read.content), hashFile(join(project, entry.path)));
+        if (entry.path.endsWith(".json")) JSON.parse(read.content);
+        if (/\.ya?ml$/.test(entry.path)) parse(read.content);
+        assets.push({
+          path: entry.path.slice(inventory.base.length + 1),
+          bytes: entry.size,
+          sha256: sha(read.content),
+        });
+      }
+      const selected = inventory.entries.find((entry) =>
+        entry.path.endsWith("/README.md"),
+      );
+      assert.ok(selected);
+      const selectedPath = join(project, selected.path);
+      const before = readFileSync(selectedPath, "utf8");
+      const changed = (before[0] === "#" ? "!" : "#") + before.slice(1);
+      assert.equal(Buffer.byteLength(changed), selected.size);
+      writeFileSync(selectedPath, changed);
+      utimesSync(
+        selectedPath,
+        new Date(),
+        new Date(Date.parse(selected.modifiedAt) + 5000),
+      );
+      await assert.rejects(
+        host.request("artifact.read", {
+          environment: "dev",
+          flow: "retail_bronze",
+          path: selected.path,
+          size: selected.size,
+          modifiedAt: selected.modifiedAt,
+        }),
+        /STALE/,
+      );
+      const refreshed = (
+        await host.request("artifacts", {
+          environment: "dev",
+          flow: "retail_bronze",
+        })
+      ).entries.find((entry) => entry.path === selected.path);
+      const reopened = await host.request("artifact.read", {
+        environment: "dev",
+        flow: "retail_bronze",
+        path: refreshed.path,
+        size: refreshed.size,
+        modifiedAt: refreshed.modifiedAt,
+      });
+      assert.equal(reopened.content, changed);
+      writeFileSync(selectedPath, before);
+      checks.push(
+        item.id +
+          ": same-size changed output is rejected against its listed timestamp, and fresh inventory reopens exact current bytes",
+      );
+      await assert.rejects(
+        host.request("artifact.read", {
+          environment: "dev",
+          flow: "retail_bronze",
+          path: "project.yaml",
+        }),
+        /Select a generated file/,
+      );
+      await assert.rejects(
+        host.request("artifact.read", {
+          environment: "dev",
+          flow: "retail_bronze",
+          path: inventory.base + "/../project.yaml",
+        }),
+      );
+      const find = (name) =>
+        JSON.parse(readFileSync(join(project, inventory.base, name), "utf8"));
+      const manifest = find("ingestron-manifest.json");
+      assert.equal(manifest.environment, "dev");
+      assert.equal(manifest.project, item.id);
+      assert.equal(typeof manifest.planDigest, "string");
+      if (item.id === "adf_retail") {
+        const deployment = find("deployment.json");
+        assert.equal(deployment.omissionMeansDeletion, false);
+        assert.equal(deployment.mode, "Incremental");
+      }
+      if (item.id === "databricks_retail") {
+        const bundle = parse(
+          readFileSync(join(project, inventory.base, "databricks.yml"), "utf8"),
+        );
+        assert.ok(bundle.include.includes("targets/*.yml"));
+        const target = parse(
+          readFileSync(
+            join(project, inventory.base, "targets/dev.yml"),
+            "utf8",
+          ),
+        );
+        assert.equal(target.targets.dev.mode, "development");
+      }
+      if (item.id === "fabric_retail") {
+        const delivery = find("fabric-delivery.json");
+        assert.equal(delivery.deployment, "not-run");
+        assert.equal(delivery.omissionMeansDeletion, false);
+        assert.equal(delivery.items.length, 3);
+        assert.ok(delivery.items.every((i) => i.execution === "not-run"));
+      }
+      await prepare();
+      for (const asset of assets)
+        assert.equal(
+          hashFile(join(project, inventory.base, asset.path)),
+          asset.sha256,
+          "Repeated unchanged preparation preserves exact generated bytes",
+        );
+      for (const [path, hash] of Object.entries(originals))
+        assert.equal(
+          hashFile(join(fixture, path)),
+          hash,
+          "Original project definitions and locked provider unchanged",
+        );
+      const jobs = await host.request("jobs");
+      assert.equal(jobs.length, 2);
+      assert.ok(
+        jobs.every(
+          (j) => j.operation === "prepare" && j.status === "succeeded",
+        ),
+      );
+      projects.push({
+        id: item.id,
+        provider: item.reference,
+        tables: 3,
+        assets,
+        stages: ["validate", "build"],
+        preparations: 2,
+        originalDefinitionsUnchanged: true,
+      });
+      checks.push(
+        item.id +
+          ": fresh preparation, exact bounded file inspection, scope denial and identical repeat preparation pass; no execution or deployment",
+      );
+    } finally {
+      await host.close();
+    }
+  }
+  result = "passed";
+} catch (error) {
+  failure = error.message;
+  throw error;
+} finally {
+  writeFileSync(
+    proof,
+    JSON.stringify(
+      {
+        result,
+        failure,
+        core: coreVersion,
+        cli: cliVersion,
+        host: {
+          path: required("STUDIO_HOST"),
+          sha256: hashFile(required("STUDIO_HOST")),
+        },
+        projects,
+        checks,
+        scope:
+          "Immutable packaged shared host on isolated copies of three authorised synthetic Luna native projects, original locked providers. Offline validation/generation/inspection only; no native source read, runtime setup, cloud deployment, browser or independent engineer acceptance.",
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+}

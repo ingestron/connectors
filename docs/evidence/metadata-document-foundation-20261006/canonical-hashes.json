@@ -1,0 +1,32 @@
+{
+  "algorithm": "sha256",
+  "files": {
+    "README.md": "42dbf167a6452f524b5487ed456218da20bb3c1bebf2a750cae238826945a4d7",
+    "acceptance.json": "7623c007061ed1e67a757c001950dddf35d26774b362c60a817019b742208d9b",
+    "estate-boundary-measure-v1.json": "f2664ad403cabf8d8f0dac48fc0bb358cd5b9d5e12c48884315a778dc5c0c9c7",
+    "estate-boundary-measure-v3.log": "4d881cc7ab02f2e41fedcb20428aa46801a1f013c1a19ac85ae23759db3ee14a",
+    "estate-documents-archive-v1.json": "b8b384f999d9214cdcc45587838b4a33d92f9896332a31d2e72ee3ae5af31e8a",
+    "estate-documents-before-v1.json": "5ce5af29962a0412f018d490ceab2443f818d6fae21f11d9c47a5ecd56aee6a3",
+    "estate-documents-connectors-gate-v1.log": "bf34a218882d99d25aa108d8bdd400c779075aaa9b4898bb605f884e8f62bd83",
+    "estate-documents-connectors-gate-v2.log": "ca2b67b5524cdaf836c318e528a76d60c823a0d60133ce7302469ce330865a58",
+    "estate-documents-final-docs-v1.log": "5838598946f072fa8581e7f749d1a3918d5d2dc1365bae0bae71015952ee644b",
+    "estate-documents-final-secrets-v1.log": "2691fe10caee5deb3d1816935c79f5f84b4c350dfc7779308dbcaa7085ea2975",
+    "estate-documents-focused-v2.log": "f1cebebf1e239f3684342233cbf3e209ae56891b7c129813a2e690a18982daa8",
+    "estate-documents-frozen-boundary-v1.json": "9fef430b0817ed92d6d79d669221bd05e7916982130c2a6b1cc62fb71002082a",
+    "estate-documents-frozen-boundary-v2.log": "ef85fda52e6be0f1796e8a45845aec9fd9f6738284339ad9386107ee05a66d8b",
+    "estate-documents-frozen-boundary-v3.log": "80d9d850eb9291811209605328d9c6fc3cf8953492e105f4cec458f9ae967e1d",
+    "estate-documents-frozen-inputs-v1.json": "ef49dd4b7f7ae1d570b29ca8c84e18bbe47273b8363d06813e0715e0fd5ded1a",
+    "estate-documents-indexed-focused-v1.log": "f85d711eaf428d670e35db8ac29e3e91357aa90d88c000700440d1bc567662b5",
+    "estate-documents-private-source-versions-v1.json": "5f0be7453cf5be56e83495b114710dd3d2adb29040524aea8e75dcea5c6c9dae",
+    "estate-documents-runtime-focused-v1.log": "4d56aa8511a586b2e07841b05a658b7a18cb1d81902e89f631d91fb53899c2b7",
+    "estate-documents-scaffold-focused-v2.log": "997b5974fe85dc49003c895dfe00411a37a87cb702e0816839b435bd2b47729f",
+    "estate-foundation-root-checks-v1.json": "daffe7ce87f2d9a5625c741eb1e08d5f891079406e7b33f521df846dd788cbcd",
+    "frozen-source-provenance.json": "2a0d34c98e25f7d6ee42e9398fb5a240fcaba9dff614389ab8087548bb49965c",
+    "harness/estate-boundary-measure-v1.mjs.txt": "4b710f83225b4876177d76f7124f58be1e5077a67177c977f5a8e9c421aa45c7",
+    "harness/estate-documents-freeze-v1.mjs.txt": "ef39c1c1908eb2b5370d88cb59f9d8c07fe3185b6aeaa5c7f8178306460af132",
+    "harness/estate-documents-frozen-boundary-v1.py": "58619095b9d1bb4a68c35700862c76f2f10d6e5e9dfb90eacfe7d90e421faabd",
+    "raw-source-provenance.json": "f09c263a9526af19e00a80e5ce226e54f2e1deedf22146577e0e0cd7aef33f39",
+    "scoped-change.patch": "0dd41e8314c917cb891aac1c34a23130c7ab4dd40611a86f6db699e09ca1f891",
+    "source-hashes.json": "50498ec8179069acabe0eb2d4879f555ae9638d242493fa9610c0cd0d9a47af0"
+  }
+}

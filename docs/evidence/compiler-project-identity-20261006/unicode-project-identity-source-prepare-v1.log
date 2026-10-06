@@ -1,0 +1,16 @@
+azure-blob: installed access, permission denial and locked preparation passed
+files: installed access, permission denial and locked preparation passed
+gcs: installed access, permission denial and locked preparation passed
+github: installed access, permission denial and locked preparation passed
+hubspot: installed access, permission denial and locked preparation passed
+jira: installed access, permission denial and locked preparation passed
+mysql: installed access, permission denial and locked preparation passed
+onedrive: installed access, permission denial and locked preparation passed
+oracle: installed access, permission denial and locked preparation passed
+postgresql: installed access, permission denial and locked preparation passed
+s3: installed access, permission denial and locked preparation passed
+salesforce: installed access, permission denial and locked preparation passed
+sftp: installed access, permission denial and locked preparation passed
+sharepoint: installed access, permission denial and locked preparation passed
+sql-server: installed access, permission denial and locked preparation passed
+stripe: installed access, permission denial and locked preparation passed

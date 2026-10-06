@@ -18,14 +18,17 @@ class Handler(BaseHTTPRequestHandler):
         length = int(self.headers.get('Content-Length') or 0)
         body = self.rfile.read(length).decode() if length else None
         headers = {k: v for k, v in self.headers.items() if k != 'X-Ingestron-Host'}
-        status, data = self.server.handle(host, self.command, self.path, headers, body)
+        result = self.server.handle(host, self.command, self.path, headers, body)
+        status, data = result[:2]
+        extra = result[2] if len(result) == 3 else {}
         data = data if isinstance(data, bytes) else __import__('json').dumps(data).encode()
         self.send_response(status)
         self.send_header('Content-Length', str(len(data)))
+        for name, value in extra.items(): self.send_header(name, value)
         self.end_headers()
-        self.wfile.write(data)
+        if self.command != 'HEAD': self.wfile.write(data)
 
-    do_GET = do_POST = _serve
+    do_GET = do_POST = do_HEAD = _serve
 
 
 @contextmanager

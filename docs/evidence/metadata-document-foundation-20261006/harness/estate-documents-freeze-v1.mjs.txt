@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,mkdirSync,copyFileSync} from 'node:fs';
+import {join,resolve} from 'node:path';
+import {createHash} from 'node:crypto';
+import {createRequire} from 'node:module';
+const b=resolve(process.argv[2]),owner=resolve(b,'../connectors'),out=join(b,'artifacts/estate-documents-sources-v1');mkdirSync(out,{recursive:true});
+const {parse}=createRequire(join(owner,'package.json'))('yaml'),versions=JSON.parse(readFileSync(join(b,'outputs/estate-documents-private-source-versions-v1.json'))).after,sha=v=>createHash('sha256').update(v).digest('hex'),packages=[];
+for(const [id,version] of Object.entries(versions)){
+ const folder=join(out,id);mkdirSync(folder,{recursive:true});const source=join(owner,'connectors',id),manifestBytes=readFileSync(join(source,'connector.yaml')),manifest=parse(manifestBytes.toString()),runtimeBytes=readFileSync(resolve(owner,manifest.runtime.path));
+ assert.equal(manifest.version,version);assert.equal(sha(runtimeBytes),manifest.runtime.sha256);
+ const files=JSON.parse(runtimeBytes),lock=JSON.parse(files['runtime.lock.json']);assert.equal(files['metadata_documents.py'],readFileSync(join(owner,'runtime/metadata_documents.py'),'utf8'));
+ for(const [name,h] of Object.entries(lock.files))assert.equal(sha(files[name]),h);
+ const entry={id,version,manifestSha256:sha(manifestBytes),runtimeSha256:sha(runtimeBytes),runtimeFiles:Object.keys(files).length,helperSha256:sha(files['metadata_documents.py']),workflowSha256:sha(files['snapshot_runtime.py']??files['singer_runtime.py'])};
+ writeFileSync(join(folder,'connector.yaml'),manifestBytes);writeFileSync(join(folder,'runtime.json'),runtimeBytes);packages.push(entry);
+}
+writeFileSync(join(out,'provenance.json'),JSON.stringify({status:'passed',scope:'Frozen generated connector runtime maps and manifests, not CLI/provider installed workflow qualification',packages},null,2)+'\n');
+const filesPackage=join(out,'files'),frozenRuntime=join(filesPackage,'runtime');mkdirSync(frozenRuntime,{recursive:true});
+for(const [name,value] of Object.entries(JSON.parse(readFileSync(join(filesPackage,'runtime.json'))))){assert.ok(!name.includes('/')&&!name.includes('\\'));writeFileSync(join(frozenRuntime,name),value);}
+const seed=JSON.parse(readFileSync(join(b,'fixtures/compact-review-wide-G4JsCC/build/studio/dev/flow_files/flows/flow_files/project-connection.lock.json'))),template=Object.values(seed.tables)[0],docsRoot=join(b,'fixtures/estate-documents-boundary-v1');mkdirSync(docsRoot,{recursive:true});
+const documents={};let totalBytes=0;
+for(let n=0;n<100;n++){
+ const name='table_'+String(n).padStart(3,'0'),table=structuredClone(template);table.source.stream=name;table.contract.id=name;table.contract.name=name;table.contract.schema[0].properties[0].description+=' distinct synthetic contract '+name;
+ const bytes=Buffer.from(JSON.stringify(table)),digest=sha(bytes),path='metadata/project/'+digest+'.json';assert.ok(bytes.length<=2000000);totalBytes+=bytes.length;documents[name]={path,sha256:digest,bytes:bytes.length};mkdirSync(join(docsRoot,'metadata/project'),{recursive:true});writeFileSync(join(docsRoot,path),bytes);
+}
+assert.ok(totalBytes>2000000&&totalBytes<=7000000);
+const project={runtimeContract:'ingestron.snapshot/python/v1',apiVersion:'ingestron.connection-request/v1',project:'indexed_metadata_foundation',environment:'dev',flow:'flow_files',connection:'files',settings:{},connector:'singer:files@23.0.1',sourceId:'synthetic',tenantId:'synthetic',timeoutSeconds:60,tableDocuments:{apiVersion:'ingestron.metadata-documents/v1',kind:'project',documents,totalBytes},execution:{mode:'local'}};
+const coreInputs=JSON.parse(readFileSync(join(b,'artifacts/compact-review-host-v2/inputs.json'))),{canonical,digest}=await import('file://'+join(coreInputs.core,'dist/core/errors.js'));
+const lock={...project,specificationSha256:digest(canonical(project))};
+// A manual source-layer lock fixture, not a provider/CLI preparation result.
+for(const [name,value] of Object.entries(JSON.parse(readFileSync(join(filesPackage,'runtime.json')))))writeFileSync(join(docsRoot,name),value);
+writeFileSync(join(docsRoot,'project-connection.lock.json'),JSON.stringify(lock));
+writeFileSync(join(docsRoot,'connector.json'),JSON.stringify({apiVersion:'ingestron.singer/v1',mode:'customer-operated',connector:'files@23.0.1',sourceId:'synthetic',tenantId:'synthetic',timeoutSeconds:60,configEnv:'SYNTHETIC',reviewFile:'review.json',sourceSettings:{},projectLock:lock}));
+const selection=Object.fromEntries(Object.keys(documents).map(name=>[name,{name,fields:Object.fromEntries(template.columns.map(c=>[c.name,{type:c.type==='BIGINT'?'integer':'string',nullable:!c.required,...(c.target&&c.target!==c.name?{target:c.target}:{})}]))}]));
+writeFileSync(join(docsRoot,'selection.json'),JSON.stringify(selection));
+writeFileSync(join(docsRoot,'project-index.json'),JSON.stringify(project));
+writeFileSync(join(b,'outputs/estate-documents-frozen-inputs-v1.json'),JSON.stringify({status:'passed',runtime: frozenRuntime,root:docsRoot,packages,tableCount:100,columnsPerTable:200,totalDocumentBytes:totalBytes,indexBytes:Buffer.byteLength(JSON.stringify(project)),sourceReviewAndRowsAccessed:false,cliProviderFlowQualified:false},null,2)+'\n');
+console.log(JSON.stringify({status:'passed',packages:packages.length,totalDocumentBytes:totalBytes}));

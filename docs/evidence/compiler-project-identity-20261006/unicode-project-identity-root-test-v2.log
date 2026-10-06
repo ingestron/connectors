@@ -1,0 +1,74 @@
+
+> ingestron-programme@0.1.0 test /Users/sacode/sa.projects/intentlabs/repo/ingestron
+> node --test scripts/*.test.mjs
+
+TAP version 13
+# Subtest: current focus is default without erasing the research evidence gate
+ok 1 - current focus is default without erasing the research evidence gate
+  ---
+  duration_ms: 0.483334
+  type: 'test'
+  ...
+# Subtest: unknown or malformed requested task does not silently fall back
+ok 2 - unknown or malformed requested task does not silently fall back
+  ---
+  duration_ms: 0.436
+  type: 'test'
+  ...
+# Subtest: context excludes long historical prose and duplicate status keys
+ok 3 - context excludes long historical prose and duplicate status keys
+  ---
+  duration_ms: 0.261542
+  type: 'test'
+  ...
+# Subtest: entry points resolve programme from script location, not shell cwd
+ok 4 - entry points resolve programme from script location, not shell cwd
+  ---
+  duration_ms: 50.282542
+  type: 'test'
+  ...
+# Subtest: allows documented secret placeholders
+ok 5 - allows documented secret placeholders
+  ---
+  duration_ms: 0.526375
+  type: 'test'
+  ...
+# Subtest: detects representative committed credentials
+ok 6 - detects representative committed credentials
+  ---
+  duration_ms: 0.166958
+  type: 'test'
+  ...
+# Subtest: accepts complete human pull request metadata
+ok 7 - accepts complete human pull request metadata
+  ---
+  duration_ms: 0.532167
+  type: 'test'
+  ...
+# Subtest: rejects incomplete human pull request metadata
+ok 8 - rejects incomplete human pull request metadata
+  ---
+  duration_ms: 0.094459
+  type: 'test'
+  ...
+# Subtest: accepts Dependabot metadata without the human template
+ok 9 - accepts Dependabot metadata without the human template
+  ---
+  duration_ms: 0.035917
+  type: 'test'
+  ...
+# Subtest: accepts grouped Dependabot titles derived from group identifiers
+ok 10 - accepts grouped Dependabot titles derived from group identifiers
+  ---
+  duration_ms: 0.033208
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 83.142917

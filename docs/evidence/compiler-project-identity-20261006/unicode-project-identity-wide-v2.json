@@ -1,0 +1,386 @@
+{
+  "status": "failed",
+  "stage": "run",
+  "error": "AssertionError [ERR_ASSERTION]: \"RUNTIME: Provider execution failed. Run 5edd6023-d133-4466-b1c1-abe67068a968; inspect run_status for this run identity\"\n+ actual - expected\n\n+ 'failed'\n- 'succeeded'\n\n    at start (file:///Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-wide-v2.mjs:7:374)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-wide-v2.mjs:10:24",
+  "checks": [
+    "All twenty table contracts resolve to the exact reviewed two-hundred-column model",
+    "Four thousand exact source-to-business aliases agree across compiler/host/defaults and 160 static pages of actual mapping rows"
+  ],
+  "details": {
+    "root": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/fixtures/unicode-project-identity-wide-Vi4iL3",
+    "tables": 20,
+    "columnsPerTable": 200,
+    "projectSchemaFields": 4000,
+    "candidate": {
+      "cli": "0.17.21",
+      "core": "0.12.51"
+    },
+    "scope": "Actual installed compiler and frozen shared host with real local synthetic CSV, shared model and provider Parquet; static actual UI rows/paging, no mounted/browser/native-vendor proof.",
+    "resolveBytes": 628543,
+    "prepare": {
+      "id": "b9f0f294-b4ec-43da-999e-5a1779743cfd",
+      "operation": "test_prepare",
+      "flow": "flow_files",
+      "environment": "dev",
+      "hostPid": 17101,
+      "revision": "ac46697648e5257d416afa63cb8e88924e9043fa47cf2957a4cf1650ad19bd6b",
+      "status": "succeeded",
+      "output": [
+        {
+          "at": "2026-10-05T22:27:36.580Z",
+          "operation": "validate",
+          "status": "running",
+          "command": "ingestron --project <project> --environment dev --json --no-input operation validate --allow-write"
+        },
+        {
+          "at": "2026-10-05T22:27:37.956Z",
+          "operation": "validate",
+          "status": "succeeded"
+        },
+        {
+          "at": "2026-10-05T22:27:40.679Z",
+          "operation": "build",
+          "status": "running",
+          "command": "ingestron --project <project> --environment dev --json --no-input operation build --allow-write"
+        },
+        {
+          "at": "2026-10-05T22:27:42.471Z",
+          "operation": "build",
+          "status": "succeeded"
+        },
+        {
+          "at": "2026-10-05T22:27:44.494Z",
+          "operation": "runtime_prepare",
+          "status": "running",
+          "command": "ingestron --project <project> --environment dev --json --no-input operation runtime_prepare --allow-write --allow-network --allow-execute"
+        },
+        {
+          "at": "2026-10-05T22:27:48.961Z",
+          "operation": "runtime_prepare",
+          "status": "succeeded"
+        },
+        {
+          "at": "2026-10-05T22:27:51.975Z",
+          "operation": "run",
+          "status": "running",
+          "command": "ingestron --project <project> --environment dev --json --no-input operation run --allow-write --allow-network --allow-execute"
+        },
+        {
+          "at": "2026-10-05T22:27:56.105Z",
+          "operation": "run",
+          "status": "succeeded"
+        },
+        {
+          "at": "2026-10-05T22:27:58.798Z",
+          "operation": "run",
+          "status": "running",
+          "command": "ingestron --project <project> --environment dev --json --no-input operation run --allow-write --allow-network --allow-execute"
+        },
+        {
+          "at": "2026-10-05T22:28:00.401Z",
+          "operation": "run",
+          "status": "succeeded"
+        }
+      ],
+      "startedAt": "2026-10-05T22:27:33.648Z",
+      "executionLocation": "VS Code extension host",
+      "result": {
+        "stages": [
+          {
+            "operation": "validate",
+            "status": "succeeded",
+            "startedAt": "2026-10-05T22:27:36.579Z",
+            "result": {
+              "mode": "strict",
+              "evidence": "offline",
+              "connections": [
+                {
+                  "valid": true,
+                  "specificationSha256": "b30bff4e4fd4d239d5fe1d36b147b5a441faf52f5e84e66ec5e4437976c71efe",
+                  "sourceBoundarySha256": "c920b446c783c2e4277b7fcdcfdfdd1b80a613a1b755e55a50e603d16ec5b0f9",
+                  "connection": "files",
+                  "flow": "flow_files"
+                }
+              ],
+              "dataProducts": [
+                {
+                  "contract": "contract_files",
+                  "name": "records",
+                  "version": "1.0.0",
+                  "status": "draft",
+                  "owners": [],
+                  "stewards": [],
+                  "qualityRules": 0,
+                  "enforcedQualityRules": 0,
+                  "flows": ["flow_files"]
+                }
+              ],
+              "quality": {
+                "summary": {
+                  "rules": 2,
+                  "atLoad": 2,
+                  "afterLoad": 0,
+                  "unsupported": 0,
+                  "documentation": 0
+                },
+                "rules": [
+                  {
+                    "id": "records.business_000.key-not-null",
+                    "contract": "contract_files",
+                    "table": "records",
+                    "column": "business_000",
+                    "type": "library",
+                    "metric": "nullValues",
+                    "operator": "mustBe",
+                    "threshold": 0,
+                    "outcome": "fail",
+                    "source": "primary-key",
+                    "flow": "flow_files",
+                    "configuration": "local",
+                    "platform": "local",
+                    "mode": "at-load"
+                  },
+                  {
+                    "id": "records.key-unique",
+                    "contract": "contract_files",
+                    "table": "records",
+                    "type": "library",
+                    "metric": "duplicateValues",
+                    "operator": "mustBe",
+                    "threshold": 0,
+                    "arguments": {
+                      "properties": ["business_000"]
+                    },
+                    "outcome": "fail",
+                    "source": "primary-key",
+                    "flow": "flow_files",
+                    "configuration": "local",
+                    "platform": "local",
+                    "mode": "at-load"
+                  }
+                ]
+              },
+              "sources": [
+                {
+                  "flow": "flow_files",
+                  "connection": "files",
+                  "kind": "local-files",
+                  "selected": {
+                    "route": "portable",
+                    "configuration": "local",
+                    "platform": "local",
+                    "package": "files@1.5.10",
+                    "capabilities": ["snapshot", "discovery"],
+                    "reference": {
+                      "docs": "https://github.com/ingestron/connectors/blob/main/docs/files.md",
+                      "vendorStatus": "not-applicable",
+                      "licence": "Apache-2.0; upstream pyarrow Apache-2.0",
+                      "cost": {
+                        "model": "none"
+                      },
+                      "access": {
+                        "model": "none",
+                        "note": "Files on the machine running the flow"
+                      },
+                      "auth": [],
+                      "network": ["local"],
+                      "maturity": "verified",
+                      "verified": "2026-09-30",
+                      "note": "Installed runs read real CSV, TSV, JSON, JSONL and Parquet files"
+                    }
+                  },
+                  "routes": [
+                    {
+                      "route": "portable",
+                      "configuration": "local",
+                      "platform": "local",
+                      "package": "files@1.5.10",
+                      "capabilities": ["snapshot", "discovery"],
+                      "reference": {
+                        "docs": "https://github.com/ingestron/connectors/blob/main/docs/files.md",
+                        "vendorStatus": "not-applicable",
+                        "licence": "Apache-2.0; upstream pyarrow Apache-2.0",
+                        "cost": {
+                          "model": "none"
+                        },
+                        "access": {
+                          "model": "none",
+                          "note": "Files on the machine running the flow"
+                        },
+                        "auth": [],
+                        "network": ["local"],
+                        "maturity": "verified",
+                        "verified": "2026-09-30",
+                        "note": "Installed runs read real CSV, TSV, JSON, JSONL and Parquet files"
+                      }
+                    }
+                  ],
+                  "missing": []
+                }
+              ]
+            },
+            "completedAt": "2026-10-05T22:27:37.956Z"
+          },
+          {
+            "operation": "build",
+            "status": "succeeded",
+            "startedAt": "2026-10-05T22:27:40.678Z",
+            "result": {
+              "directory": "build/studio/dev/flow_files",
+              "files": 30,
+              "digest": "7504168faeebfdd41bdbddac4eedacf2bb5f2c9263d9137df19cc5ef5f5957b3",
+              "nodes": 1,
+              "packages": ["local"],
+              "scope": {
+                "projectBuild": true,
+                "flow": "flow_files"
+              },
+              "evidence": "Project assets generated locally; no deployment or source execution"
+            },
+            "completedAt": "2026-10-05T22:27:42.472Z"
+          },
+          {
+            "operation": "runtime_prepare",
+            "status": "succeeded",
+            "startedAt": "2026-10-05T22:27:44.494Z",
+            "result": {
+              "apiVersion": "ingestron.run/v1",
+              "id": "ba6f3ed6-cc01-47f2-9c19-7476022ed3b3",
+              "action": "prepare",
+              "status": "succeeded",
+              "pid": 17548,
+              "environment": "dev",
+              "project": "unicode_project_identity",
+              "provider": "ingestron/provider-local/plugin/provider.yaml@0.4.14",
+              "providerCommit": "4334c518fd1bde9112da367ea0c25e310dced4c1",
+              "from": "build/studio/dev/flow_files",
+              "configuration": "local",
+              "flows": ["flow_files"],
+              "fingerprint": "919a466529fdf4a57506c2aaca8ee03bef76a31c9acc9a04eab6565155b1aeff",
+              "compiler": {
+                "version": "0.12.51",
+                "digest": "67feab6dfd46a7a92b5cea766302491a20a86cca93df6808e183a131921d2f57"
+              },
+              "attempt": 1,
+              "startedAt": "2026-10-05T22:27:45.109Z",
+              "outcome": "succeeded",
+              "recoveryRequired": false,
+              "finishedAt": "2026-10-05T22:27:48.955Z",
+              "result": {
+                "action": "prepare",
+                "apiVersion": "ingestron.execution-result/v1",
+                "flows": [
+                  {
+                    "environment": "415e8dd8a937cda72a08ec672aa8fb7010c22c962a57186abcf1c7d6ba60a91a",
+                    "flow": "flow_files",
+                    "python": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/fixtures/unicode-project-identity-wide-Vi4iL3/.ingestron/runtimes/415e8dd8a937cda72a08ec672aa8fb7010c22c962a57186abcf1c7d6ba60a91a/bin/python",
+                    "pythonVersion": "3.12.12",
+                    "reused": false
+                  }
+                ],
+                "status": "succeeded"
+              }
+            },
+            "completedAt": "2026-10-05T22:27:48.962Z"
+          },
+          {
+            "operation": "run",
+            "action": "discover",
+            "status": "succeeded",
+            "startedAt": "2026-10-05T22:27:51.974Z",
+            "result": {
+              "apiVersion": "ingestron.run/v1",
+              "id": "b9f514a5-33d0-4c23-adfd-25acda8b71ad",
+              "action": "discover",
+              "status": "succeeded",
+              "pid": 17761,
+              "environment": "dev",
+              "project": "unicode_project_identity",
+              "provider": "ingestron/provider-local/plugin/provider.yaml@0.4.14",
+              "providerCommit": "4334c518fd1bde9112da367ea0c25e310dced4c1",
+              "from": "build/studio/dev/flow_files",
+              "configuration": "local",
+              "flows": ["flow_files"],
+              "fingerprint": "919a466529fdf4a57506c2aaca8ee03bef76a31c9acc9a04eab6565155b1aeff",
+              "compiler": {
+                "version": "0.12.51",
+                "digest": "67feab6dfd46a7a92b5cea766302491a20a86cca93df6808e183a131921d2f57"
+              },
+              "attempt": 1,
+              "startedAt": "2026-10-05T22:27:52.432Z",
+              "outcome": "succeeded",
+              "recoveryRequired": false,
+              "finishedAt": "2026-10-05T22:27:56.098Z",
+              "result": {
+                "action": "discover",
+                "apiVersion": "ingestron.execution-result/v1",
+                "flows": [
+                  {
+                    "flow": "flow_files",
+                    "status": "Succeeded",
+                    "tables": []
+                  }
+                ],
+                "status": "succeeded"
+              }
+            },
+            "completedAt": "2026-10-05T22:27:56.105Z"
+          },
+          {
+            "operation": "run",
+            "action": "review",
+            "status": "succeeded",
+            "startedAt": "2026-10-05T22:27:58.797Z",
+            "result": {
+              "apiVersion": "ingestron.run/v1",
+              "id": "2df0ae4d-0acc-4037-863b-106c61b46ede",
+              "action": "review",
+              "status": "succeeded",
+              "pid": 17905,
+              "environment": "dev",
+              "project": "unicode_project_identity",
+              "provider": "ingestron/provider-local/plugin/provider.yaml@0.4.14",
+              "providerCommit": "4334c518fd1bde9112da367ea0c25e310dced4c1",
+              "from": "build/studio/dev/flow_files",
+              "configuration": "local",
+              "flows": ["flow_files"],
+              "fingerprint": "919a466529fdf4a57506c2aaca8ee03bef76a31c9acc9a04eab6565155b1aeff",
+              "compiler": {
+                "version": "0.12.51",
+                "digest": "67feab6dfd46a7a92b5cea766302491a20a86cca93df6808e183a131921d2f57"
+              },
+              "attempt": 1,
+              "startedAt": "2026-10-05T22:27:59.232Z",
+              "outcome": "succeeded",
+              "recoveryRequired": false,
+              "finishedAt": "2026-10-05T22:28:00.392Z",
+              "result": {
+                "action": "review",
+                "apiVersion": "ingestron.execution-result/v1",
+                "flows": [
+                  {
+                    "flow": "flow_files",
+                    "status": "Succeeded",
+                    "tables": []
+                  }
+                ],
+                "status": "succeeded"
+              }
+            },
+            "completedAt": "2026-10-05T22:28:00.401Z"
+          }
+        ]
+      },
+      "completedAt": "2026-10-05T22:28:00.402Z",
+      "canCancel": false
+    },
+    "discoveryBytes": 707324,
+    "staticUi": {
+      "rows": 4000,
+      "pagesPerTable": 8,
+      "totalPages": 160,
+      "allAliasesExact": true,
+      "noEditableControls": true
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "archive": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/estate-source-documents-v1.tgz",
+  "archiveSha256": "b9e7262d972131f51217ac1bcada782e997c48d31f0f5af6e5320073da76f4b7",
+  "archiveBytes": 1305986,
+  "frozenPackages": 16,
+  "scope": "Generated source runtime maps/manifests and one extracted Files bundle; source-layer boundary proof only, not CLI/provider pipeline qualification"
+}

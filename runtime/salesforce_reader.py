@@ -85,7 +85,8 @@ def catalogue(settings, obj):
             and f.get('type') not in ('address', 'location')]
 
 
-def scan(settings, table, emit=None):
+def scan(settings, table, emit=None, sample_limit=None):
+    if sample_limit is not None and (type(sample_limit) is not int or not 1 <= sample_limit <= 50): raise ValueError('Sample limit must be 1-50')
     host = settings_for(settings)
     obj, columns = table['object'], table['columns']
     access = token(settings, host)
@@ -96,7 +97,7 @@ def scan(settings, table, emit=None):
     schema = {'type': 'object', 'additionalProperties': False,
               'properties': {c: {'type': ['null', kinds[c]]} for c in columns}}
     if emit is None: return schema
-    soql = f"SELECT {', '.join(columns)} FROM {obj}"
+    soql = f"SELECT {', '.join(columns)} FROM {obj}" + (f" LIMIT {sample_limit + 1}" if sample_limit else "")
     target, count = f'/services/data/{VERSION}/query?' + urlencode({'q': soql}), 0
     while target:
         page = call('SF', host, 'GET', target, {'Authorization': 'Bearer ' + access})

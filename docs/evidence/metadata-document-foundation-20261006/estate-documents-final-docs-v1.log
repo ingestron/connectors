@@ -1,0 +1,5 @@
+
+> @ingestron/connectors@0.3.0 docs:check /Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/connectors
+> node scripts/docs-check.mjs
+
+54 local documentation links passed

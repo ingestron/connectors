@@ -1,0 +1,141 @@
+{
+  "date": "2026-10-05",
+  "result": "passed",
+  "productComplete": false,
+  "scope": "Sixteen installed source journeys with synthetic transports; shared compiler stream-identity repair",
+  "candidate": {
+    "cli": "0.17.18",
+    "core": "0.12.43",
+    "declaredCore": "0.12.14",
+    "privateOverride": true
+  },
+  "provider": "ingestron/provider-local/plugin/provider.yaml@0.4.14",
+  "sources": 16,
+  "preparationGroups": 48,
+  "executionGroups": 63,
+  "coreTests": 246,
+  "focusedCoreTests": 27,
+  "connectorNodeTests": 5,
+  "connectorPythonTests": 287,
+  "archiveParity": {
+    "CORE_ARCHIVE": 156,
+    "CLI_ARCHIVE": 29
+  },
+  "proofs": {
+    "prepare.json": {
+      "path": "prepare.json",
+      "sha256": "eac6d5f2dbe4079e247eb898b7c0b60d9f7c04ebf9659653cce264accb639f87"
+    },
+    "execute.json": {
+      "path": "execute.json",
+      "sha256": "4569ec2f44b899d5544b51302b11d26f44929b9ac47479e00f2ee454f388e1e1"
+    },
+    "archive-parity.json": {
+      "path": "archive-parity.json",
+      "sha256": "ed2c837f63a01607a0dbecee5a1f4e8ae9c3ec8a02b9a617f3eecb77ee1a83a5"
+    }
+  },
+  "logs": [
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-stream-core-focused-v3.log",
+      "sha256": "54db2e729c5fe17c5d77429e4848bd316ea068f03122f153c2c9c27bec865abe"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-stream-core-validate-v1.log",
+      "sha256": "dcfef460ee11d2d44c7a3c953381778bcfba05130c4c514c3a2dc0ee0135ae48"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-connectors-validate-v2.log",
+      "sha256": "934afcde9b5d25653e92dee9d285ef761793cc46e66d06930cf8a4a511e7c03d"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-current-prepare-all-v1.log",
+      "sha256": "57f8ed024a7549c1473dc5f970e034047ccd846f445c926b1b4007684b571a4a"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-current-execute-all-v1.log",
+      "sha256": "ad692c3e7fd76e8dc4d88a9a97bc295d365affca7c88d2e59e3bf8363493dda5"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-current-archives-v1.log",
+      "sha256": "5a37b9998f8e28e19c309325fcfea1b9ed1d5ff2b7f00a9ec8e8aeeae5fe0841"
+    }
+  ],
+  "retainedFailures": [
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-prepare-v1.log",
+      "sha256": "28efdfde2db41acf591231643cbfb4a27b5bf1e72701b302107f5abe321a2acf"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-prepare-files-v1.log",
+      "sha256": "90a71f3085677906370feb341a9470e12607b0e34c4c814fba1257de24fd8d12"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-prepare-all-v1.json",
+      "sha256": "8e6164ad931eabc5ac9165f97792598570e32771c7b08c3d7583396be7cbb754"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-execute-all-v1.json",
+      "sha256": "77b5287761c5dbebef7c6fefdcd72f5c449154ceac020a89b77f0fdaa0cfb707"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-execute-all-v2.json",
+      "sha256": "9f038c019c7781c81b8c50c1bd6b9fa177a0d28c5b7299c2d26d473edb2a0ee9"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-execute-remaining-v1.json",
+      "sha256": "073bb7c7412cd73e11b87dc4e687e3f8b1127981c36c964d8d7972636885f5f9"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-execute-remaining-v2.json",
+      "sha256": "5b4b51ba30431bd3df90b46f959c75d984c2f32d272e96a2af463ddcc5bee970"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-execute-repaired-v1.json",
+      "sha256": "ded0a88f406ec89017102f5395b21e2a017f0ed9651f15a22d07e55195b70bbc"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-execute-jira-sftp-v1.json",
+      "sha256": "cef3c2f635605a6d407dc3480ed45cf4cf82c97c36898fe278c760fccd390012"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-runtime-matrix-connectors-validate-v1.log",
+      "sha256": "34379f505909ddb3a3c2e4c20db974161ed15c7b71d4b27af404232eaa5c5744"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-stream-core-focused-v1.log",
+      "sha256": "00948196b72ea36719e8b0124917cd3c790ec96947ca34f56935358465ebba3a"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-stream-core-focused-v2.log",
+      "sha256": "5001e70a1e2a1d8b068a685690da5872dba083c7d4925785e06bd75978c00a8e"
+    },
+    {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/source-stream-runtime-install-v1.log",
+      "sha256": "854cf7fc53750d848fc5993c2b6a5381006ed9b7a83fa6eb074afc7fe51dd535"
+    }
+  ],
+  "sourceHashes": {
+    "repo/core/src/core/connections.ts": "b56858f361595f9d3fcd97e42cd5665b40deb56611920d53366609d924d1de39",
+    "repo/core/test/integration/connections.test.ts": "23f3806e35450cfb2ccf2161c9692c59a857a6afbbc221d7084071b16388bd92",
+    "repo/core/package.json": "7643165b4fdb53a2d0e8f5c76d6b70dbd71283926e0093b1bd16865ff04c233c",
+    "repo/connectors/scripts/runtime-matrix-prepare.mjs": "8309a017e316fe85a98ebb3a84388b430cbbd0282487c0353275f98ad68d77b3",
+    "repo/connectors/scripts/runtime-matrix-acceptance.py": "b91058c6034462157684dd65d06f6d884ee525345a41f03bc29310f89174d18b",
+    "repo/connectors/test/mocks/runtime_matrix_transport.py": "ce67ebc1f766ca984cb4668b5d807ead3b85034b25dd7f3aa2852141cdf33282",
+    "repo/connectors/test/mocks/saas_api.py": "4c60e85561cd7d218b0fcb8535ac8380a0daacdf963f74671d7032b481ab3925",
+    "repo/connectors/docs/runtime-matrix.md": "1ebda96b14267db6d08da533f5654883de9713a96d91fbe3a918051ef7806f8a"
+  },
+  "limitations": [
+    "No live source accounts, database engines, SSH server, native deployment, browser interaction or independent engineer acceptance",
+    "DB-API and OpenSSH stand-ins qualify installed connector behaviour only",
+    "Fourteen duplicate-key quality cases; Jira repeated-source-ID rejection precedes quality; GitHub quality-failure case remains open",
+    "Public CLI core pin remains0.12.14; current private pair0.17.18/0.12.43 is an explicit override",
+    "Studio shared host/editor adoption and parity for core0.12.43 remain open; live Luna still uses original core0.12.36/CLI0.17.16",
+    "Source matrix allSixteenComplete denotes source cases only; all sixteen product workflow rows remain implementing"
+  ],
+  "verificationSequence": [
+    "Complete sixteen-source execution ran before the later independent archive-phase addition; archive parity passed separately",
+    "Transport-hook callbacks now register before fixture writes; execution behaviour otherwise unchanged",
+    "Focused documentation checks follow the unchanged passing component correctness gates"
+  ]
+}

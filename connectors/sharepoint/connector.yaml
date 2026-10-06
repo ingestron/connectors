@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: sharepoint
-version: 0.1.0
+version: 0.1.11
 description: Reviewed local snapshots of SharePoint files through Microsoft Graph
 connector: singer:sharepoint@23.0.1
 documentation: https://github.com/ingestron/connectors/blob/main/docs/sharepoint.md
@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/sharepoint/runtime.json
-  sha256: 0c69520c9becd96f11a0507edfbb32c3fecf1524b1c6eb287012435fb80baf48
+  sha256: 4b71b7dc8c0c55a2209c50ad8af850c57167e2ff804ad3a5277dbbb05f408fe0
   contract: ingestron.snapshot/python/v1
 quality:
   library:
@@ -68,7 +68,7 @@ definition:
           $secret:
             type: object
             properties:
-              env: &a2
+              env:
                 type: string
                 minLength: 1
             required:
@@ -92,7 +92,9 @@ definition:
     additionalProperties:
       type: object
       properties:
-        name: *a2
+        name:
+          type: string
+          minLength: 1
         fields:
           type: object
           additionalProperties:
@@ -107,6 +109,8 @@ definition:
                   - number
                   - decimal
                   - json
+                  - date
+                  - timestamp
               nullable:
                 type: boolean
               target:
@@ -153,3 +157,59 @@ execution:
       - local
     evidence: Read-only Microsoft Graph file reads with app-only credentials;
       conformance suite against a Graph mock
+sourceAccess:
+  apiVersion: ingestron.source-access/v1
+  entryPoint: folder_access.py
+  inventoryScopeSchema:
+    type: object
+    properties:
+      directory:
+        type: string
+        maxLength: 1024
+        title: Library / folder
+        description:
+          For files, include the library, such as Shared Documents/retail.
+          Leave blank when browsing lists.
+      format:
+        type: string
+        enum:
+          - all
+          - csv
+          - tsv
+          - json
+          - jsonl
+          - parquet
+        title: File format
+      entity:
+        type: string
+        enum:
+          - file
+          - list
+        title: Object type
+        default: file
+    additionalProperties: false
+  metadataOptionsSchema:
+    type: object
+    description: Explicitly read JSON/JSONL records to suggest a draft schema.
+      Samples do not prove required fields, keys or full-file validity. No
+      record values are saved in discovery receipts.
+    properties:
+      sampleRecords:
+        type: boolean
+        enum:
+          - true
+        title: Sample JSON records
+      limit:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+        title: Record limit
+    required:
+      - sampleRecords
+    additionalProperties: false
+  actions:
+    - test
+    - sample
+    - inventory
+    - metadata

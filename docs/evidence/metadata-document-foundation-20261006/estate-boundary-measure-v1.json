@@ -1,0 +1,52 @@
+{
+  "status": "passed",
+  "scope": "Read-only owning-source request analysis with a local configure echo and intercepted provider call; NOT installed acceptance or a production compact protocol. Twenty-table input equals the actual immutable Core53 generated specification; hundred-table request bytes equal its actual prior failure. Hypothetical dictionaries are comparison evidence only.",
+  "source": {
+    "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/core/src/core/connections.ts",
+    "sha256": "b56858f361595f9d3fcd97e42cd5665b40deb56611920d53366609d924d1de39"
+  },
+  "records": [
+    {
+      "name": "twenty-multilingual",
+      "root": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/fixtures/compact-review-wide-G4JsCC",
+      "tables": 20,
+      "columnsPerTable": 200,
+      "totalRequestBytes": 1443513,
+      "runtimeAssetsBytes": 309509,
+      "specificationBytes": 1133987,
+      "contractBytesIncludingCopies": 768580,
+      "columnBytesIncludingCopies": 360000,
+      "uniqueContracts": 1,
+      "uniqueColumnSets": 1,
+      "hypotheticalDictionaryRequestBytes": 374420,
+      "hypotheticalDictionarySpecificationBytes": 64894,
+      "actualReviewBytes": 1609401,
+      "reviewSections": {
+        "apiVersion": 28,
+        "catalog": 165033,
+        "contractSource": 9,
+        "contracts": 768841,
+        "identity": 291,
+        "projection": 290181,
+        "selection": 288901,
+        "status": 10
+      }
+    },
+    {
+      "name": "hundred-ascii",
+      "root": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/fixtures/compact-review-hundred-limit-OqYsnl",
+      "tables": 100,
+      "columnsPerTable": 200,
+      "totalRequestBytes": 4452977,
+      "runtimeAssetsBytes": 305361,
+      "specificationBytes": 4147599,
+      "contractBytesIncludingCopies": 2322900,
+      "columnBytesIncludingCopies": 1800000,
+      "uniqueContracts": 1,
+      "uniqueColumnSets": 1,
+      "hypotheticalDictionaryRequestBytes": 385884,
+      "hypotheticalDictionarySpecificationBytes": 80506
+    }
+  ],
+  "decision": "Exact-duplicate compression helps reusable model estates, but cannot by itself prove a general wide-schema project journey. A bounded table-document/aggregate contract is required across preparation, runtime identity, review, approval and readers."
+}

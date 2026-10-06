@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: jira
-version: 0.1.0
+version: 0.1.8
 description: Reviewed local snapshots of Jira Cloud issues and projects
 connector: singer:jira@23.0.1
 documentation: https://github.com/ingestron/connectors/blob/main/docs/jira.md
@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/jira/runtime.json
-  sha256: cd9e6958b7fdf45af5bf6ee34cb97ca7430d076e363ff0cfc8eab3602db49dc2
+  sha256: 677178e330e4f0f321d14a8529daef52af60c3bd949c3ee18948135f28bb8566
   contract: ingestron.snapshot/python/v1
 quality:
   library:
@@ -69,7 +69,7 @@ definition:
           $secret:
             type: object
             properties:
-              env: &a1
+              env:
                 type: string
                 minLength: 1
             required:
@@ -88,7 +88,9 @@ definition:
     additionalProperties:
       type: object
       properties:
-        name: *a1
+        name:
+          type: string
+          minLength: 1
         fields:
           type: object
           additionalProperties:
@@ -103,6 +105,8 @@ definition:
                   - number
                   - decimal
                   - json
+                  - date
+                  - timestamp
               nullable:
                 type: boolean
               target:
@@ -140,3 +144,11 @@ execution:
       - local
     evidence: Jira Cloud REST API v3 (fields, enhanced JQL search); conformance
       suite against a mock of the documented API
+sourceAccess:
+  apiVersion: ingestron.source-access/v1
+  entryPoint: source_access.py
+  actions:
+    - test
+    - sample
+    - inventory
+    - metadata

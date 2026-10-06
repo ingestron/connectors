@@ -1,0 +1,8 @@
+{
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(JSON.stringify(view.review).includes('Māori 日本語 😀'))\n\n    at file:///Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-wide-report-parity-v2.mjs:2:2747\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+  "root": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/fixtures/unicode-project-identity-wide-hUyQqj",
+  "pageCount": 5,
+  "reportBytes": 1237346,
+  "reportSha256": "b885e0b9b33c51a98f04b4bf58c97d5a75fcb8bfda90de6905e06f004eb43295"
+}

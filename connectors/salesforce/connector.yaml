@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: salesforce
-version: 0.1.0
+version: 0.1.8
 description: Reviewed local snapshots of Salesforce objects
 connector: singer:salesforce@23.0.1
 documentation: https://github.com/ingestron/connectors/blob/main/docs/salesforce.md
@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/salesforce/runtime.json
-  sha256: 894203a9bbd36a597ec089fa808495924534ae28aace0af169e72d4bbf05f85f
+  sha256: 1550edacf70879e85e43405a77381d233ae04012da68b06afa6da107716f2cc2
   contract: ingestron.snapshot/python/v1
 quality:
   library:
@@ -70,7 +70,7 @@ definition:
           $secret:
             type: object
             properties:
-              env: &a1
+              env:
                 type: string
                 minLength: 1
             required:
@@ -89,7 +89,9 @@ definition:
     additionalProperties:
       type: object
       properties:
-        name: *a1
+        name:
+          type: string
+          minLength: 1
         fields:
           type: object
           additionalProperties:
@@ -104,6 +106,8 @@ definition:
                   - number
                   - decimal
                   - json
+                  - date
+                  - timestamp
               nullable:
                 type: boolean
               target:
@@ -137,3 +141,11 @@ execution:
       - local
     evidence: Salesforce REST API (describe and SOQL query); conformance suite
       against a mock of the documented API
+sourceAccess:
+  apiVersion: ingestron.source-access/v1
+  entryPoint: source_access.py
+  actions:
+    - test
+    - sample
+    - inventory
+    - metadata

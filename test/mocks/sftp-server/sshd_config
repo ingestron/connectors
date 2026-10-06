@@ -1,0 +1,16 @@
+Port 22
+ListenAddress 0.0.0.0
+HostKey /etc/ssh/ssh_host_ed25519_key
+PidFile /run/sshd.fixture.pid
+AuthorizedKeysFile /home/%u/.ssh/keys/fixture.pub
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin no
+UsePAM no
+AllowUsers reader
+Subsystem sftp internal-sftp
+Match User reader
+  ChrootDirectory /home/%u
+  ForceCommand internal-sftp
+  AllowTcpForwarding no
+  X11Forwarding no

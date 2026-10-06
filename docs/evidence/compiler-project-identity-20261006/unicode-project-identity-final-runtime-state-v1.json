@@ -1,0 +1,12 @@
+{
+  "result": "passed",
+  "runningMatrixJobs": 0,
+  "matrixJobs": 72,
+  "removedFixtureSitecustomize": true,
+  "pendingQualificationSessions": 0,
+  "preservedFailedFixtures": [
+    "unicode-project-identity-wide-aBrwnu",
+    "unicode-project-identity-wide-Vi4iL3"
+  ],
+  "qualifiedMultilingualFixture": "unicode-project-identity-wide-hUyQqj"
+}

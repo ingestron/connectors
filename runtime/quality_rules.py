@@ -6,6 +6,7 @@ Mirrors @ingestron/core rule identities: explicit rules keep their `id`, otherwi
 no row values leave this module. sql, custom and text rules are not evaluated here.
 """
 import re
+from temporal_types import temporal_value
 
 import pyarrow as pa
 import pyarrow.compute as pc
@@ -106,6 +107,8 @@ def _values(column, values):
     kept = []
     for value in values:
         try:
+            if pa.types.is_date(column.type): value = temporal_value(value, 'date')
+            elif pa.types.is_timestamp(column.type): value = temporal_value(value, 'timestamp')
             pa.array([value], type=column.type)
         except (pa.ArrowInvalid, pa.ArrowTypeError, TypeError, ValueError, OverflowError):
             continue

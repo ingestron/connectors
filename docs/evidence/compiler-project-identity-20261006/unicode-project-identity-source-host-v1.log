@@ -1,0 +1,16 @@
+azure-blob: installed owning-client acceptance passed
+files: installed owning-client acceptance passed
+gcs: installed owning-client acceptance passed
+github: installed owning-client acceptance passed
+hubspot: installed owning-client acceptance passed
+jira: installed owning-client acceptance passed
+mysql: installed owning-client acceptance passed
+onedrive: installed owning-client acceptance passed
+oracle: installed owning-client acceptance passed
+postgresql: installed owning-client acceptance passed
+s3: installed owning-client acceptance passed
+salesforce: installed owning-client acceptance passed
+sftp: installed owning-client acceptance passed
+sharepoint: installed owning-client acceptance passed
+sql-server: installed owning-client acceptance passed
+stripe: installed owning-client acceptance passed

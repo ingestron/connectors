@@ -46,6 +46,7 @@ class TableConnector:
     table_keys = frozenset()
     optional_keys = frozenset()
     errors = {}
+    supports_incremental = False
 
     def settings(self, settings):
         workflow.check(settings == {}, f'{self.name} connection settings must be empty')
@@ -97,14 +98,17 @@ def install(connector):
     """Wire a table connector into the shared reviewed snapshot workflow."""
     workflow.ERRORS.update(connector.errors)
 
-    def source_config(config):
+    def source_config(config, checkpoint=None, folder=None):
         workflow.check('projectLock' in config and 'sourceSettings' in config,
                        f'{connector.name} table bindings require a locked project')
         settings = connector.settings(workflow.resolve_secrets(config['sourceSettings']))
-        tables = config['projectLock']['tables']
+        tables = workflow.project_tables(config['projectLock'], folder)
         workflow.check(isinstance(tables, dict) and 1 <= len(tables) <= 100,
                        f'Select 1–100 {connector.name} tables')
         objects = {}
+        incremental = config['projectLock'].get('execution', {}).get('ingestion') == 'incremental'
+        workflow.check(not incremental or connector.supports_incremental,
+                       f'{connector.name} has no qualified incremental append reader')
         for stream, table in tables.items():
             workflow.safe_name(stream)
             source = dict(table['source'])
@@ -119,6 +123,10 @@ def install(connector):
                            and len(names) == len(set(names)),
                            'ODCS contract must select 1–500 distinct columns')
             objects[stream] = connector.table(source, columns)
+            workflow.check(('incremental' in source) == incremental,
+                           'Use an incremental policy on every table only in incremental execution')
+            if incremental:
+                objects[stream]['lowerCursor'] = (checkpoint or {}).get(stream, source['incremental']['initial'])
         return {'settings': settings, 'objects': objects}
 
     def output(executable, source, catalog, timeout, discover=False, protocol='singer'):
@@ -146,6 +154,10 @@ def install(connector):
                 yield (canonical({'type': 'SCHEMA', 'stream': stream, 'schema': schema}) + '\n').encode()
             spool.seek(0)
             yield from spool
+            if any('incremental' in table for table in source['objects'].values()):
+                state = {'bookmarks': {stream: str(table['nextCursor']) for stream, table in source['objects'].items()},
+                         'hasMore': any(table['hasMore'] for table in source['objects'].values())}
+                yield (canonical({'type': 'STATE', 'value': state}) + '\n').encode()
 
     base_review = workflow.review
 
@@ -155,7 +167,7 @@ def install(connector):
         workflow.check('projectLock' in config and 'sourceSettings' in config,
                        f'{connector.name} discovery requires a locked project')
         settings = connector.settings(workflow.resolve_secrets(config['sourceSettings']))
-        tables = config['projectLock']['tables']
+        tables = workflow.project_tables(config['projectLock'], folder)
         workflow.check(isinstance(tables, dict) and 1 <= len(tables) <= 100,
                        f'Select 1–100 {connector.name} tables')
         result = {}
@@ -186,4 +198,3 @@ def install(connector):
     workflow.tap_output = output
     workflow.review = review
     return workflow
-

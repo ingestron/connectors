@@ -66,7 +66,8 @@ def catalogue(settings, obj):
                for n, k in sorted(props.items()) if n not in RECORD])
 
 
-def scan(settings, table, emit=None):
+def scan(settings, table, emit=None, sample_limit=None):
+    if sample_limit is not None and (type(sample_limit) is not int or not 1 <= sample_limit <= 50): raise ValueError('Sample limit must be 1-50')
     token, obj, columns = settings_for(settings), table['object'], table['columns']
     fields = {**properties(token, obj), **RECORD}
     if not set(columns) <= set(fields): raise ApiError('HUBSPOT_SCHEMA')
@@ -81,7 +82,7 @@ def scan(settings, table, emit=None):
     props = sorted(c for c in columns if c not in RECORD)
     after, count, seen = None, 0, set()
     while True:
-        query = {'limit': 100, 'archived': 'false', **({'properties': ','.join(props)} if props else {}),
+        query = {'limit': min(100, sample_limit + 1) if sample_limit else 100, 'archived': 'false', **({'properties': ','.join(props)} if props else {}),
                  **({'after': after} if after else {})}
         page = call('HUBSPOT', HOST, 'GET', f'/crm/v3/objects/{quote(obj)}?{urlencode(query)}',
                     {'Authorization': 'Bearer ' + token})

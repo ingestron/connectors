@@ -1,0 +1,6 @@
+{
+  "scope": "Read-only actual installed identity/configuration/review bounds; no approval retry or source access",
+  "exit": 0,
+  "stdout": "{\"runtimeIdentity\": \"passed\", \"configurationBytes\": 1973203, \"reviewBytes\": 2146233}\nconnector.json:passed\nreview.json:ValueError:Configuration/catalogue exceeds 2 MB\n",
+  "stderr": ""
+}

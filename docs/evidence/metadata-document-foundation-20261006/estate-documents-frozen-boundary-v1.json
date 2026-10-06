@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "scope": "Frozen generated Files1.5.12 runtime map, source-layer indexed project/selection/contracts/actual reader configuration and identity with real pinned dependency inventory; manually constructed source lock uses frozen Core53 canonical hash helper, NOT core/provider preparation, discovery, approval, extraction or run",
+  "tables": 100,
+  "fields": 20000,
+  "distinctContractIds": 100,
+  "unicodePreserved": true,
+  "sourceParserTypes": 20000,
+  "totalDocumentBytes": 5668100,
+  "indexBytes": 20459,
+  "sourceRuntimeIdentity": {
+    "projectSpecSha256": "7154e3a1f65122bc00ce8bbbdb32ae82a5141c820316890fc69d9a97ac2f0b2c",
+    "bridgeVersion": "0.4.0",
+    "connector": "files@23.0.1",
+    "licence": "Apache-2.0",
+    "sourceId": "synthetic",
+    "tenantId": "synthetic",
+    "runtimeLockSha256": "7bd241ff11cd35c93afdf7d7295828f3b39d0bfbcaed1250c4f9c89909a8a3e6"
+  },
+  "changedTableRefused": true,
+  "filesUnchanged": true,
+  "pipelineComplete": false,
+  "installedCliProviderQualification": false
+}

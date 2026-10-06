@@ -1,0 +1,248 @@
+[
+  {
+    "owner": "connectors",
+    "path": "runtime/singer_runtime.py",
+    "beforeSha256": "503f26d8d11883373301e76f83b3bd7b069d4821d558b95e1fd4407466d2bd40",
+    "afterSha256": "7a1d204887a39d949cc43e41fad5ff88cef746ea0dbafa1da021b8288f241777"
+  },
+  {
+    "owner": "connectors",
+    "path": "runtime/connector_kit.py",
+    "beforeSha256": "79689017933948f47de19ee8378701ce081166128bab110e1f118f4b7b5b9e10",
+    "afterSha256": "0664f0816cfdec3319c9b57de81f05543f7564ef10047502c42b8df51ee8d150"
+  },
+  {
+    "owner": "connectors",
+    "path": "runtime/singer_bridge.py",
+    "beforeSha256": "866a8d8fa1b6163f2384146270326cc477360fd32bee9459783614abcbc4d4c0",
+    "afterSha256": "866a8d8fa1b6163f2384146270326cc477360fd32bee9459783614abcbc4d4c0"
+  },
+  {
+    "owner": "connectors",
+    "path": "scripts/build.mjs",
+    "beforeSha256": "0ed04014a041f3daa90a8f10437213ea7c9ba84909d161805129eba7f34cebbf",
+    "afterSha256": "0ed04014a041f3daa90a8f10437213ea7c9ba84909d161805129eba7f34cebbf"
+  },
+  {
+    "owner": "connectors",
+    "path": "scripts/build-source-access.mjs",
+    "beforeSha256": "32d45badfc23522150d34031475092f967215000517b1dfa9c2020cc0faab77b",
+    "afterSha256": "3ea919e4dedacb5384bbd2db949472c17a6bba361cec82015f7b9bdce4a75e60"
+  },
+  {
+    "owner": "connectors",
+    "path": "src/connector-scaffold.mjs",
+    "beforeSha256": "21cf62461495d87633904b2a0bad4b0010e5a29ed9319b5c4c8ab61ca5a51cdb",
+    "afterSha256": "73a36c00eafe3ee5c8ff194b5b53db8fc2e4e204b9725c50257446b7659cfc97"
+  },
+  {
+    "owner": "connectors",
+    "path": "runtime/metadata_documents.py",
+    "beforeSha256": null,
+    "afterSha256": "851b97c2e401db37f32bdc3e714d936f74d309b904aff82f96c83f1aa91dac9e"
+  },
+  {
+    "owner": "connectors",
+    "path": "test/runtime/test_metadata_documents.py",
+    "beforeSha256": null,
+    "afterSha256": "ba1654b28aa0bb8af4d070fbcb60a933ca326d93002181f2c032f9619607d63b"
+  },
+  {
+    "owner": "connectors",
+    "path": "test/runtime/test_indexed_project_metadata.py",
+    "beforeSha256": null,
+    "afterSha256": "706b8b29e5c32ab0b017d92f467c4784216c96a576552c2ee56f09c1a80f0dae"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/azure-blob/connector.yaml",
+    "afterSha256": "72109892281230109d9960d9bd68cd217a0cebdf06b48358108d98cfd23b5ede",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/azure-blob/runtime.json",
+    "afterSha256": "3dcb205acb84266621a432cdc314ce869e8cac6c2ded36b0a6b8edbbc26b43ef",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/files/connector.yaml",
+    "afterSha256": "8c8070c76ff3b620d333ab9f683be91a96375a67a84b74fa93c6be010630c97c",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/files/runtime.json",
+    "afterSha256": "dfb6fb84c4259a621d7e0ee5943b806d3736b46a06e8c5fc2523ef2d86d20fe5",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/gcs/connector.yaml",
+    "afterSha256": "b397443d3925e42a54c4ddb9f2272a534e0b27baed2e48618bac97caa8cd1210",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/gcs/runtime.json",
+    "afterSha256": "22eda67cacdffc39c622fadbbc54adfa95f89f3d2fa9d132b79fff17d2a6a5f4",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/github/connector.yaml",
+    "afterSha256": "0a4c64dc7dd59dbeeeb89e33ff16ee490ef90d8037d49913e74f299d28187e28",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/github/runtime.json",
+    "afterSha256": "7cae926157966dee0d2ce64d84e85db08b40c532e6e46a979079cf26134cc295",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/hubspot/connector.yaml",
+    "afterSha256": "922352dc79741b7f0519ad54360b732f7f6f1fb0f3cea7b1980631dc48184f3a",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/hubspot/runtime.json",
+    "afterSha256": "a5bc71ecb24bbaefd3fa5291202f9a2ccb8eb833f7359b59a0941868915e6846",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/jira/connector.yaml",
+    "afterSha256": "a2784a823791638a21e5eb09737c02b5943d25db96d22161de428c20760a8999",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/jira/runtime.json",
+    "afterSha256": "677178e330e4f0f321d14a8529daef52af60c3bd949c3ee18948135f28bb8566",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/mysql/connector.yaml",
+    "afterSha256": "b16b815ee6c2c38a6e3d7631cc59f7393f7f98c6e3dbcf5c62dec0cb4b2646f9",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/mysql/runtime.json",
+    "afterSha256": "765a42b8d7fa7a084a2e4b320356a6342b5e970b0460d69c1fe4a019d0d6975f",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/onedrive/connector.yaml",
+    "afterSha256": "295b19977c3d667786b063d965dbe861388ee01f3e75fed17f3c5ab56c6dff00",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/onedrive/runtime.json",
+    "afterSha256": "f320db2e9738f3173435753802fa36199b6bd87526e20c1613d77880f6fec59c",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/oracle/connector.yaml",
+    "afterSha256": "d7eb1b4b5fcec0b9a7c854bc41fe06d1c0606ab1e52af0e90bb7c44f296e9697",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/oracle/runtime.json",
+    "afterSha256": "e81dbfb6905084ddefaff9d48994492712639623ca86ca7ec692f62382d9db84",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/postgresql/connector.yaml",
+    "afterSha256": "4d44beef2b504e5612424bdf9453e8c270e6c2e440048fad298d6470447c5c7a",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/postgresql/runtime.json",
+    "afterSha256": "646696f81a637043d5e0c5df52748b6c64c0227c08f93708c89d7cd372b93fe9",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/s3/connector.yaml",
+    "afterSha256": "42041244c51e4109eec8a35ff8961b0bc8a26275f986b50855c8fd578222e8a4",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/s3/runtime.json",
+    "afterSha256": "42764e499483a5c99fa7bc651bd6dbd495fd5921b27bb02fd670b8f09873981c",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/salesforce/connector.yaml",
+    "afterSha256": "fe6942eac22d67ef867e34a5fcf8fe5f65f5b5ede6c6bd8f4b4267dd331041b6",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/salesforce/runtime.json",
+    "afterSha256": "1550edacf70879e85e43405a77381d233ae04012da68b06afa6da107716f2cc2",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/sftp/connector.yaml",
+    "afterSha256": "5c73be6a8895567171531e43b4ced6e4dc58f7ac96647dff3686b84a458168fd",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/sftp/runtime.json",
+    "afterSha256": "e89b71f715e480149687474c17aede5d88f3f1c31777ba9491ce2e8a4fc64fb5",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/sharepoint/connector.yaml",
+    "afterSha256": "38ab8821db5be1511dbffad0255503da485ecd4f8333bf365a489c0ea4f6f597",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/sharepoint/runtime.json",
+    "afterSha256": "4b71b7dc8c0c55a2209c50ad8af850c57167e2ff804ad3a5277dbbb05f408fe0",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/sql-server/connector.yaml",
+    "afterSha256": "f4e9be283918bdcec8d7d9b66ee1a3434246ff426515ef7e541aa99533c0ab0f",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/sql-server/runtime.json",
+    "afterSha256": "15ab8eadbb95629c51860b6d300b8623b25732e3e8f511767a66f1a87b963c70",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/stripe/connector.yaml",
+    "afterSha256": "92366ddeae6ea669fc42d0fc9f7145aa4e305b04c1ef3cae3818172e04623a4a",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  },
+  {
+    "owner": "connectors",
+    "path": "connectors/stripe/runtime.json",
+    "afterSha256": "365a1c315d5c81f241c8c6ac78ece8fde80c3c9a10c8a04afd9a05eb7890478f",
+    "role": "generated-candidate-package; excluded from scoped source patch"
+  }
+]

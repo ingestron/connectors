@@ -1,0 +1,20 @@
+{
+  "status": "failed",
+  "stage": "prepare",
+  "error": "AssertionError [ERR_ASSERTION]: \"RUNTIME: Provider execution failed. Run f688227b-f138-4372-bab9-b5927b6ca8a9; inspect run_status for this run identity\"\n+ actual - expected\n\n+ 'failed'\n- 'succeeded'\n\n    at start (file:///Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-wide-v1.mjs:7:374)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-wide-v1.mjs:9:235",
+  "checks": [
+    "All twenty table contracts resolve to the exact reviewed two-hundred-column model"
+  ],
+  "details": {
+    "root": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/fixtures/unicode-project-identity-wide-aBrwnu",
+    "tables": 20,
+    "columnsPerTable": 200,
+    "projectSchemaFields": 4000,
+    "candidate": {
+      "cli": "0.17.21",
+      "core": "0.12.51"
+    },
+    "scope": "Actual installed compiler and frozen shared host with real local synthetic CSV, shared model and provider Parquet; static actual UI rows/paging, no mounted/browser/native-vendor proof.",
+    "resolveBytes": 780543
+  }
+}

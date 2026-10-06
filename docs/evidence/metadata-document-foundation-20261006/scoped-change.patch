@@ -1,0 +1,673 @@
+--- before/runtime/singer_runtime.py
++++ after/runtime/singer_runtime.py
+@@ -15,6 +15,7 @@
+ from singer_bridge import canonical, digest, project_specification_digest, file_digest, safe_name, arrow_type, snapshot, CheckpointError, preview_checkpoint_migration, apply_checkpoint_migration
+ from quality_rules import QualityFailed
+ from temporal_types import TemporalError, MESSAGES as TEMPORAL_MESSAGES
++from metadata_documents import read_documents, MetadataDocumentLimit, MetadataCollectionLimit
+ 
+ VERSION = '0.4.0'
+ 
+@@ -87,10 +88,28 @@
+     return {'type':types[type_name],'nullable':not required}
+ 
+ 
+-def project_selection(project):
+-    if 'tables' not in project: return project['selection']
++def project_tables(project, folder=None):
++    """Read explicit table documents without changing legacy project locks."""
++    check(not ('tables' in project and 'tableDocuments' in project), 'Ambiguous project table representation')
++    if 'tableDocuments' not in project:
++        return project.get('tables', {})
++    check(folder is not None, 'Indexed project tables require their owned bundle directory')
++    tables = dict(read_documents(Path(folder), project['tableDocuments'], 'project'))
++    for table in tables.values():
++        check(isinstance(table, dict) and set(table) <= {'source', 'contract', 'columns'}
++              and isinstance(table.get('source'), dict)
++              and isinstance(table['source'].get('stream'), str)
++              and isinstance(table.get('columns'), list) and len(table['columns']) <= 500,
++              'Invalid indexed project table')
++        check(('contract' in table and isinstance(table['contract'], dict) and table['columns'])
++              or ('contract' not in table and not table['columns']), 'Invalid indexed project contract')
++    return tables
++
++
++def project_selection(project, folder=None):
++    if 'tables' not in project and 'tableDocuments' not in project: return project['selection']
+     selected = {}
+-    for name, table in project['tables'].items():
++    for name, table in project_tables(project, folder).items():
+         # Discovery-only tables (no contract yet) select nothing, as in the provider.
+         if not table['columns'] and 'contract' not in table: continue
+         fields = {}
+@@ -103,9 +122,9 @@
+     return selected
+ 
+ 
+-def project_contracts(project):
+-    if 'tables' not in project: return None
+-    return {name:table['contract'] for name,table in project['tables'].items() if 'contract' in table}
++def project_contracts(project, folder=None):
++    if 'tables' not in project and 'tableDocuments' not in project: return None
++    return {name:table['contract'] for name,table in project_tables(project, folder).items() if 'contract' in table}
+ 
+ 
+ def runtime_identity(config, folder):
+@@ -143,7 +162,7 @@
+         check(json.loads(project_text) == config['projectLock'], 'Project lock changed')
+         check(config['sourceSettings'] == project['settings'], 'Connection settings differ from project lock')
+         check(config['connector'] == project['connector'].split(':',1)[-1] and config['sourceId'] == project['sourceId'] and config['tenantId'] == project['tenantId'] and config['timeoutSeconds'] == project['timeoutSeconds'], 'Runtime differs from project lock')
+-        check(load(folder / 'selection.json') == project_selection(project), 'Selection differs from project lock')
++        check(load(folder / 'selection.json') == project_selection(project, folder), 'Selection differs from project lock')
+         check(project['execution'] in ({'mode': 'local'}, {'mode': 'local', 'ingestion': 'incremental'}), 'Only local snapshot or incremental append execution is supported')
+         project_identity = {'projectSpecSha256': expected}
+     return {**project_identity, 'bridgeVersion': VERSION, 'connector': config['connector'], 'licence': licence,
+@@ -219,7 +238,7 @@
+     return result
+ 
+ 
+-def source_config(config):
++def source_config(config, checkpoint=None, folder=None):
+     if 'sourceSettings' in config:
+         value = resolve_secrets(config['sourceSettings'])
+     else:
+@@ -246,7 +265,7 @@
+ def discover(config, folder):
+     identity = runtime_identity(config, folder)
+     executable = Path(sys.executable).parent / CONNECTORS[config['connector']][2]
+-    catalog = read_catalog(executable, source_config(config), config['timeoutSeconds'], protocol_for(config))
++    catalog = read_catalog(executable, source_config(config, folder=folder), config['timeoutSeconds'], protocol_for(config))
+     return {'apiVersion':'ingestron.singer-discovery/v1','identity':identity,'catalog':catalog,'applied':False}
+ 
+ 
+@@ -265,10 +284,10 @@
+     """
+     identity = runtime_identity(config, folder)
+     executable = Path(sys.executable).parent / CONNECTORS[config['connector']][2]
+-    catalog = read_catalog(executable, source_config(config), config['timeoutSeconds'], protocol_for(config))
++    catalog = read_catalog(executable, source_config(config, folder=folder), config['timeoutSeconds'], protocol_for(config))
+     streams = {s['tap_stream_id']: s for s in catalog['streams']}
+     tables = {}
+-    for name, table in config.get('projectLock', {}).get('tables', {}).items():
++    for name, table in project_tables(config.get('projectLock', {}), folder).items():
+         stream = streams.get(table['source'].get('stream'))
+         check(stream is not None, 'Selected stream absent from discovery')
+         properties = stream['schema'].get('properties', {})
+@@ -429,7 +448,7 @@
+     after_identity = {'namespace': namespace, 'contract_sha256': digest(after_contract),
+                       'source': {**after_runtime, 'reviewSha256': digest(new_review)}}
+     initial = {table['source']['stream']: table['source']['incremental']['initial']
+-               for table in config['projectLock']['tables'].values()}
++               for table in project_tables(config['projectLock'], folder).values()}
+     check(all(type(value) is int and 0 <= value <= 9007199254740991 for value in initial.values()),
+           'Invalid initial incremental cursor')
+     initial = {name: str(value) for name, value in initial.items()}
+@@ -444,14 +463,14 @@
+     bundle = load(folder / config['reviewFile'])
+     contract = accepted(bundle, identity)
+     if 'projectLock' in config:
+-        check(bundle['selection'] == project_selection(config['projectLock']), 'Review differs from project selection')
+-        if 'tables' in config['projectLock']: check(bundle['contracts'] == project_contracts(config['projectLock']), 'Review differs from authored ODCS contracts')
++        check(bundle['selection'] == project_selection(config['projectLock'], folder), 'Review differs from project selection')
++        if 'tables' in config['projectLock'] or 'tableDocuments' in config['projectLock']: check(bundle['contracts'] == project_contracts(config['projectLock'], folder), 'Review differs from authored ODCS contracts')
+     incremental = config.get('projectLock', {}).get('execution', {}).get('ingestion') == 'incremental'
+     namespace = checkpoint_namespace(config)
+     executable = Path(sys.executable).parent / CONNECTORS[config['connector']][2]
+     def messages(checkpoint=None):
+         check(not incremental or raw_config is None, 'Incremental execution requires the locked table connector')
+-        source = source_config(config, checkpoint) if incremental else raw_config if raw_config is not None else source_config(config)
++        source = source_config(config, checkpoint, folder=folder) if incremental else raw_config if raw_config is not None else source_config(config, folder=folder)
+         protocol = protocol_for(config)
+         fresh = read_catalog(executable, source, config['timeoutSeconds'], protocol)
+         schemas = {s['tap_stream_id']:s['schema'] for s in fresh['streams']}
+@@ -480,7 +499,7 @@
+         if spec is not None:
+             rules[stream.get('stream') or stream['tap_stream_id']] = bundle['contracts'][spec['name']]
+     checkpoint = {table['source']['stream']: table['source']['incremental']['initial']
+-                  for table in config['projectLock']['tables'].values()} if incremental else None
++                  for table in project_tables(config['projectLock'], folder).values()} if incremental else None
+     return snapshot(output, namespace, run_id, contract, {**identity,'reviewSha256':digest(bundle)}, messages, rules=rules, checkpoint=checkpoint, checkpoint_policy_digest=checkpoint_upgrade_policy(config) if incremental else None)
+ 
+ 
+@@ -503,14 +522,14 @@
+         elif args.action == 'review':
+             discovered = load(args.discovery)
+             check(discovered['identity'] == runtime_identity(config, folder), 'Discovery differs from current project/runtime')
+-            result = review(discovered, load(args.selection or folder / 'selection.json'), project_contracts(config.get('projectLock',{})))
++            result = review(discovered, load(args.selection or folder / 'selection.json'), project_contracts(config.get('projectLock',{}), folder))
+         elif args.action == 'approve':
+             target = folder / config['reviewFile']
+             result = load(target)
+             identity = runtime_identity(config, folder)
+             check(result['identity'] == identity and result['status'] == 'draft', 'Approve the current draft only')
+-            if 'projectLock' in config: check(result['selection'] == project_selection(config['projectLock']), 'Review differs from project selection')
+-            if 'tables' in config.get('projectLock',{}): check(result['contracts'] == project_contracts(config['projectLock']), 'Review differs from authored ODCS contracts')
++            if 'projectLock' in config: check(result['selection'] == project_selection(config['projectLock'], folder), 'Review differs from project selection')
++            if 'tables' in config.get('projectLock',{}) or 'tableDocuments' in config.get('projectLock',{}): check(result['contracts'] == project_contracts(config['projectLock'], folder), 'Review differs from authored ODCS contracts')
+             result['status'] = 'approved'
+             accepted(result, identity)
+             temporary = target.with_suffix('.approved.tmp')
+@@ -537,7 +556,10 @@
+         text = encoded_document(result)
+         with Path(args.output).open('x') as target: target.write(text)
+         print(canonical({'status':'Succeeded','applied':False}))
+-    except MetadataLimit as error:
++    except MetadataCollectionLimit as error:
++        print(canonical({'status':'Failed','errorCode':error.code,'error':str(error)}))
++        raise SystemExit(1) from None
++    except (MetadataLimit, MetadataDocumentLimit) as error:
+         print(canonical({'status':'Failed','errorCode':error.code,'error':METADATA_LIMIT_MESSAGE}))
+         raise SystemExit(1) from None
+     except QualityFailed as error:
+--- before/runtime/connector_kit.py
++++ after/runtime/connector_kit.py
+@@ -98,11 +98,11 @@
+     """Wire a table connector into the shared reviewed snapshot workflow."""
+     workflow.ERRORS.update(connector.errors)
+ 
+-    def source_config(config, checkpoint=None):
++    def source_config(config, checkpoint=None, folder=None):
+         workflow.check('projectLock' in config and 'sourceSettings' in config,
+                        f'{connector.name} table bindings require a locked project')
+         settings = connector.settings(workflow.resolve_secrets(config['sourceSettings']))
+-        tables = config['projectLock']['tables']
++        tables = workflow.project_tables(config['projectLock'], folder)
+         workflow.check(isinstance(tables, dict) and 1 <= len(tables) <= 100,
+                        f'Select 1–100 {connector.name} tables')
+         objects = {}
+@@ -167,7 +167,7 @@
+         workflow.check('projectLock' in config and 'sourceSettings' in config,
+                        f'{connector.name} discovery requires a locked project')
+         settings = connector.settings(workflow.resolve_secrets(config['sourceSettings']))
+-        tables = config['projectLock']['tables']
++        tables = workflow.project_tables(config['projectLock'], folder)
+         workflow.check(isinstance(tables, dict) and 1 <= len(tables) <= 100,
+                        f'Select 1–100 {connector.name} tables')
+         result = {}
+--- before/scripts/build-source-access.mjs
++++ after/scripts/build-source-access.mjs
+@@ -5,22 +5,22 @@
+ import { format } from "prettier";
+ import { selectionSchema } from "../src/connection-contract.mjs";
+ const candidateVersions = {
+-  "azure-blob": "2.1.9",
+-  files: "1.5.11",
+-  gcs: "0.1.9",
+-  github: "1.36.9",
+-  hubspot: "0.1.7",
+-  jira: "0.1.7",
+-  mysql: "1.1.8",
+-  onedrive: "0.1.10",
+-  oracle: "1.1.8",
+-  postgresql: "1.1.9",
+-  s3: "1.0.9",
+-  salesforce: "0.1.7",
+-  sftp: "1.0.10",
+-  sharepoint: "0.1.10",
+-  "sql-server": "1.5.8",
+-  stripe: "0.1.7",
++  "azure-blob": "2.1.10",
++  files: "1.5.12",
++  gcs: "0.1.10",
++  github: "1.36.10",
++  hubspot: "0.1.8",
++  jira: "0.1.8",
++  mysql: "1.1.9",
++  onedrive: "0.1.11",
++  oracle: "1.1.9",
++  postgresql: "1.1.10",
++  s3: "1.0.10",
++  salesforce: "0.1.8",
++  sftp: "1.0.11",
++  sharepoint: "0.1.11",
++  "sql-server": "1.5.9",
++  stripe: "0.1.8",
+ };
+ const jsonSchemaOptions = {
+   type: "object",
+@@ -96,6 +96,10 @@
+   );
+   files["quality_rules.py"] = readFileSync("runtime/quality_rules.py", "utf8");
+   files["singer_bridge.py"] = readFileSync("runtime/singer_bridge.py", "utf8");
++  files["metadata_documents.py"] = readFileSync(
++    "runtime/metadata_documents.py",
++    "utf8",
++  );
+   if (files["snapshot_runtime.py"] !== undefined)
+     files["snapshot_runtime.py"] = readFileSync(
+       "runtime/singer_runtime.py",
+--- before/src/connector-scaffold.mjs
++++ after/src/connector-scaffold.mjs
+@@ -153,6 +153,7 @@
+     "runtime/singer_runtime.py": read("runtime/singer_runtime.py"),
+     "runtime/connector_kit.py": read("runtime/connector_kit.py"),
+     "runtime/singer_bridge.py": read("runtime/singer_bridge.py"),
++    "runtime/metadata_documents.py": read("runtime/metadata_documents.py"),
+     "runtime/temporal_types.py": read("runtime/temporal_types.py"),
+     "runtime/singer_inventory.py": read("runtime/singer_inventory.py"),
+     "runtime/quality_rules.py": read("runtime/quality_rules.py"),
+@@ -196,6 +197,7 @@
+     "snapshot_runtime.py",
+     "connector_kit.py",
+     "singer_bridge.py",
++    "metadata_documents.py",
+     "temporal_types.py",
+     "singer_inventory.py",
+     "quality_rules.py",
+--- /dev/null
++++ after/runtime/metadata_documents.py
+@@ -0,0 +1,161 @@
++"""Bounded, content-addressed metadata documents for compiler-owned bundles.
++
++This codec does not author, approve or publish a review. Callers retain their
++typed project/review validation and transaction boundary. Existing single-file
++formats are unchanged; no existing runtime selects this format implicitly.
++"""
++from __future__ import annotations
++
++from decimal import Decimal
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import stat
++
++DOCUMENT_LIMIT = 2_000_000
++COLLECTION_LIMIT = 7_000_000
++DOCUMENT_COUNT_LIMIT = 100
++API_VERSION = 'ingestron.metadata-documents/v1'
++KINDS = ('project', 'selection', 'review')
++IDENTIFIER = re.compile(r'[A-Za-z_][A-Za-z0-9_-]{0,100}\Z')
++DIGEST = re.compile(r'[a-f0-9]{64}\Z')
++
++
++class MetadataDocumentLimit(ValueError):
++    code = 'SOURCE_METADATA_LIMIT'
++
++    def __init__(self):
++        super().__init__('Metadata exceeds the supported 2 MB document limit')
++
++
++class MetadataCollectionLimit(ValueError):
++    code = 'SOURCE_METADATA_COLLECTION_LIMIT'
++
++    def __init__(self):
++        super().__init__('Metadata exceeds the supported 7 MB collection limit')
++
++
++def _require(condition):
++    if not condition:
++        # Never include a path, source value or malformed upstream content.
++        raise ValueError('Invalid or changed reviewed metadata document')
++
++
++def _unique(pairs):
++    result = {}
++    for key, value in pairs:
++        _require(key not in result)
++        result[key] = value
++    return result
++
++
++def _constant(_value):
++    _require(False)
++
++
++def _decode(content):
++    _require(isinstance(content, bytes))
++    if len(content) > DOCUMENT_LIMIT:
++        raise MetadataDocumentLimit()
++    try:
++        value = json.loads(content.decode('utf8'), object_pairs_hook=_unique,
++                           parse_float=Decimal, parse_constant=_constant)
++    except (ValueError, UnicodeError, RecursionError):
++        raise ValueError('Invalid or changed reviewed metadata document') from None
++    _require(isinstance(value, dict))
++    return value
++
++
++def validate_index(index, expected_kind):
++    """Validate the whole index before accessing any file; do not infer a kind."""
++    _require(expected_kind in KINDS and isinstance(index, dict)
++             and set(index) == {'apiVersion', 'kind', 'documents', 'totalBytes'}
++             and index['apiVersion'] == API_VERSION
++             and index['kind'] == expected_kind)
++    documents = index['documents']
++    _require(isinstance(documents, dict)
++             and 1 <= len(documents) <= DOCUMENT_COUNT_LIMIT)
++    total = 0
++    for name, record in documents.items():
++        _require(isinstance(name, str) and IDENTIFIER.fullmatch(name)
++                 and isinstance(record, dict)
++                 and set(record) == {'path', 'sha256', 'bytes'})
++        digest = record['sha256']
++        _require(isinstance(digest, str) and DIGEST.fullmatch(digest)
++                 and record['path'] == f'metadata/{expected_kind}/{digest}.json'
++                 and type(record['bytes']) is int and record['bytes'] > 0)
++        if record['bytes'] > DOCUMENT_LIMIT:
++            raise MetadataDocumentLimit()
++        total += record['bytes']
++    _require(type(index['totalBytes']) is int and index['totalBytes'] == total)
++    if total > COLLECTION_LIMIT:
++        raise MetadataCollectionLimit()
++    # This bounded index remains a document itself. Records count their logical
++    # bytes even if two records address the same file, bounding expansion too.
++    if len(json.dumps(index, separators=(',', ':'), ensure_ascii=True).encode()) > DOCUMENT_LIMIT:
++        raise MetadataDocumentLimit()
++    return documents
++
++
++def document_index(kind, documents):
++    """Return an explicit index and artifact map from exact JSON document bytes."""
++    _require(kind in KINDS and isinstance(documents, dict)
++             and 1 <= len(documents) <= DOCUMENT_COUNT_LIMIT)
++    files, records, total = {}, {}, 0
++    for name, content in documents.items():
++        _require(isinstance(name, str) and IDENTIFIER.fullmatch(name))
++        _decode(content)
++        digest = hashlib.sha256(content).hexdigest()
++        path = f'metadata/{kind}/{digest}.json'
++        records[name] = {'path': path, 'sha256': digest, 'bytes': len(content)}
++        files[path] = content
++        total += len(content)
++        if total > COLLECTION_LIMIT:
++            raise MetadataCollectionLimit()
++    index = {'apiVersion': API_VERSION, 'kind': kind,
++             'documents': records, 'totalBytes': total}
++    validate_index(index, kind)
++    return index, files
++
++
++def read_documents(root, index, expected_kind):
++    """Yield verified metadata one document at a time beneath an owned root.
++
++    Directory file descriptors and O_NOFOLLOW protect against path replacement
++    and symlink races. A complete index is validated before the first open.
++    Callers must consume/validate the whole collection before a commit.
++    """
++    records = validate_index(index, expected_kind)
++    root = Path(root)
++    _require(root.is_absolute())
++    directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
++    try:
++        _require(str(root) == str(root.resolve(strict=True)))
++        root_fd = os.open(root, directory_flags)
++        try:
++            metadata_fd = os.open('metadata', directory_flags, dir_fd=root_fd)
++            try:
++                kind_fd = os.open(expected_kind, directory_flags, dir_fd=metadata_fd)
++                try:
++                    for name, record in records.items():
++                        filename = record['sha256'] + '.json'
++                        fd = os.open(filename, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
++                                     dir_fd=kind_fd)
++                        with os.fdopen(fd, 'rb') as source:
++                            info = os.fstat(source.fileno())
++                            _require(stat.S_ISREG(info.st_mode)
++                                     and info.st_size == record['bytes'])
++                            content = source.read(record['bytes'] + 1)
++                        _require(len(content) == record['bytes']
++                                 and hashlib.sha256(content).hexdigest() == record['sha256'])
++                        yield name, _decode(content)
++                finally:
++                    os.close(kind_fd)
++            finally:
++                os.close(metadata_fd)
++        finally:
++            os.close(root_fd)
++    except OSError:
++        raise ValueError('Invalid or changed reviewed metadata document') from None
+--- /dev/null
++++ after/test/runtime/test_metadata_documents.py
+@@ -0,0 +1,165 @@
++"""Bounded document codec foundation; no provider/runtime workflow opt-in yet."""
++import copy
++from decimal import Decimal
++import hashlib
++import json
++import os
++from pathlib import Path
++import sys
++import tempfile
++import unittest
++
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'runtime'))
++from metadata_documents import (COLLECTION_LIMIT, DOCUMENT_LIMIT, document_index,
++                                read_documents, MetadataCollectionLimit,
++                                MetadataDocumentLimit)
++
++
++def encoded(value):
++    return json.dumps(value, ensure_ascii=False, separators=(',', ':')).encode()
++
++
++class MetadataDocumentsTests(unittest.TestCase):
++    def setUp(self):
++        self.temporary = tempfile.TemporaryDirectory()
++        self.addCleanup(self.temporary.cleanup)
++        self.root = Path(self.temporary.name).resolve()
++
++    def install(self, files):
++        for name, content in files.items():
++            path = self.root / name
++            path.parent.mkdir(parents=True, exist_ok=True)
++            path.write_bytes(content)
++
++    def sample(self):
++        index, files = document_index('project', {'orders': encoded({'source': {'stream': 'orders'},
++                                               'contract': {'description': 'Synthetic source value'}})})
++        self.install(files)
++        return index
++
++    def test_hundred_distinct_two_hundred_column_contracts_round_trip_without_truncation(self):
++        documents, expected = {}, {}
++        for table in range(100):
++            name = f'table_{table:03d}'
++            properties = [{'name': f'business_{column:03d}', 'physicalName': f'column_{column:03d}',
++                           'logicalType': 'string', 'physicalType': 'STRING', 'required': True,
++                           'description': f'Māori 日本語 😀 {name} field {column}'}
++                          for column in range(200)]
++            value = {'source': {'stream': name, 'schema': 'synthetic'},
++                     'contract': {'apiVersion': 'v3.1.0', 'kind': 'DataContract', 'id': name,
++                                  'name': name, 'schema': [{'name': name, 'properties': properties}]},
++                     'columns': [{'name': p['physicalName'], 'target': p['name'], 'type': 'STRING',
++                                  'required': True} for p in properties]}
++            documents[name], expected[name] = encoded(value), value
++        index, files = document_index('project', documents)
++        self.assertEqual(len(files), 100)
++        self.assertGreater(index['totalBytes'], DOCUMENT_LIMIT)
++        self.assertLessEqual(index['totalBytes'], COLLECTION_LIMIT)
++        self.assertTrue(all(record['bytes'] < DOCUMENT_LIMIT for record in index['documents'].values()))
++        self.install(files)
++        observed = dict(read_documents(self.root, index, 'project'))
++        self.assertEqual(observed, expected)
++        self.assertEqual(sum(len(t['contract']['schema'][0]['properties']) for t in observed.values()), 20_000)
++        for name, content in documents.items():
++            self.assertEqual(index['documents'][name]['sha256'], hashlib.sha256(content).hexdigest())
++
++    def test_bytes_and_logical_expansion_are_bounded_without_raising_single_file_limit(self):
++        content = b'{"padding":"' + b'x' * (DOCUMENT_LIMIT - len(b'{"padding":""}')) + b'"}'
++        index, files = document_index('review', {'one': content})
++        self.assertEqual(index['totalBytes'], DOCUMENT_LIMIT)
++        self.install(files)
++        self.assertEqual(len(dict(read_documents(self.root, index, 'review'))['one']['padding']),
++                         DOCUMENT_LIMIT - len(b'{"padding":""}'))
++        with self.assertRaises(MetadataDocumentLimit):
++            document_index('review', {'one': content + b' '})
++        with self.assertRaises(MetadataCollectionLimit):
++            document_index('review', {f'copy_{i}': content for i in range(4)})
++        # Reused file references count repeatedly, bounding logical expansion.
++        changed = copy.deepcopy(index)
++        changed['documents'] = {f'copy_{i}': next(iter(index['documents'].values())) for i in range(4)}
++        changed['totalBytes'] = 4 * DOCUMENT_LIMIT
++        with self.assertRaises(MetadataCollectionLimit):
++            list(read_documents(self.root, changed, 'review'))
++
++    def test_changed_content_missing_files_and_foreign_kinds_fail_closed(self):
++        index = self.sample()
++        record = index['documents']['orders']
++        path = self.root / record['path']
++        original = path.read_bytes()
++        path.write_bytes(original.replace(b'Synthetic', b'synthetic'))
++        with self.assertRaisesRegex(ValueError, '^Invalid or changed reviewed metadata document$'):
++            list(read_documents(self.root, index, 'project'))
++        path.write_bytes(original)
++        with self.assertRaises(ValueError):
++            list(read_documents(self.root, index, 'review'))
++        path.unlink()
++        with self.assertRaises(ValueError):
++            list(read_documents(self.root, index, 'project'))
++
++    def test_index_schema_paths_and_size_claims_are_validated_before_any_file_access(self):
++        index = self.sample()
++        cases = []
++        for path in ['../outside.json', '/tmp/outside.json', 'metadata/project/../outside.json',
++                     'metadata/review/' + index['documents']['orders']['sha256'] + '.json']:
++            changed = copy.deepcopy(index)
++            changed['documents']['orders']['path'] = path
++            cases.append(changed)
++        for key, value in [('bytes', True), ('bytes', -1), ('sha256', 'z' * 64)]:
++            changed = copy.deepcopy(index)
++            changed['documents']['orders'][key] = value
++            cases.append(changed)
++        cases.extend([dict(index, totalBytes=index['totalBytes'] + 1), dict(index, extra='unknown'),
++                      dict(index, apiVersion='unknown'), dict(index, documents={})])
++        for changed in cases:
++            with self.subTest(index=changed), self.assertRaises(ValueError):
++                list(read_documents(self.root, changed, 'project'))
++
++    def test_symlink_files_symlink_directories_and_fifo_are_never_followed(self):
++        index = self.sample()
++        path = self.root / index['documents']['orders']['path']
++        original = path.read_bytes()
++        outside = self.root / 'outside.json'
++        outside.write_bytes(original)
++        path.unlink()
++        path.symlink_to(outside)
++        with self.assertRaises(ValueError):
++            list(read_documents(self.root, index, 'project'))
++        path.unlink()
++        os.mkfifo(path)
++        with self.assertRaises(ValueError):
++            list(read_documents(self.root, index, 'project'))
++        path.unlink()
++        path.write_bytes(original)
++        directory = path.parent
++        moved = self.root / 'moved'
++        directory.rename(moved)
++        directory.symlink_to(moved, target_is_directory=True)
++        with self.assertRaises(ValueError):
++            list(read_documents(self.root, index, 'project'))
++
++    def test_malformed_duplicate_nonfinite_and_nonobject_json_are_refused_without_values(self):
++        for value in [b'{"id":1,"id":2}', b'{"private":"source",bad}', b'{"n":NaN}',
++                      b'{"n":Infinity}', b'[]', b'"source"', b'{"value":"\xff"}']:
++            with self.subTest(content=value), self.assertRaises(ValueError) as context:
++                document_index('selection', {'orders': value})
++            self.assertEqual(str(context.exception), 'Invalid or changed reviewed metadata document')
++        index, files = document_index('selection', {'orders': b'{"decimal":1.234567890123456789}'})
++        self.install(files)
++        self.assertEqual(dict(read_documents(self.root, index, 'selection'))['orders']['decimal'],
++                         Decimal('1.234567890123456789'))
++
++    def test_late_document_change_requires_complete_consumption_before_commit(self):
++        index, files = document_index('review', {'first': b'{"table":"first"}',
++                                               'second': b'{"table":"second"}'})
++        self.install(files)
++        reader = read_documents(self.root, index, 'review')
++        self.addCleanup(reader.close)
++        self.assertEqual(next(reader), ('first', {'table': 'first'}))
++        path = self.root / index['documents']['second']['path']
++        path.write_bytes(b'{"table":"changed"}')
++        with self.assertRaises(ValueError):
++            next(reader)
++
++
++if __name__ == '__main__':
++    unittest.main()
+--- /dev/null
++++ after/test/runtime/test_indexed_project_metadata.py
+@@ -0,0 +1,82 @@
++"""Source-layer opt-in only; compiler/provider and indexed review integration pending."""
++import copy
++import json
++from pathlib import Path
++import sys
++import tempfile
++import unittest
++
++sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'runtime'))
++from metadata_documents import document_index
++import singer_runtime as workflow
++
++
++class IndexedProjectMetadata(unittest.TestCase):
++    def setUp(self):
++        self.temporary = tempfile.TemporaryDirectory()
++        self.addCleanup(self.temporary.cleanup)
++        self.root = Path(self.temporary.name).resolve()
++        self.tables = {}
++        for i in range(100):
++            name = f'table_{i:03d}'
++            properties = [{'name': f'business_{n:03d}', 'physicalName': f'column_{n:03d}',
++                           'logicalType': 'string', 'physicalType': 'STRING', 'required': True,
++                           'description': f'Māori 日本語 😀 table {i} field {n}'} for n in range(200)]
++            self.tables[name] = {
++                'source': {'stream': name, 'path': str(self.root / f'{name}.csv'), 'format': 'csv'},
++                'contract': {'apiVersion': 'v3.1.0', 'kind': 'DataContract', 'id': name,
++                             'schema': [{'name': name, 'properties': properties}]},
++                'columns': [{'name': p['physicalName'], 'target': p['name'],
++                             'type': 'STRING', 'required': True} for p in properties]}
++        index, files = document_index('project', {name: json.dumps(value, ensure_ascii=False,
++                                      separators=(',', ':')).encode() for name, value in self.tables.items()})
++        self.project = {'tableDocuments': index}
++        for name, content in files.items():
++            path = self.root / name
++            path.parent.mkdir(parents=True, exist_ok=True)
++            path.write_bytes(content)
++
++    def test_complete_selection_and_authored_contracts_equal_legacy_semantics(self):
++        legacy = {'tables': self.tables}
++        self.assertEqual(workflow.project_tables(self.project, self.root), self.tables)
++        selection = workflow.project_selection(self.project, self.root)
++        self.assertEqual(selection, workflow.project_selection(legacy))
++        self.assertEqual(workflow.project_contracts(self.project, self.root), workflow.project_contracts(legacy))
++        self.assertEqual(len(selection), 100)
++        self.assertEqual(sum(len(s['fields']) for s in selection.values()), 20_000)
++        self.assertEqual(selection['table_099']['fields']['column_199']['target'], 'business_199')
++
++    def test_missing_context_ambiguous_forms_changed_documents_and_wrong_kinds_refuse(self):
++        with self.assertRaisesRegex(ValueError, 'owned bundle directory'):
++            workflow.project_selection(self.project)
++        with self.assertRaisesRegex(ValueError, 'Ambiguous'):
++            workflow.project_tables({**self.project, 'tables': self.tables}, self.root)
++        changed = copy.deepcopy(self.project)
++        changed['tableDocuments']['kind'] = 'review'
++        with self.assertRaises(ValueError):
++            workflow.project_contracts(changed, self.root)
++        path = self.root / self.project['tableDocuments']['documents']['table_099']['path']
++        path.write_bytes(path.read_bytes().replace(b'business_199', b'changed__199'))
++        with self.assertRaises(ValueError):
++            workflow.project_selection(self.project, self.root)
++
++    def test_discovery_only_document_remains_uncontracted_and_extra_shape_refuses(self):
++        for table, valid in [({'source': {'stream': 'orders'}, 'columns': []}, True),
++                             ({'source': {'stream': 'orders'}, 'columns': [], 'extra': 'unsupported'}, False),
++                             ({'source': {'stream': 'orders'}, 'columns': [], 'contract': {}}, False)]:
++            index, files = document_index('project', {'orders': json.dumps(table).encode()})
++            for name, content in files.items():
++                path = self.root / name
++                path.parent.mkdir(parents=True, exist_ok=True)
++                path.write_bytes(content)
++            project = {'tableDocuments': index}
++            if valid:
++                self.assertEqual(workflow.project_selection(project, self.root), {})
++                self.assertEqual(workflow.project_contracts(project, self.root), {})
++            else:
++                with self.assertRaises(ValueError):
++                    workflow.project_tables(project, self.root)
++
++
++if __name__ == '__main__':
++    unittest.main()

@@ -16,7 +16,16 @@ const field = object(
   {
     type: {
       type: "string",
-      enum: ["integer", "string", "boolean", "number", "decimal", "json"],
+      enum: [
+        "integer",
+        "string",
+        "boolean",
+        "number",
+        "decimal",
+        "json",
+        "date",
+        "timestamp",
+      ],
     },
     nullable: { type: "boolean" },
     target: { type: "string", minLength: 1 },

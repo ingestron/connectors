@@ -1,0 +1,16 @@
+{
+  "result": "passed",
+  "root": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/fixtures/unicode-project-identity-wide-hUyQqj",
+  "reportPath": "build/studio/dev/flow_files/flows/flow_files/review.json",
+  "reportBytes": 1237346,
+  "reportSha256": "b885e0b9b33c51a98f04b4bf58c97d5a75fcb8bfda90de6905e06f004eb43295",
+  "pageCount": 5,
+  "approvalDigest": "b9de663f691d248d40cdb787648702eb3ae8a375cb471ee025b942c24d2e906f",
+  "sdkCliMcpPagesExact": true,
+  "untrustedHostApprovalDigestExact": true,
+  "actualFrozenReportHelperBytesExact": true,
+  "decodedMultilingualDescriptionsExact": true,
+  "hostMs": 2612.0514579999995,
+  "pagesMs": 1529.7568339999998,
+  "scope": "Single local timing during concurrent synthetic qualification; no browser interaction or latency guarantee"
+}

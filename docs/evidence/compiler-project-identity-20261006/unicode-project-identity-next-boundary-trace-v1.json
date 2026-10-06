@@ -1,0 +1,47 @@
+{
+  "scope": "Read-only next implementation boundary trace; no limits enlarged or qualification claimed",
+  "owners": [
+    {
+      "owner": "core",
+      "path": "src/core/provider-commands.ts",
+      "line": 193,
+      "boundary": "Non-assembly provider command JSON input: 2000000 bytes; assembly command:7000000"
+    },
+    {
+      "owner": "provider-local",
+      "path": "plugin/execution.py",
+      "line": 432,
+      "boundary": "Execution stdin:2000000 characters; generic unconfirmed acknowledgement on oversize"
+    },
+    {
+      "owner": "connectors",
+      "path": "runtime/singer_runtime.py",
+      "line": 46,
+      "boundary": "Configuration/catalogue/review load:2000000 bytes"
+    },
+    {
+      "owner": "connectors",
+      "path": "runtime/singer_runtime.py",
+      "line": 110,
+      "boundary": "Compiler project lock now read once as text; inspect/restablish the former load stat bound while designing bounded scale handling"
+    },
+    {
+      "owner": "connectors",
+      "path": "runtime/singer_runtime.py",
+      "line": 256,
+      "boundary": "Singer discovery stdout catalogue:2000000 bytes"
+    },
+    {
+      "owner": "ingestron-studio",
+      "path": "packages/studio-host/review-report.ts",
+      "line": 4,
+      "boundary": "Report host limit:10MiB, hash-bound compiler reads beyond1MiB; separate from runtime approval limit"
+    }
+  ],
+  "next": [
+    "Retain explicit fail-closed bounds, including project-lock file input, before changing scale handling",
+    "Trace provider validation/build/runtime configuration, reviewed report creation/approval and execution input together",
+    "Provide clear early UI/CLI errors for actual generated payload sizes without echoing document/source content",
+    "Freeze exact owning changes, then requalify the preserved100table and two20table failures, multilingual pipeline, stale/ownership/receipt/checkpoint controls and all16 installed source clients"
+  ]
+}

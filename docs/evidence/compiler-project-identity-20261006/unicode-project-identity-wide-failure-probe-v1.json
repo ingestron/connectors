@@ -1,0 +1,6 @@
+{
+  "scope": "Read-only actual failed fixture runtime identity and configuration byte bound; no source access",
+  "exit": 0,
+  "stdout": "{\"expected\": \"9fcb5e5aec757b29c74649905bf4bd4963223b006c3ac9b53ad3d3e8814995cf\", \"actual\": \"9fcb5e5aec757b29c74649905bf4bd4963223b006c3ac9b53ad3d3e8814995cf\", \"bytes\": {\"connector.json\": 2125203, \"project-connection.lock.json\": 2003778, \"selection.json\": 469382}}\nruntime_identity:passed\nValueError:Configuration/catalogue exceeds 2 MB\n",
+  "stderr": ""
+}

@@ -1,0 +1,5 @@
+
+> ingestron-programme@0.1.0 programme:check /Users/sacode/sa.projects/intentlabs/repo/ingestron
+> node scripts/validate-programme.mjs
+
+Programme 1.1.0 valid: 45 required files, 64 backlog items, and 318 tracked files checked.
