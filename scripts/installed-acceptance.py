@@ -49,6 +49,13 @@ def call(*args, ok=True):
 with tempfile.TemporaryDirectory(prefix='source-origin-') as temp:
     origin = Path(temp)
     shutil.copytree(ROOT / 'connectors/github', origin / 'connectors/github')
+    # The pinned registry CLI predates source-access declarations. Keep this
+    # installed-package regression on its supported manifest schema; the
+    # source-access path is exercised by the current-stack acceptance tests.
+    fixture_manifest = origin / 'connectors/github/connector.yaml'
+    fixture_source = yaml.safe_load(fixture_manifest.read_text())
+    fixture_source.pop('sourceAccess', None)
+    fixture_manifest.write_text(yaml.safe_dump(fixture_source, sort_keys=False))
     subprocess.run(['git','init','-q',str(origin)],check=True)
     subprocess.run(['git','-C',str(origin),'add','.'],check=True)
     subprocess.run(['git','-C',str(origin),'-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','fixture'],check=True)
