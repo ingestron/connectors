@@ -63,7 +63,23 @@ def database_connection(kind, settings, connect=None):
         from sql_server_reader import connection_string
         if connect is None:
             from mssql_python import connect
-        return connect(connection_string(settings['connection']), timeout=65)
+        try:
+            return connect(connection_string(settings['connection']), timeout=65)
+        except Exception as error:
+            # Classify known driver codes locally. Never return driver text or credentials.
+            text = str(error)
+            numbers = set(re.findall(r'(?<![0-9])(?:18456|4060|40613|40197|40501|40615)(?![0-9])', text))
+            code = ('SQL_FIREWALL' if '40615' in numbers else
+                    'SQL_AUTH' if '18456' in numbers else
+                    'SQL_DATABASE' if '4060' in numbers else
+                    'SQL_UNAVAILABLE' if numbers & {'40613','40197','40501'} else
+                    'SQL_DNS' if re.search(r'0x2AF9|11001|Name or service not known|nodename nor servname', text, re.I) else
+                    'SQL_TLS' if re.search(r'SSL Provider|certificate verify|certificate chain', text, re.I) else
+                    'SQL_CONFIG' if isinstance(error, ValueError) else
+                    'SQL_TIMEOUT' if re.search(r'HYT0[01]|timeout|timed out', text, re.I) else
+                    'SQL_NETWORK' if re.search(r'08001|08S01|network|resolve|unreachable', text, re.I) else
+                    'SQL_CONNECT')
+            raise AccessError(code) from None
     from dbapi_reader import DIALECTS, connection_settings
     config = connection_settings(kind, settings['connection'])
     return (connect or DIALECTS[kind]['connect'])(config)
@@ -155,8 +171,10 @@ def probe(kind, settings, source=None):
             host, target = request_target(settings, source['path'])
         else:
             host, container, query = endpoint(settings)
-            target = '/' + container + '?restype=container&' + query
-        api(host, target, {'x-ms-version': '2023-11-03'}, 'HEAD')
+            # A container-properties HEAD can reject a service SAS that can list
+            # and read blobs. Probe the same bounded metadata operation used by discovery.
+            target = '/' + container + '?restype=container&comp=list&maxresults=1&' + query
+        api(host, target, {'x-ms-version': '2023-11-03'}, 'HEAD' if source else 'GET')
         return 'metadata'
     if kind in ('s3', 'gcs'):
         from object_store_reader import request
@@ -252,13 +270,36 @@ def github_metadata(action, settings, request):
     return entries, 'DECLARED_SCHEMA'
 
 
+def databases(kind, settings, request, connect=None):
+    # Connector-owned bounded catalogue only, never caller SQL or unrestricted rows.
+    if kind != 'sql-server':
+        raise AccessError('ACCESS_UNSUPPORTED')
+    limit = request.get('limit', 100)
+    if type(limit) is not int or not 1 <= limit <= 200:
+        raise AccessError('ACCESS_INPUT')
+    db = database_connection(kind, settings, connect)
+    try:
+        cursor = db.cursor()
+        cursor.execute(f"SELECT TOP ({limit}) name FROM sys.databases WHERE state=0 AND HAS_DBACCESS(name)=1 ORDER BY name")
+        rows = cursor.fetchmany(limit)
+        names = [r[0] for r in rows]
+        if any(not isinstance(n, str) or not 1 <= len(n) <= 128 for n in names):
+            raise AccessError('ACCESS_RESPONSE')
+        return names
+    finally:
+        db.close()
+
+
 def execute(request, connect=None):
     kind, action = request['connector'], request['action']
     response = {'apiVersion': 'ingestron.source-access-result/v1', 'action': action,
                 'status': 'succeeded', 'scope': 'metadata', 'tables': []}
     try:
         settings = secret(request['settings'])
-        if action == 'sample':
+        if action == 'databases':
+            response['databases'] = databases(kind, settings, request, connect)
+            response['scope'] = 'connection'
+        elif action == 'sample':
             from source_sample import sample
             response['sample'] = sample(kind, settings, request, connect)
             response['scope'] = 'data'
@@ -298,6 +339,7 @@ def execute(request, connect=None):
         response.update(status='unsupported' if code in ('ACCESS_UNSUPPORTED', 'SAMPLING_REQUIRED', 'SOURCE_PATH_REQUIRED') else 'failed', code=code, tables=[])
         response.pop('nextCursor', None)
         response.pop('sample', None)
+        response.pop('databases', None)
     return response
 
 

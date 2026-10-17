@@ -46,6 +46,21 @@ class SourceAccess(unittest.TestCase):
             self.assertTrue(db.closed)
             self.assertNotIn('synthetic-only', json.dumps(result))
 
+    def test_database_listing_is_bounded_permission_filtered_and_redacted(self):
+        db = Database()
+        db.c.fetchmany = lambda count: [('master',), ('retail',)][:count]
+        result = access.execute(self.request(action='databases', limit=2), connect=lambda *a, **k: db)
+        self.assertEqual(result['status'], 'succeeded', result)
+        self.assertEqual(result['databases'], ['master', 'retail'])
+        self.assertIn('TOP (2)', db.c.queries[0][0])
+        self.assertIn('HAS_DBACCESS(name)=1', db.c.queries[0][0])
+        self.assertTrue(db.closed)
+        bad = access.execute(self.request(action='databases', limit=201), connect=lambda *a, **k: db)
+        self.assertEqual(bad['status'], 'failed')
+        self.assertNotIn('databases', bad)
+        denied = access.execute(self.request(action='databases'), connect=lambda *a, **k: (_ for _ in ()).throw(ValueError('synthetic-only')))
+        self.assertNotIn('synthetic-only', json.dumps(denied))
+
     def test_sql_schema_reader_uses_only_system_metadata(self):
         db = Database()
         db.c.fetchall = lambda: [('OrderID', 'int', 10, 0, False, True), ('Amount', 'decimal', 18, 2, True, False)]
@@ -90,7 +105,7 @@ class SourceAccess(unittest.TestCase):
         with patch.object(access, 'api', return_value=b'{}') as send:
             self.assertEqual(access.probe('azure-blob', {'account':'retaildemo', 'container':'bronze', 'sas_token':sas}), 'metadata')
             self.assertEqual(send.call_args.args[0], 'retaildemo.blob.core.windows.net')
-            self.assertIn('restype=container', send.call_args.args[1]); self.assertEqual(send.call_args.args[3], 'HEAD')
+            self.assertIn('restype=container&comp=list&maxresults=1', send.call_args.args[1]); self.assertEqual(send.call_args.args[3], 'GET')
             access.probe('azure-blob', {'account':'retaildemo', 'container':'bronze', 'sas_token':sas}, {'path':'orders.parquet'})
             self.assertIn('/bronze/orders.parquet?', send.call_args.args[1]); self.assertEqual(send.call_args.args[3], 'HEAD')
             self.assertEqual(access.probe('stripe', {'api_key':'sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}), 'authentication')
@@ -164,3 +179,13 @@ class GitHubMetadata(unittest.TestCase):
         self.assertNotIn('record', json.dumps(result))
         result = access.execute({'connector': 'github', 'action': 'metadata', 'settings': {'authentication': 'anonymous', 'repositories': ['demo/repo']}, 'tables': [{'stream': 'repositories'}]})
         self.assertEqual(result['status'], 'failed')
+
+class SQLFailureCategories(unittest.TestCase):
+    def test_known_driver_failures_are_categorised_without_returning_private_text(self):
+        cases = {'28000 18456': 'SQL_AUTH', '42000 4060':'SQL_DATABASE', '40615':'SQL_FIREWALL', '40613':'SQL_UNAVAILABLE', 'HYT00':'SQL_TIMEOUT', '08001':'SQL_NETWORK', 'unknown':'SQL_CONNECT', 'TCP Provider: Error code 0x2AF9':'SQL_DNS', 'SSL Provider certificate verify failed':'SQL_TLS'}
+        for error, code in cases.items():
+            def fail(*a, **k): raise Exception(error + ' password=synthetic-private-value server=private-host')
+            with self.assertRaises(access.AccessError) as caught:
+                access.database_connection('sql-server', {'connection': {'server':'db.example.invalid','database':'retail','authentication':{'method':'sql-password','username':'reader','password':'synthetic'}}}, connect=fail)
+            self.assertEqual(caught.exception.code, code)
+            self.assertNotIn('synthetic-private-value', str(caught.exception))

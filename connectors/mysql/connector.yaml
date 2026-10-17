@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/mysql/runtime.json
-  sha256: 765a42b8d7fa7a084a2e4b320356a6342b5e970b0460d69c1fe4a019d0d6975f
+  sha256: f2942353bc4a7bdded758eedc9cbf4d0ae22873e5679794c7ddc33288f40ad03
   contract: ingestron.snapshot/python/v1
 quality:
   library:

@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/gcs/runtime.json
-  sha256: 22eda67cacdffc39c622fadbbc54adfa95f89f3d2fa9d132b79fff17d2a6a5f4
+  sha256: 77918a15b322fc94add58dd7f8fb871f637377ecbd268b9a744aa16e7d3e9884
   contract: ingestron.snapshot/python/v1
 quality:
   library:

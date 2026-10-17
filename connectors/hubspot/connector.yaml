@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/hubspot/runtime.json
-  sha256: a5bc71ecb24bbaefd3fa5291202f9a2ccb8eb833f7359b59a0941868915e6846
+  sha256: a692bb93b5e01052af0739c913d1d4e6c3b7e8fe2d65cbed9bab39c90a36395a
   contract: ingestron.snapshot/python/v1
 quality:
   library:

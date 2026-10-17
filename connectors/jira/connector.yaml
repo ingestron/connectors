@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/jira/runtime.json
-  sha256: 677178e330e4f0f321d14a8529daef52af60c3bd949c3ee18948135f28bb8566
+  sha256: afdb8a70d456197fce4ab51b61b298fea01520caca90c84b577fd61288bb07ed
   contract: ingestron.snapshot/python/v1
 quality:
   library:

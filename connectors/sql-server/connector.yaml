@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: sql-server
-version: 1.5.9
+version: 1.5.12
 description: Reviewed local snapshots from multiple SQL Server or Azure SQL tables
 connector: singer:sql-server@1.15.0
 documentation: https://github.com/ingestron/connectors/blob/main/docs/sql-server.md
@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/sql-server/runtime.json
-  sha256: 15ab8eadbb95629c51860b6d300b8623b25732e3e8f511767a66f1a87b963c70
+  sha256: 6abde048417673b391079641eee06bb0dfc8567d3fc996451896d038609ef532
   contract: ingestron.snapshot/python/v1
 quality:
   library:
@@ -207,6 +207,7 @@ sourceAccess:
   entryPoint: source_access.py
   actions:
     - test
+    - databases
     - sample
     - inventory
     - metadata

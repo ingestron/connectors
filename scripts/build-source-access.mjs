@@ -5,8 +5,8 @@ import { parse, stringify } from "yaml";
 import { format } from "prettier";
 import { selectionSchema } from "../src/connection-contract.mjs";
 const candidateVersions = {
-  "azure-blob": "2.1.10",
-  files: "1.5.13",
+  "azure-blob": "2.1.11",
+  files: "1.5.14",
   gcs: "0.1.10",
   github: "1.36.10",
   hubspot: "0.1.8",
@@ -19,7 +19,7 @@ const candidateVersions = {
   salesforce: "0.1.8",
   sftp: "1.0.11",
   sharepoint: "0.1.11",
-  "sql-server": "1.5.9",
+  "sql-server": "1.5.12",
   stripe: "0.1.8",
 };
 const jsonSchemaOptions = {
@@ -222,6 +222,7 @@ for (const id of readdirSync("connectors").filter((id) =>
     ...(remoteSchema ? { metadataOptionsSchema: jsonSchemaOptions } : {}),
     actions: [
       "test",
+      ...(id === "sql-server" ? ["databases"] : []),
       ...([
         "files",
         "azure-blob",

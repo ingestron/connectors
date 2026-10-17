@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: azure-blob
-version: 2.1.10
+version: 2.1.11
 description: Reviewed local snapshots from Azure Blob or ADLS Gen2 files
 connector: singer:azure-blob@23.0.1
 documentation: https://github.com/ingestron/connectors/blob/main/docs/azure-blob.md
@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/azure-blob/runtime.json
-  sha256: 3dcb205acb84266621a432cdc314ce869e8cac6c2ded36b0a6b8edbbc26b43ef
+  sha256: cd3e15e1c0e8bf73b2e8eb22ae844df6685661a09f39f1ce572ba28432ebb7ea
   contract: ingestron.snapshot/python/v1
 quality:
   library:

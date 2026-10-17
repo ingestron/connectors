@@ -2,9 +2,10 @@
 import csv
 import io
 import json
-from files_schema_sample import stable_file, require, data_sample as json_sample, MAX_BYTES
+from files_schema_sample import stable_file, require, prefix, MAX_BYTES
 from source_access import AccessError, object_entry
-from source_sample import cell
+from source_sample import cell, MAX_CELL
+from decimal import Decimal
 
 MAX_HEADER = 65536
 MAX_UNCOMPRESSED = 8 * 1024 * 1024
@@ -102,6 +103,59 @@ def metadata(source):
         else:
             raise AccessError('SAMPLING_REQUIRED')
     return object_entry(source, path.name, 'file', columns)
+
+
+def document_tokens(value, depth=0):
+    """JSON text keeps nested decimal and large integer tokens exact."""
+    require(depth <= 32, 'SAMPLE_VALUE')
+    if isinstance(value, dict):
+        yield '{'
+        for index, (key, item) in enumerate(value.items()):
+            if index: yield ','
+            yield json.dumps(key, ensure_ascii=False) + ':'
+            yield from document_tokens(item, depth + 1)
+        yield '}'
+    elif isinstance(value, list):
+        yield '['
+        for index, item in enumerate(value):
+            if index: yield ','
+            yield from document_tokens(item, depth + 1)
+        yield ']'
+    elif isinstance(value, Decimal):
+        require(value.is_finite(), 'SAMPLE_VALUE')
+        yield str(value)
+    else:
+        yield json.dumps(value, ensure_ascii=False, allow_nan=False)
+
+
+def document_cell(value):
+    if not isinstance(value, (dict, list)):
+        return cell(value), False
+    text = ''
+    for token in document_tokens(value):
+        text += token
+        if len(text.encode('utf-16-le')) > MAX_CELL * 2:
+            suffix = '… (truncated)'
+            return text.encode('utf-16-le')[:(MAX_CELL-len(suffix))*2].decode('utf-16-le', errors='ignore') + suffix, True
+    return text, False
+
+
+def json_sample(request):
+    # The shared prefix reader enforces file identity, byte, row and field bounds.
+    _, records, more = prefix(request['source'], request.get('limit', 20), max_fields=500)
+    names = list(records[0]); names_valid(names)
+    chosen = selection(names, request.get('columns'))
+    rows = []
+    for record in records:
+        row = []
+        for name in chosen:
+            value, shortened = document_cell(record[name])
+            row.append(value); more = more or shortened
+        rows.append(row)
+    result = {'columns': chosen, 'rows': rows, 'truncated': more}
+    while len(json.dumps(result).encode()) > 500_000 and result['rows']:
+        result['rows'].pop(); result['truncated'] = True
+    return result
 
 
 def sample(request):

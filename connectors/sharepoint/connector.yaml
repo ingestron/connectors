@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/sharepoint/runtime.json
-  sha256: 4b71b7dc8c0c55a2209c50ad8af850c57167e2ff804ad3a5277dbbb05f408fe0
+  sha256: d0ad215a92657f8d51641237eb0f479d9aca5d555ebcd689fda9c75c26575644
   contract: ingestron.snapshot/python/v1
 quality:
   library:

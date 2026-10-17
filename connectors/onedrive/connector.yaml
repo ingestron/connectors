@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/onedrive/runtime.json
-  sha256: f320db2e9738f3173435753802fa36199b6bd87526e20c1613d77880f6fec59c
+  sha256: f0c9393625f578e41cd66836cec3ee2b00e55d17c5ae49d8ce8438bf8dae8419
   contract: ingestron.snapshot/python/v1
 quality:
   library:

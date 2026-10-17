@@ -256,3 +256,24 @@ retry. The matching Studio script is
 owner's `scripts/remote-json-schema-acceptance.py`. Both use synthetic data,
 a fresh loopback SFTP server and fenced cloud/Graph protocol fixtures. Live
 vendor qualification remains a separate check.
+
+## Azure Blob connection probe — 2026-10-11
+
+Azure Blob 2.1.11 checks a container connection with a one-item blob listing.
+A container-properties HEAD can reject a service SAS that successfully lists and
+reads the demo files. Explicit file probes still use HEAD. The existing read/list
+SAS and cloud configuration are unchanged. The source-access regression asserts
+both request shapes; live Studio acceptance of the existing retail demo verifies
+discovery and a three-row CSV ingestion. This is bounded demo evidence, not general
+Azure deployment qualification.
+
+## Local document previews — private candidate 1.5.14
+
+Files 1.5.14 returns nested JSON/JSONL objects and arrays as JSON text in the
+existing scalar-cell preview contract. The explicit sample action retains its
+row, column, byte and stable-file checks. Decimal and large integer tokens inside
+documents remain exact. A nested cell exceeding 500 UTF-16 units ends with
+`… (truncated)` and marks the sample as limited. This changes previews only;
+metadata sampling and scalar-only remote-source behaviour are unchanged.
+No record values are retained in access receipts. The candidate is locally tested
+and installed in the synthetic Studio2 review project; it is not a public release.

@@ -25,6 +25,31 @@ class FilesDataFormats(unittest.TestCase):
         return access.execute({'connector':'files','action':'sample','settings':{},'source':source,'limit':2,**values})
     def metadata(self,source,**values):
         return access.execute({'connector':'files','action':'metadata','settings':{},'tables':[source],**values})
+    def test_json_documents_preview_nested_values_with_exact_numbers(self):
+        for fmt, text in [('json', '[{"id":1,"details":{"number":12345678901234567890,"amount":1.2300},"items":[true,null]}]'),
+                          ('jsonl', '{"id":1,"details":{"number":12345678901234567890,"amount":1.2300},"items":[true,null]}\n')]:
+            _, source = self.source(fmt, text)
+            result = self.preview(source)
+            self.assertEqual(result['status'], 'succeeded', result)
+            self.assertEqual(result['sample']['columns'], ['id', 'details', 'items'])
+            row = result['sample']['rows'][0]
+            self.assertIn('12345678901234567890', row[1])
+            self.assertIn('1.2300', row[1])
+            self.assertEqual(json.loads(row[2]), [True, None])
+            self.assertFalse(result['sample']['truncated'])
+
+    def test_json_document_preview_bounds_nested_cells_and_marks_truncation(self):
+        _, source = self.source('json', json.dumps([{'details': {'text': '😀' * 600}, 'id': 1}]))
+        result = self.preview(source)
+        self.assertEqual(result['status'], 'succeeded', result)
+        value = result['sample']['rows'][0][0]
+        self.assertLessEqual(len(value.encode('utf-16-le')), 1000)
+        self.assertTrue(value.endswith('… (truncated)'))
+        self.assertTrue(result['sample']['truncated'])
+        selected = self.preview(source, columns=['id'])
+        self.assertEqual(selected['sample']['rows'], [[1]])
+        self.assertFalse(selected['sample']['truncated'])
+
     def test_delimited_samples_preserve_quoted_newlines_order_nulls_and_truncation(self):
         for fmt,delimiter in [('csv',','),('tsv','\t')]:
             _,source=self.source(fmt,'id'+delimiter+'label\n1'+delimiter+'"first\nline"\n2'+delimiter+'\n3'+delimiter+'third\n')

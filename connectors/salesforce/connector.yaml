@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/salesforce/runtime.json
-  sha256: 1550edacf70879e85e43405a77381d233ae04012da68b06afa6da107716f2cc2
+  sha256: 151886d5e51c2e64c8f2548463e96439a755855614f645c5caf5c078a9b3f604
   contract: ingestron.snapshot/python/v1
 quality:
   library:

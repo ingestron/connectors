@@ -161,11 +161,14 @@ class FilesDataSample(unittest.TestCase):
         self.assertEqual(result['sample']['rows'][0][1],1)
         self.assertFalse(result['sample']['truncated'])
         self.assertNotIn('PRIVATE_NESTED',json.dumps(result))
-        for columns in (['nested'],['missing'],None):
+        for columns in (['nested'], None):
             result=self.preview(source,columns=columns)
-            self.assertEqual(result['status'],'failed')
-            self.assertNotIn('sample',result)
-            self.assertNotIn('PRIVATE_NESTED',json.dumps(result))
+            self.assertEqual(result['status'],'succeeded',result)
+            self.assertIn('PRIVATE_NESTED',json.dumps(result['sample']))
+        result=self.preview(source,columns=['missing'])
+        self.assertEqual(result['status'],'failed')
+        self.assertNotIn('sample',result)
+        self.assertNotIn('PRIVATE_NESTED',json.dumps(result))
 
     def test_malformed_prefix_and_byte_bound_return_no_partial_business_rows(self):
         for fmt,text in [('jsonl','{"id":1}\nPRIVATE_MALFORMED'),
