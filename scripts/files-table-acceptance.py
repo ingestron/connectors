@@ -109,6 +109,12 @@ with tempfile.TemporaryDirectory(prefix='files-candidate-') as temporary:
             target = origin / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
+    if not PUBLIC:
+        # The pinned public CLI predates the source-access manifest field.
+        fixture_manifest = origin / 'connectors/files/connector.yaml'
+        fixture_source = yaml.safe_load(fixture_manifest.read_text())
+        fixture_source.pop('sourceAccess', None)
+        fixture_manifest.write_text(yaml.safe_dump(fixture_source, sort_keys=False))
     for args in [['git', 'init', '-q'], ['git', 'add', '.'],
                  ['git', '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
                   'commit', '-qm', 'fixture'], ['git', 'tag', f'files-{FILES_VERSION}']]:
