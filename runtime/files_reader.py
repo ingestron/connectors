@@ -1,6 +1,8 @@
 """Explicit local file access and flat format readers; no network or path discovery."""
 from pathlib import Path
 from decimal import Decimal
+from datetime import date, datetime
+from temporal_types import temporal_value, TemporalError
 import csv
 import json
 import math
@@ -13,7 +15,7 @@ import pyarrow.parquet as pq
 MAX_BYTES = 64 * 1024 * 1024
 MAX_ROWS = 1_000_000
 NAME = re.compile(r'[A-Za-z_][A-Za-z0-9_]*\Z')
-KINDS = {'string','integer','decimal','number','boolean'}
+KINDS = {'string','integer','decimal','number','boolean','date','timestamp'}
 
 def require(value, message):
     if not value: raise ValueError(message)
@@ -34,6 +36,8 @@ def parser_kind(native_type):
     if kind.startswith('DECIMAL('): return 'decimal'
     if kind in ('DOUBLE', 'FLOAT'): return 'number'
     if kind == 'BOOLEAN': return 'boolean'
+    if kind == 'DATE': return 'date'
+    if kind == 'TIMESTAMP': return 'timestamp'
     raise ValueError('File input does not support the contracted column type')
 
 def unique_object(pairs):
@@ -54,7 +58,11 @@ def arrow_kind(t):
     if pa.types.is_boolean(t): return 'boolean'
     if pa.types.is_string(t) or pa.types.is_large_string(t): return 'string'
     if pa.types.is_null(t): return 'string'
-    raise ValueError('Unsupported Parquet type; nested, binary and temporal fields need an explicit future mapping')
+    if pa.types.is_date(t): return 'date'
+    if pa.types.is_timestamp(t) and t.tz is None and t.unit in ('s', 'ms', 'us'): return 'timestamp'
+    if pa.types.is_timestamp(t):
+        raise TemporalError('TEMPORAL_TIMEZONE' if t.tz is not None else 'TEMPORAL_PRECISION')
+    raise ValueError('Unsupported Parquet type; nested or binary fields need an explicit future mapping')
 
 def raw_rows(handle, fmt):
     if fmt in ('csv','tsv'):
@@ -89,6 +97,8 @@ def raw_rows(handle, fmt):
 
 def kind(value):
     if value is None: return None
+    if type(value) is datetime: return 'timestamp'
+    if type(value) is date: return 'date'
     if isinstance(value,bool): return 'boolean'
     if isinstance(value,int): return 'integer'
     if isinstance(value,Decimal): return 'decimal'
@@ -100,6 +110,7 @@ def kind(value):
 
 def convert(value, target):
     if value is None: return None
+    if target in ('date', 'timestamp'): return temporal_value(value, target).isoformat()
     original = kind(value)
     if target == original: return value
     if target == 'integer' and isinstance(value,str) and re.fullmatch(r'-?(0|[1-9][0-9]*)',value): return int(value)
@@ -140,6 +151,8 @@ def scan(settings, emit=None):
                 elif observed is not None:
                     require(prior is None or prior == observed, 'Mixed column types; declare a supported type explicitly')
                     inferred[name]=observed
+                if value is not None and observed in ('date', 'timestamp'):
+                    value = temporal_value(value, observed).isoformat()
                 values[name]=value
             if emit: emit(values)
         expected = expected if expected is not None else set(overrides)
@@ -147,5 +160,5 @@ def scan(settings, emit=None):
         require(set(overrides) <= expected, 'Declared type refers to an absent field')
         after = path.stat()
         require((before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns,before.st_ctime_ns) == (after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns,after.st_ctime_ns), 'Input changed during read')
-    mapping = {'string':'string','integer':'integer','boolean':'boolean','number':'number','decimal':'number'}
-    return {'type':'object','properties':{name:{'type':['null',mapping[overrides.get(name) or inferred.get(name) or 'string']]} for name in sorted(expected)},'additionalProperties':False}, count
+    mapping = {'string':'string','integer':'integer','boolean':'boolean','number':'number','decimal':'number','date':'string','timestamp':'string'}
+    return {'type':'object','properties':{name:{'type':['null',mapping[overrides.get(name) or inferred.get(name) or 'string']], **({'format':'date'} if (overrides.get(name) or inferred.get(name)) == 'date' else {})} for name in sorted(expected)},'additionalProperties':False}, count

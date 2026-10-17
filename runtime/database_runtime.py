@@ -5,6 +5,8 @@ from dbapi_reader import DIALECTS, DatabaseSourceError, catalogue, connection_se
 
 class Database(kit.TableConnector):
     table_keys = frozenset({'schema', 'table'})
+    optional_keys = frozenset({'incremental'})
+    supports_incremental = True
 
     def __init__(self, dialect, connect=None):
         self.dialect = dialect
@@ -25,7 +27,8 @@ class Database(kit.TableConnector):
 
     def table(self, source, columns):
         return {'schema': source['schema'], 'table': source['table'],
-                'columns': [column['name'] for column in columns]}
+                'columns': [column['name'] for column in columns],
+                **({'incremental': source['incremental']} if 'incremental' in source else {})}
 
     def scan(self, settings, table, emit=None):
         try:

@@ -1,0 +1,8 @@
+{
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /not permitted|trust/i. Input:\n\n'Error: Operations are unavailable in a read-only host'\n\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-denials-v1.mjs:14:2",
+  "root": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/fixtures/unicode-project-identity-wide-hUyQqj",
+  "checks": [],
+  "preservedOutputFiles": 11,
+  "scope": "Actual frozen shared host and exact installed Core/CLI; synthetic local project; denial before job creation; no browser/vendor qualification"
+}

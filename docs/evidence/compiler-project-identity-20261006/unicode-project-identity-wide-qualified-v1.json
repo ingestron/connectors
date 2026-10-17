@@ -1,0 +1,164 @@
+{
+  "status": "passed",
+  "candidate": {
+    "cli": "0.17.21",
+    "core": "0.12.51"
+  },
+  "root": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/fixtures/unicode-project-identity-wide-hUyQqj",
+  "tables": 10,
+  "columnsPerTable": 200,
+  "staticUi": {
+    "rows": 2000,
+    "pagesPerTable": 8,
+    "totalPages": 80,
+    "allAliasesExact": true,
+    "noEditableControls": true
+  },
+  "resolveBytes": 391693,
+  "discoveryBytes": 353904,
+  "physical": [
+    {
+      "stream": "table_000",
+      "path": "build/studio/dev/flow_files/data/flow_files/66514f8cd69b3009e1b92eda59dafda9e099e915b01fdebf98c5673b85e7f1fd/992a1625-c749-4398-82cc-1765c0ad8152/table_000.parquet",
+      "sha256": "a9cc0e24bf5d2f4eae13a010d6bf2cb8ef7f93c2c91b68397863a50db4456c14",
+      "columns": 200,
+      "rows": 3
+    },
+    {
+      "stream": "table_001",
+      "path": "build/studio/dev/flow_files/data/flow_files/66514f8cd69b3009e1b92eda59dafda9e099e915b01fdebf98c5673b85e7f1fd/992a1625-c749-4398-82cc-1765c0ad8152/table_001.parquet",
+      "sha256": "a9cc0e24bf5d2f4eae13a010d6bf2cb8ef7f93c2c91b68397863a50db4456c14",
+      "columns": 200,
+      "rows": 3
+    },
+    {
+      "stream": "table_002",
+      "path": "build/studio/dev/flow_files/data/flow_files/66514f8cd69b3009e1b92eda59dafda9e099e915b01fdebf98c5673b85e7f1fd/992a1625-c749-4398-82cc-1765c0ad8152/table_002.parquet",
+      "sha256": "a9cc0e24bf5d2f4eae13a010d6bf2cb8ef7f93c2c91b68397863a50db4456c14",
+      "columns": 200,
+      "rows": 3
+    },
+    {
+      "stream": "table_003",
+      "path": "build/studio/dev/flow_files/data/flow_files/66514f8cd69b3009e1b92eda59dafda9e099e915b01fdebf98c5673b85e7f1fd/992a1625-c749-4398-82cc-1765c0ad8152/table_003.parquet",
+      "sha256": "a9cc0e24bf5d2f4eae13a010d6bf2cb8ef7f93c2c91b68397863a50db4456c14",
+      "columns": 200,
+      "rows": 3
+    },
+    {
+      "stream": "table_004",
+      "path": "build/studio/dev/flow_files/data/flow_files/66514f8cd69b3009e1b92eda59dafda9e099e915b01fdebf98c5673b85e7f1fd/992a1625-c749-4398-82cc-1765c0ad8152/table_004.parquet",
+      "sha256": "a9cc0e24bf5d2f4eae13a010d6bf2cb8ef7f93c2c91b68397863a50db4456c14",
+      "columns": 200,
+      "rows": 3
+    },
+    {
+      "stream": "table_005",
+      "path": "build/studio/dev/flow_files/data/flow_files/66514f8cd69b3009e1b92eda59dafda9e099e915b01fdebf98c5673b85e7f1fd/992a1625-c749-4398-82cc-1765c0ad8152/table_005.parquet",
+      "sha256": "a9cc0e24bf5d2f4eae13a010d6bf2cb8ef7f93c2c91b68397863a50db4456c14",
+      "columns": 200,
+      "rows": 3
+    },
+    {
+      "stream": "table_006",
+      "path": "build/studio/dev/flow_files/data/flow_files/66514f8cd69b3009e1b92eda59dafda9e099e915b01fdebf98c5673b85e7f1fd/992a1625-c749-4398-82cc-1765c0ad8152/table_006.parquet",
+      "sha256": "a9cc0e24bf5d2f4eae13a010d6bf2cb8ef7f93c2c91b68397863a50db4456c14",
+      "columns": 200,
+      "rows": 3
+    },
+    {
+      "stream": "table_007",
+      "path": "build/studio/dev/flow_files/data/flow_files/66514f8cd69b3009e1b92eda59dafda9e099e915b01fdebf98c5673b85e7f1fd/992a1625-c749-4398-82cc-1765c0ad8152/table_007.parquet",
+      "sha256": "a9cc0e24bf5d2f4eae13a010d6bf2cb8ef7f93c2c91b68397863a50db4456c14",
+      "columns": 200,
+      "rows": 3
+    },
+    {
+      "stream": "table_008",
+      "path": "build/studio/dev/flow_files/data/flow_files/66514f8cd69b3009e1b92eda59dafda9e099e915b01fdebf98c5673b85e7f1fd/992a1625-c749-4398-82cc-1765c0ad8152/table_008.parquet",
+      "sha256": "a9cc0e24bf5d2f4eae13a010d6bf2cb8ef7f93c2c91b68397863a50db4456c14",
+      "columns": 200,
+      "rows": 3
+    },
+    {
+      "stream": "table_009",
+      "path": "build/studio/dev/flow_files/data/flow_files/66514f8cd69b3009e1b92eda59dafda9e099e915b01fdebf98c5673b85e7f1fd/992a1625-c749-4398-82cc-1765c0ad8152/table_009.parquet",
+      "sha256": "a9cc0e24bf5d2f4eae13a010d6bf2cb8ef7f93c2c91b68397863a50db4456c14",
+      "columns": 200,
+      "rows": 3
+    }
+  ],
+  "previews": [
+    {
+      "stream": "table_000",
+      "totalRows": 3,
+      "totalColumns": 200,
+      "displayedColumns": 50
+    },
+    {
+      "stream": "table_001",
+      "totalRows": 3,
+      "totalColumns": 200,
+      "displayedColumns": 50
+    },
+    {
+      "stream": "table_002",
+      "totalRows": 3,
+      "totalColumns": 200,
+      "displayedColumns": 50
+    },
+    {
+      "stream": "table_003",
+      "totalRows": 3,
+      "totalColumns": 200,
+      "displayedColumns": 50
+    },
+    {
+      "stream": "table_004",
+      "totalRows": 3,
+      "totalColumns": 200,
+      "displayedColumns": 50
+    },
+    {
+      "stream": "table_005",
+      "totalRows": 3,
+      "totalColumns": 200,
+      "displayedColumns": 50
+    },
+    {
+      "stream": "table_006",
+      "totalRows": 3,
+      "totalColumns": 200,
+      "displayedColumns": 50
+    },
+    {
+      "stream": "table_007",
+      "totalRows": 3,
+      "totalColumns": 200,
+      "displayedColumns": 50
+    },
+    {
+      "stream": "table_008",
+      "totalRows": 3,
+      "totalColumns": 200,
+      "displayedColumns": 50
+    },
+    {
+      "stream": "table_009",
+      "totalRows": 3,
+      "totalColumns": 200,
+      "displayedColumns": 50
+    }
+  ],
+  "checks": [
+    "All ten table contracts resolve to the exact reviewed two-hundred-column model",
+    "Two thousand exact source-to-business aliases agree across compiler/host/defaults and 80 static pages of actual mapping rows",
+    "Exact approval produces ten real committed outputs, thirty measured rows and two hundred renamed columns in every bounded preview",
+    "Ten physical Parquet hashes and full two-hundred-column schemas contain thirty measured rows",
+    "Current SDK evidence and ten accurate bounded previews report fifty of two hundred columns"
+  ],
+  "limitations": [
+    "Output previews intentionally show the first fifty columns and report totalColumns",
+    "Static mapping views do not establish mounted, keyboard or narrow-layout usability"
+  ]
+}

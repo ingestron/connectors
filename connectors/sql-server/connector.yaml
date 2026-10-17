@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: sql-server
-version: 1.5.0
+version: 1.5.12
 description: Reviewed local snapshots from multiple SQL Server or Azure SQL tables
 connector: singer:sql-server@1.15.0
 documentation: https://github.com/ingestron/connectors/blob/main/docs/sql-server.md
@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/sql-server/runtime.json
-  sha256: df9575e4e62fea46bcbca253aff15d2e46be53bd4421a2ed6311233300c7f88b
+  sha256: 6abde048417673b391079641eee06bb0dfc8567d3fc996451896d038609ef532
   contract: ingestron.snapshot/python/v1
 quality:
   library:
@@ -92,7 +92,7 @@ definition:
                       $secret:
                         type: object
                         properties:
-                          env: &a3
+                          env:
                             type: string
                             minLength: 1
                         required:
@@ -151,7 +151,9 @@ definition:
     additionalProperties:
       type: object
       properties:
-        name: *a3
+        name:
+          type: string
+          minLength: 1
         fields:
           type: object
           additionalProperties:
@@ -166,6 +168,8 @@ definition:
                   - number
                   - decimal
                   - json
+                  - date
+                  - timestamp
               nullable:
                 type: boolean
               target:
@@ -198,3 +202,12 @@ execution:
       - local
     evidence: Bounded read-only table snapshot; SQL password live Northwind
       qualification and synthetic authentication/negative-path checks
+sourceAccess:
+  apiVersion: ingestron.source-access/v1
+  entryPoint: source_access.py
+  actions:
+    - test
+    - databases
+    - sample
+    - inventory
+    - metadata

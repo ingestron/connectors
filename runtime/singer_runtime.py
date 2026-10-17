@@ -12,8 +12,10 @@ import sys
 import tempfile
 import threading
 from decimal import Decimal
-from singer_bridge import canonical, digest, file_digest, safe_name, arrow_type, snapshot
+from singer_bridge import canonical, digest, project_specification_digest, file_digest, safe_name, arrow_type, snapshot, CheckpointError, preview_checkpoint_migration, apply_checkpoint_migration
 from quality_rules import QualityFailed
+from temporal_types import TemporalError, MESSAGES as TEMPORAL_MESSAGES
+from metadata_documents import read_documents, MetadataDocumentLimit, MetadataCollectionLimit
 
 VERSION = '0.4.0'
 
@@ -41,24 +43,73 @@ def check(condition, message):
         raise ValueError(message)
 
 
+DOCUMENT_LIMIT = 2_000_000
+METADATA_LIMIT_MESSAGE = 'This flow exceeds the 2 MB metadata limit. Split tables into smaller flows or select fewer fields, then prepare again.'
+
+
+class MetadataLimit(ValueError):
+    code = 'SOURCE_METADATA_LIMIT'
+
+    def __init__(self):
+        super().__init__(METADATA_LIMIT_MESSAGE)
+
+
+def document_text(path):
+    path = Path(path)
+    if path.stat().st_size > DOCUMENT_LIMIT:
+        raise MetadataLimit()
+    # The bounded read also refuses a file that grew after its size was checked.
+    with path.open('rb') as source:
+        value = source.read(DOCUMENT_LIMIT + 1)
+    if len(value) > DOCUMENT_LIMIT:
+        raise MetadataLimit()
+    return value.decode('utf8')
+
+
 def load(path):
-    check(Path(path).stat().st_size <= 2_000_000, 'Configuration/catalogue exceeds 2 MB')
-    return json.loads(Path(path).read_text())
+    return json.loads(document_text(path))
+
+
+def encoded_document(value):
+    text = canonical(value) + '\n'
+    # Approval changes 'draft' to 'approved'; reserve its three extra bytes.
+    reserve = 3 if value.get('status') == 'draft' else 0
+    if len(text.encode('utf8')) + reserve > DOCUMENT_LIMIT:
+        raise MetadataLimit()
+    return text
 
 
 def field_from_column(type_name, required):
     type_name = str(type_name).upper()
-    types = {'STRING':'string','BIGINT':'integer','INT':'integer','INTEGER':'integer','SMALLINT':'integer','DOUBLE':'number','FLOAT':'number','BOOLEAN':'boolean'}
+    types = {'STRING':'string','BIGINT':'integer','INT':'integer','INTEGER':'integer','SMALLINT':'integer','DOUBLE':'number','FLOAT':'number','BOOLEAN':'boolean','DATE':'date','TIMESTAMP':'timestamp'}
     decimal = re.fullmatch(r'DECIMAL\((\d+),\s*(\d+)\)', type_name)
     check(type_name in types or decimal, 'Unsupported ODCS projection type')
     if decimal: return {'type':'decimal','precision':int(decimal[1]),'scale':int(decimal[2]),'nullable':not required}
     return {'type':types[type_name],'nullable':not required}
 
 
-def project_selection(project):
-    if 'tables' not in project: return project['selection']
+def project_tables(project, folder=None):
+    """Read explicit table documents without changing legacy project locks."""
+    check(not ('tables' in project and 'tableDocuments' in project), 'Ambiguous project table representation')
+    if 'tableDocuments' not in project:
+        return project.get('tables', {})
+    check(folder is not None, 'Indexed project tables require their owned bundle directory')
+    tables = dict(read_documents(Path(folder), project['tableDocuments'], 'project'))
+    for table in tables.values():
+        check(isinstance(table, dict) and set(table) <= {'source', 'contract', 'columns'}
+              and isinstance(table.get('source'), dict)
+              and isinstance(table['source'].get('stream'), str)
+              and isinstance(table.get('columns'), list) and len(table['columns']) <= 500,
+              'Invalid indexed project table')
+        check(('contract' in table and isinstance(table['contract'], dict) and table['columns'])
+              or ('contract' not in table and not table['columns']), 'Invalid indexed project contract')
+    return tables
+
+
+def project_selection(project, folder=None):
+    if 'tables' not in project and 'tableDocuments' not in project: return project['selection']
     selected = {}
-    for name, table in project['tables'].items():
+    for name, table in project_tables(project, folder).items():
         # Discovery-only tables (no contract yet) select nothing, as in the provider.
         if not table['columns'] and 'contract' not in table: continue
         fields = {}
@@ -71,9 +122,9 @@ def project_selection(project):
     return selected
 
 
-def project_contracts(project):
-    if 'tables' not in project: return None
-    return {name:table['contract'] for name,table in project['tables'].items() if 'contract' in table}
+def project_contracts(project, folder=None):
+    if 'tables' not in project and 'tableDocuments' not in project: return None
+    return {name:table['contract'] for name,table in project_tables(project, folder).items() if 'contract' in table}
 
 
 def runtime_identity(config, folder):
@@ -106,12 +157,13 @@ def runtime_identity(config, folder):
         project = dict(config['projectLock'])
         check(project.get('runtimeContract') == 'ingestron.snapshot/python/v1', 'Unsupported project runtime contract')
         expected = project.pop('specificationSha256')
-        check(digest(project) == expected, 'Project specification hash mismatch')
-        check(load(folder / 'project-connection.lock.json') == config['projectLock'], 'Project lock changed')
+        project_text = document_text(folder / 'project-connection.lock.json')
+        check(project_specification_digest(project_text) == expected, 'Project specification hash mismatch')
+        check(json.loads(project_text) == config['projectLock'], 'Project lock changed')
         check(config['sourceSettings'] == project['settings'], 'Connection settings differ from project lock')
         check(config['connector'] == project['connector'].split(':',1)[-1] and config['sourceId'] == project['sourceId'] and config['tenantId'] == project['tenantId'] and config['timeoutSeconds'] == project['timeoutSeconds'], 'Runtime differs from project lock')
-        check(load(folder / 'selection.json') == project_selection(project), 'Selection differs from project lock')
-        check(project['execution'] == {'mode': 'local'}, 'Only local execution is supported')
+        check(load(folder / 'selection.json') == project_selection(project, folder), 'Selection differs from project lock')
+        check(project['execution'] in ({'mode': 'local'}, {'mode': 'local', 'ingestion': 'incremental'}), 'Only local snapshot or incremental append execution is supported')
         project_identity = {'projectSpecSha256': expected}
     return {**project_identity, 'bridgeVersion': VERSION, 'connector': config['connector'], 'licence': licence,
             'sourceId': config['sourceId'], 'tenantId': config['tenantId'],
@@ -186,7 +238,7 @@ def resolve_secrets(value):
     return result
 
 
-def source_config(config):
+def source_config(config, checkpoint=None, folder=None):
     if 'sourceSettings' in config:
         value = resolve_secrets(config['sourceSettings'])
     else:
@@ -213,7 +265,7 @@ def source_config(config):
 def discover(config, folder):
     identity = runtime_identity(config, folder)
     executable = Path(sys.executable).parent / CONNECTORS[config['connector']][2]
-    catalog = read_catalog(executable, source_config(config), config['timeoutSeconds'], protocol_for(config))
+    catalog = read_catalog(executable, source_config(config, folder=folder), config['timeoutSeconds'], protocol_for(config))
     return {'apiVersion':'ingestron.singer-discovery/v1','identity':identity,'catalog':catalog,'applied':False}
 
 
@@ -232,10 +284,10 @@ def catalogue(config, folder):
     """
     identity = runtime_identity(config, folder)
     executable = Path(sys.executable).parent / CONNECTORS[config['connector']][2]
-    catalog = read_catalog(executable, source_config(config), config['timeoutSeconds'], protocol_for(config))
+    catalog = read_catalog(executable, source_config(config, folder=folder), config['timeoutSeconds'], protocol_for(config))
     streams = {s['tap_stream_id']: s for s in catalog['streams']}
     tables = {}
-    for name, table in config.get('projectLock', {}).get('tables', {}).items():
+    for name, table in project_tables(config.get('projectLock', {}), folder).items():
         stream = streams.get(table['source'].get('stream'))
         check(stream is not None, 'Selected stream absent from discovery')
         properties = stream['schema'].get('properties', {})
@@ -289,12 +341,16 @@ def review(discovery, selection, authored_contracts=None):
             check(type(shape.get('nullable')) is bool, 'Explicit nullable boolean required')
             arrow_type(shape)
             kind = shape['type']
+            if kind in ('date', 'timestamp'):
+                source_types = properties[field].get('type', 'string')
+                source_types = source_types if isinstance(source_types, list) else [source_types]
+                check(set(source_types) - {'null'} == {'string'}, 'Temporal projection requires a source string representation')
             if kind == 'decimal':
                 check(type(shape.get('precision')) is int and type(shape.get('scale')) is int and 1 <= shape['precision'] <= 38 and 0 <= shape['scale'] <= shape['precision'], 'Invalid decimal precision/scale')
                 physical = f"DECIMAL({shape['precision']},{shape['scale']})"
             else:
                 check('precision' not in shape and 'scale' not in shape, 'Precision/scale apply only to decimal')
-                physical = {'string':'STRING','integer':'BIGINT','boolean':'BOOLEAN','number':'DOUBLE','json':'STRING'}[kind]
+                physical = {'string':'STRING','integer':'BIGINT','boolean':'BOOLEAN','number':'DOUBLE','json':'STRING','date':'DATE','timestamp':'TIMESTAMP'}[kind]
             odcs.append({'name':target, **({'physicalName':field} if target != field else {}), 'logicalType': {'json':'string','decimal':'number'}.get(kind,kind),
                          'physicalType':physical,'required':not shape['nullable'],
                          'description':'Canonical structured JSON; missing and null collapse.' if kind == 'json' else 'Explicit reviewed source projection; no business key inferred.'})
@@ -331,15 +387,75 @@ def review(discovery, selection, authored_contracts=None):
             check(actual == expected, 'ODCS fields differ from extraction projection')
         contracts = authored_contracts
     return {'apiVersion':'ingestron.singer-review/v1','status':'draft','identity':discovery['identity'],
-            'catalog':catalog,'projection':tables,'contracts':contracts,'selection':selection, **({'authoredContracts':authored_contracts} if authored_contracts is not None else {})}
+            'catalog':catalog,'projection':tables,'contracts':contracts,'selection':selection, **({'contractSource':'project'} if authored_contracts is not None else {})}
 
 
 def accepted(bundle, identity):
     check(bundle.get('status') == 'approved' and bundle.get('apiVersion') == 'ingestron.singer-review/v1', 'Review bundle must be explicitly approved')
     check(bundle['identity'] == identity, 'Discovery runtime/source identity differs')
-    rebuilt = review({'apiVersion':'ingestron.singer-discovery/v1','identity':identity,'catalog':bundle['catalog']}, bundle['selection'], bundle.get('authoredContracts'))
+    check(bundle.get('contractSource') in (None, 'project'), 'Unsupported contract source')
+    check(not ('contractSource' in bundle and 'authoredContracts' in bundle), 'Ambiguous authored contract source')
+    # Older reviewed bundles embed a second copy. Keep reading them unchanged.
+    authored = bundle['contracts'] if bundle.get('contractSource') == 'project' else bundle.get('authoredContracts')
+    rebuilt = review({'apiVersion':'ingestron.singer-discovery/v1','identity':identity,'catalog':bundle['catalog']}, bundle['selection'], authored)
     check(rebuilt['projection'] == bundle['projection'] and rebuilt['contracts'] == bundle['contracts'] and rebuilt['catalog'] == bundle['catalog'], 'Review artefacts disagree; regenerate from selection')
     return bundle['projection']
+
+
+def checkpoint_namespace(config):
+    project = config.get('projectLock', {})
+    incremental = project.get('execution', {}).get('ingestion') == 'incremental'
+    return digest({'source': config['sourceId'], 'tenant': config['tenantId'],
+                   **({'project': project['project'], 'environment': project['environment'],
+                       'flow': project['flow'], 'connection': project['connection'],
+                       'ingestion': 'incremental'} if incremental else {})})
+
+
+def checkpoint_upgrade_policy(config):
+    project = dict(config.get('projectLock', {}))
+    check(project.get('execution') == {'mode': 'local', 'ingestion': 'incremental'},
+          'Checkpoint migration requires a locked incremental flow')
+    for field in ('executionPackage', 'sourcePackage', 'runtimeAssetSha256', 'specificationSha256'):
+        project.pop(field, None)
+    return digest({'connector': config['connector'], 'sourceId': config['sourceId'],
+                   'tenantId': config['tenantId'], 'settings': config.get('sourceSettings'), 'project': project})
+
+
+def checkpoint_upgrade(config, folder, previous_config, previous_folder, output, expected_digest=None):
+    """Source-owned maintenance; never resolve credentials, discover or read source rows."""
+    before_policy, after_policy = checkpoint_upgrade_policy(previous_config), checkpoint_upgrade_policy(config)
+    check(before_policy == after_policy, 'Extraction policy changed; preserve-cursor runtime migration is unavailable')
+    before_runtime = runtime_identity(previous_config, previous_folder)
+    after_runtime = runtime_identity(config, folder)
+    # Only the reviewed bridge/workflow implementation may change. Source drivers,
+    # schemas, dependency locks and all other runtime assets must remain identical.
+    old_files = load(previous_folder / 'runtime.lock.json')['files']
+    new_files = load(folder / 'runtime.lock.json')['files']
+    allowed = {'singer_bridge.py', 'snapshot_runtime.py'}
+    check(set(old_files) == set(new_files) and all(old_files[name] == new_files[name] for name in old_files if name not in allowed),
+          'Source adapter or dependencies changed; runtime migration is unavailable')
+    for field in ('connector', 'licence', 'bridgeVersion', 'sourceId', 'tenantId'):
+        check(before_runtime[field] == after_runtime[field], 'Source runtime identity is incompatible')
+    old_review = load(previous_folder / previous_config['reviewFile'])
+    new_review = load(folder / config['reviewFile'])
+    before_contract = accepted(old_review, before_runtime)
+    after_contract = accepted(new_review, after_runtime)
+    check(before_contract == after_contract, 'Reviewed extraction projection changed')
+    namespace = checkpoint_namespace(config)
+    check(namespace == checkpoint_namespace(previous_config), 'Checkpoint namespace changed')
+    before_identity = {'namespace': namespace, 'contract_sha256': digest(before_contract),
+                       'source': {**before_runtime, 'reviewSha256': digest(old_review)}}
+    after_identity = {'namespace': namespace, 'contract_sha256': digest(after_contract),
+                      'source': {**after_runtime, 'reviewSha256': digest(new_review)}}
+    initial = {table['source']['stream']: table['source']['incremental']['initial']
+               for table in project_tables(config['projectLock'], folder).values()}
+    check(all(type(value) is int and 0 <= value <= 9007199254740991 for value in initial.values()),
+          'Invalid initial incremental cursor')
+    initial = {name: str(value) for name, value in initial.items()}
+    base = Path(output) / namespace
+    if expected_digest is None:
+        return preview_checkpoint_migration(base, before_identity, after_identity, initial, after_policy)
+    return apply_checkpoint_migration(base, before_identity, after_identity, initial, after_policy, expected_digest)
 
 
 def execute(config, folder, output, run_id, raw_config=None):
@@ -347,12 +463,14 @@ def execute(config, folder, output, run_id, raw_config=None):
     bundle = load(folder / config['reviewFile'])
     contract = accepted(bundle, identity)
     if 'projectLock' in config:
-        check(bundle['selection'] == project_selection(config['projectLock']), 'Review differs from project selection')
-        if 'tables' in config['projectLock']: check(bundle['contracts'] == project_contracts(config['projectLock']), 'Review differs from authored ODCS contracts')
-    namespace = digest({'source':config['sourceId'],'tenant':config['tenantId']})
+        check(bundle['selection'] == project_selection(config['projectLock'], folder), 'Review differs from project selection')
+        if 'tables' in config['projectLock'] or 'tableDocuments' in config['projectLock']: check(bundle['contracts'] == project_contracts(config['projectLock'], folder), 'Review differs from authored ODCS contracts')
+    incremental = config.get('projectLock', {}).get('execution', {}).get('ingestion') == 'incremental'
+    namespace = checkpoint_namespace(config)
     executable = Path(sys.executable).parent / CONNECTORS[config['connector']][2]
-    def messages():
-        source = raw_config if raw_config is not None else source_config(config)
+    def messages(checkpoint=None):
+        check(not incremental or raw_config is None, 'Incremental execution requires the locked table connector')
+        source = source_config(config, checkpoint, folder=folder) if incremental else raw_config if raw_config is not None else source_config(config, folder=folder)
         protocol = protocol_for(config)
         fresh = read_catalog(executable, source, config['timeoutSeconds'], protocol)
         schemas = {s['tap_stream_id']:s['schema'] for s in fresh['streams']}
@@ -380,17 +498,21 @@ def execute(config, folder, output, run_id, raw_config=None):
         spec = bundle['selection'].get(stream['tap_stream_id'])
         if spec is not None:
             rules[stream.get('stream') or stream['tap_stream_id']] = bundle['contracts'][spec['name']]
-    return snapshot(output, namespace, run_id, contract, {**identity,'reviewSha256':digest(bundle)}, messages, rules=rules)
+    checkpoint = {table['source']['stream']: table['source']['incremental']['initial']
+                  for table in project_tables(config['projectLock'], folder).values()} if incremental else None
+    return snapshot(output, namespace, run_id, contract, {**identity,'reviewSha256':digest(bundle)}, messages, rules=rules, checkpoint=checkpoint, checkpoint_policy_digest=checkpoint_upgrade_policy(config) if incremental else None)
 
 
 def main():
     parser = argparse.ArgumentParser(description='Customer-operated Singer preview')
-    parser.add_argument('action', choices=['catalogue','discover','review','approve','run'])
+    parser.add_argument('action', choices=['catalogue','discover','review','approve','run','checkpoint_preview','checkpoint_apply'])
     parser.add_argument('--config', default='connector.json')
     parser.add_argument('--selection')
     parser.add_argument('--discovery', default='discovery.json')
     parser.add_argument('--output')
     parser.add_argument('--run-id')
+    parser.add_argument('--previous-config')
+    parser.add_argument('--expected-digest')
     args = parser.parse_args()
     try:
         folder = Path(args.config).resolve().parent
@@ -400,34 +522,59 @@ def main():
         elif args.action == 'review':
             discovered = load(args.discovery)
             check(discovered['identity'] == runtime_identity(config, folder), 'Discovery differs from current project/runtime')
-            result = review(discovered, load(args.selection or folder / 'selection.json'), project_contracts(config.get('projectLock',{})))
+            result = review(discovered, load(args.selection or folder / 'selection.json'), project_contracts(config.get('projectLock',{}), folder))
         elif args.action == 'approve':
             target = folder / config['reviewFile']
             result = load(target)
             identity = runtime_identity(config, folder)
             check(result['identity'] == identity and result['status'] == 'draft', 'Approve the current draft only')
-            if 'projectLock' in config: check(result['selection'] == project_selection(config['projectLock']), 'Review differs from project selection')
-            if 'tables' in config.get('projectLock',{}): check(result['contracts'] == project_contracts(config['projectLock']), 'Review differs from authored ODCS contracts')
+            if 'projectLock' in config: check(result['selection'] == project_selection(config['projectLock'], folder), 'Review differs from project selection')
+            if 'tables' in config.get('projectLock',{}) or 'tableDocuments' in config.get('projectLock',{}): check(result['contracts'] == project_contracts(config['projectLock'], folder), 'Review differs from authored ODCS contracts')
             result['status'] = 'approved'
             accepted(result, identity)
             temporary = target.with_suffix('.approved.tmp')
-            with temporary.open('x') as output: output.write(canonical(result)+'\n')
+            text = encoded_document(result)
+            with temporary.open('x') as output: output.write(text)
             temporary.replace(target)
             print(canonical({'status':'Succeeded','approved':True})); return
+        elif args.action in ('checkpoint_preview', 'checkpoint_apply'):
+            check(args.output is not None and args.previous_config is not None, 'Explicit output and prior managed configuration required')
+            check(args.action != 'checkpoint_apply' or re.fullmatch(r'[a-f0-9]{64}', args.expected_digest or ''), 'Review the current checkpoint migration first')
+            previous = Path(args.previous_config).resolve()
+            result = checkpoint_upgrade(config, folder, load(previous), previous.parent, args.output, args.expected_digest if args.action == 'checkpoint_apply' else None)
+            print(canonical({'status':'Succeeded','migration':result})); return
         else:
             check(args.output is not None, 'Explicit output path required')
             check(args.run_id is not None, 'Explicit stable run ID required')
             receipt = execute(config, folder, args.output, args.run_id)
             print(canonical({'status':'Succeeded','identity':receipt['identity'],'tables':receipt['tables'],
-                             **({'quality':receipt['quality']} if 'quality' in receipt else {})})); return
+                             **({'quality':receipt['quality']} if 'quality' in receipt else {}),
+                             **({'checkpoint':{k:receipt['state'][k] for k in ('sequence','bookmarks','hasMore')}}
+                                if receipt['format'] == 'ingestron-local-incremental/v1' else {})})); return
         check(args.output is not None, 'Explicit output path required')
         # Never overwrite an existing discovery/review file silently.
-        with Path(args.output).open('x') as target: target.write(canonical(result)+'\n')
+        text = encoded_document(result)
+        with Path(args.output).open('x') as target: target.write(text)
         print(canonical({'status':'Succeeded','applied':False}))
+    except MetadataCollectionLimit as error:
+        print(canonical({'status':'Failed','errorCode':error.code,'error':str(error)}))
+        raise SystemExit(1) from None
+    except (MetadataLimit, MetadataDocumentLimit) as error:
+        print(canonical({'status':'Failed','errorCode':error.code,'error':METADATA_LIMIT_MESSAGE}))
+        raise SystemExit(1) from None
     except QualityFailed as error:
         # Rule identities and counts only; row values never leave the runtime.
         print(canonical({'status':'Failed','errorCode':'QUALITY_FAILED','error':str(error),
                          'failed':[{'id':r['id'],'stream':r['stream'],'metric':r['metric'],'value':r['value']} for r in error.results[:20]]}))
+        raise SystemExit(1) from None
+    except CheckpointError as error:
+        print(canonical({'status':'Failed','errorCode':error.code,'error':str(error)}))
+        raise SystemExit(1) from None
+    except BlockingIOError:
+        print(canonical({'status':'Failed','errorCode':'OUTPUT_BUSY','error':'Another run is writing this output namespace. Retry after that run finishes.'}))
+        raise SystemExit(1) from None
+    except TemporalError as error:
+        print(canonical({'status':'Failed','errorCode':error.code,'error':TEMPORAL_MESSAGES[error.code]}))
         raise SystemExit(1) from None
     except SourceError as error:
         print(canonical({'status':'Failed','errorCode':error.code,'error':ERRORS[error.code]}))

@@ -52,7 +52,7 @@ class FileFlow(unittest.TestCase):
     def test_unsupported_contract_type_is_rejected_before_file_access(self):
         config = {'sourceSettings': {}, 'projectLock': {'tables': {'dates': {
             'source': {'path': '/does-not-exist.csv', 'format': 'csv', 'stream': 'dates'},
-            'columns': [{'name': 'date', 'type': 'DATE'}],
+            'columns': [{'name': 'date', 'type': 'BINARY'}],
         }}}}
         with self.assertRaisesRegex(ValueError, 'contracted column type'):
             runtime.source_config(config)

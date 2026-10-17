@@ -20,7 +20,19 @@ export const databaseSettings = (dialect) =>
   object({
     connection: connection(dialect === "oracle" ? "service" : "database"),
   });
-export const databaseTableSource = object({
-  schema: identifier,
-  table: identifier,
-});
+export const databaseTableSource = object(
+  {
+    schema: identifier,
+    table: identifier,
+    incremental: object(
+      {
+        watermark: identifier,
+        initial: { type: "integer", minimum: 0, maximum: 9007199254740991 },
+        batchSize: { type: "integer", minimum: 1, maximum: 1000000 },
+        consistency: { type: "string", enum: ["ordered-committed-append"] },
+      },
+      ["watermark", "initial", "consistency"],
+    ),
+  },
+  ["schema", "table"],
+);

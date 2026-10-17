@@ -1,0 +1,198 @@
+/** First-source authoring through the frozen packaged host and installed compiler. */
+import assert from "node:assert/strict";
+import {
+  readFileSync,
+  writeFileSync,
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+} from "node:fs";
+import { resolve, join } from "node:path";
+import { createRequire } from "node:module";
+import { createHash } from "node:crypto";
+import { pathToFileURL } from "node:url";
+const [basePath, proofPath] = process.argv.slice(2),
+  base = resolve(basePath);
+const input = JSON.parse(
+  readFileSync(
+    join(base, "artifacts/portfolio-matrix-harness-v1/inputs.json"),
+    "utf8",
+  ),
+);
+const seed = JSON.parse(
+  readFileSync(join(base, "outputs/portfolio-matrix-input-v1.json"), "utf8"),
+);
+const config = JSON.parse(readFileSync(seed.configPath, "utf8"));
+assert.deepEqual(config.candidate, {
+  cli: "0.17.20",
+  core: "0.12.47",
+  declaredCore: "0.12.14",
+  privateOverride: true,
+});
+const { parse, stringify } = createRequire(join(input.cli, "package.json"))(
+  "yaml",
+);
+const { createHost } = await import(
+  pathToFileURL(
+    join(
+      base,
+      "artifacts/portfolio-matrix-harness-v1/checkpoint-upgrade-host-acceptance.mjs",
+    ),
+  )
+);
+const root = mkdtempSync(join(base, "fixtures/source-create-current-"));
+cpSync(config.root, root, {
+  recursive: true,
+  filter: (path) =>
+    ![
+      "build",
+      "runs",
+      "runtimes",
+      "runtime-cache",
+      "scheduler",
+      "studio-jobs",
+      "source-access",
+      ".local",
+    ].includes(path.split("/").at(-1)),
+});
+const projectPath = join(root, "project.yaml"),
+  project = parse(readFileSync(projectPath, "utf8"));
+const definitions = structuredClone(project.connections);
+project.id = "source_creation_current";
+project.connections = {};
+project.flows = [];
+writeFileSync(projectPath, stringify(project));
+const sha = (text) => createHash("sha256").update(text).digest("hex");
+process.env.INGESTRON_ACCEPTANCE_STUDIO_HOST = join(
+  base,
+  "artifacts/sql-transform-host-v1/shared/host.cjs",
+);
+const options = {
+  project: root,
+  cli: input.cli,
+  flow: "unused",
+  baseline: "unused",
+  record: () => {},
+};
+let host,
+  readonly,
+  result = "failed",
+  failure,
+  stage = "open";
+const checks = [],
+  records = [];
+try {
+  host = await createHost(options);
+  readonly = await createHost({ ...options, trusted: false });
+  assert.equal(
+    (await host.request("snapshot", { environment: "dev" })).compilerIdentity
+      .version,
+    "0.12.47",
+  );
+  for (const source of config.records) {
+    stage = source.id;
+    const before = readFileSync(projectPath, "utf8"),
+      prior = parse(before);
+    const state = await host.request("snapshot", { environment: "dev" });
+    const id = "created_" + source.id.replaceAll("-", "_");
+    const args = {
+      environment: "dev",
+      revision: state.revision,
+      operation: "connection_add",
+      request: { ...definitions[source.id], id, sourceId: id },
+    };
+    await assert.rejects(
+      () => readonly.request("preview", args),
+      /read-only|not permitted|unavailable|disabled/i,
+    );
+    await assert.rejects(
+      () => host.request("preview", { ...args, revision: "stale" }),
+      /STALE/,
+    );
+    await assert.rejects(() =>
+      host.request("preview", {
+        ...args,
+        request: { ...args.request, settings: 42 },
+      }),
+    );
+    assert.equal(readFileSync(projectPath, "utf8"), before);
+    const proposal = await host.request("preview", args);
+    assert.equal(proposal.changes.length, 1);
+    assert.equal(readFileSync(projectPath, "utf8"), before);
+    const proposed = parse(proposal.changes[0].after),
+      expected = structuredClone(args.request);
+    delete expected.id;
+    assert.deepEqual(proposed.connections[id], expected);
+    for (const [name, value] of Object.entries(prior.connections))
+      assert.deepEqual(proposed.connections[name], value);
+    await host.request("apply", {
+      environment: "dev",
+      revision: state.revision,
+      id: proposal.id,
+    });
+    assert.deepEqual(
+      parse(readFileSync(projectPath, "utf8")).connections[id],
+      expected,
+    );
+    const access = await host.request("connection.access", {
+      environment: "dev",
+      connection: id,
+    });
+    assert.deepEqual(access.actions, source.actions);
+    assert.equal(access.executor, config.provider);
+    assert.match(access.fingerprint, /^[a-f0-9]{64}$/);
+    assert.deepEqual(
+      await host.request("connection.settings", { environment: "dev", id }),
+      expected,
+    );
+    const after = await host.request("snapshot", { environment: "dev" });
+    await assert.rejects(
+      () => host.request("preview", { ...args, revision: after.revision }),
+      /already|exists|unique|duplicate/i,
+    );
+    assert.equal(parse(readFileSync(projectPath, "utf8")).flows.length, 0);
+    checks.push(
+      source.id +
+        ": trusted reviewed creation, no-write proposal, stale/read-only/malformed/duplicate refusal, exact settings/actions and prior-source preservation",
+    );
+    records.push({
+      id: source.id,
+      version: source.version,
+      reference: source.reference,
+      createdId: id,
+      authoredSha256: sha(readFileSync(projectPath)),
+      actions: access.actions,
+      fingerprint: access.fingerprint,
+    });
+  }
+  result = "passed";
+} catch (error) {
+  failure = error.message;
+  throw error;
+} finally {
+  if (readonly) await readonly.close();
+  if (host) await host.close();
+  writeFileSync(
+    resolve(proofPath),
+    JSON.stringify(
+      {
+        result,
+        failure,
+        stage,
+        candidate: config.candidate,
+        root,
+        records,
+        checks,
+        sources: records.length,
+        sourceExecuted: false,
+        vendorQualified: false,
+        browserInteraction: false,
+        hostSha256: sha(
+          readFileSync(process.env.INGESTRON_ACCEPTANCE_STUDIO_HOST),
+        ),
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "owner": "connectors",
+    "path": "runtime/singer_runtime.py",
+    "sha256": "503f26d8d11883373301e76f83b3bd7b069d4821d558b95e1fd4407466d2bd40"
+  },
+  {
+    "owner": "connectors",
+    "path": "runtime/connector_kit.py",
+    "sha256": "79689017933948f47de19ee8378701ce081166128bab110e1f118f4b7b5b9e10"
+  },
+  {
+    "owner": "connectors",
+    "path": "runtime/singer_bridge.py",
+    "sha256": "866a8d8fa1b6163f2384146270326cc477360fd32bee9459783614abcbc4d4c0"
+  },
+  {
+    "owner": "connectors",
+    "path": "scripts/build.mjs",
+    "sha256": "0ed04014a041f3daa90a8f10437213ea7c9ba84909d161805129eba7f34cebbf"
+  },
+  {
+    "owner": "connectors",
+    "path": "scripts/build-source-access.mjs",
+    "sha256": "32d45badfc23522150d34031475092f967215000517b1dfa9c2020cc0faab77b"
+  },
+  {
+    "owner": "connectors",
+    "path": "src/connector-scaffold.mjs",
+    "sha256": "21cf62461495d87633904b2a0bad4b0010e5a29ed9319b5c4c8ab61ca5a51cdb"
+  }
+]

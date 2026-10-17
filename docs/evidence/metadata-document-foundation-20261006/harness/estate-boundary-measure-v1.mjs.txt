@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {createRequire} from 'node:module';
+import {resolve,join} from 'node:path';
+const b=resolve(process.argv[2]),core=resolve(b,'../core'),out=join(b,'artifacts/estate-boundary-analysis-v1');mkdirSync(out,{recursive:true});
+const {build}=createRequire(resolve(b,'../provider-local/package.json'))('esbuild');
+const file=join(core,'src/core/connections.ts'),original=readFileSync(file,'utf8');
+const marker='  runProviderCommand,\n  validateSchemaShape,';assert.ok(original.includes(marker));
+const contents=original.replace(marker,'  validateSchemaShape,')+`
+let captured;
+function runProviderCommand(root,environment,args){
+ if(args.command==='project assemble'){if(args.input.phase!=='configure')throw new Error('Analysis only permits local configure');return {result:{execution:args.input.execution}};}
+ if(args.command!=='connection prepare')throw new Error('Unexpected analysis command');captured=args.input;return {result:{echo:captured}};
+}
+export function capture(root){captured=undefined;prepareConnection(root,'dev','flow_files');if(!captured)throw new Error('No request');return captured;}`;
+await build({stdin:{contents,sourcefile:file,loader:'ts',resolveDir:join(core,'src/core')},bundle:true,platform:'node',format:'cjs',target:'node22',define:{'import.meta.url':JSON.stringify('file://'+file)},outfile:join(out,'capture.cjs'),logLevel:'silent'});
+const {capture}=createRequire(import.meta.url)(join(out,'capture.cjs')), sha=p=>createHash('sha256').update(readFileSync(p)).digest('hex'),bytes=v=>Buffer.byteLength(JSON.stringify(v)), records=[];
+for(const [name,fixture] of [['twenty-multilingual','compact-review-wide-G4JsCC'],['hundred-ascii','compact-review-hundred-limit-OqYsnl']]){
+ const root=join(b,'fixtures',fixture),input=capture(root),{runtimeAssets,...spec}=input;
+ if(name==='twenty-multilingual'){
+  const actual=JSON.parse(readFileSync(join(root,'build/studio/dev/flow_files/flows/flow_files/project-connection.lock.json')));assert.deepEqual(spec,actual,'Analysis reproduces the exact published Core53 specification');
+ }
+ if(name==='hundred-ascii'){const refusal=JSON.parse(readFileSync(join(b,'outputs/compact-review-hundred-limit-v2.json')));assert.equal(bytes(input),4452977);assert.ok(refusal.details.failedJob.error.includes(String(bytes(input))));}
+ const tables=Object.values(spec.tables),contracts=tables.map(t=>t.contract),columns=tables.map(t=>t.columns);
+ const contractUnique=new Map(),columnUnique=new Map();
+ for(const contract of contracts){const text=JSON.stringify(contract);contractUnique.set(createHash('sha256').update(text).digest('hex'),contract);}
+ for(const cols of columns){const text=JSON.stringify(cols);columnUnique.set(createHash('sha256').update(text).digest('hex'),cols);}
+ const measured={name,root,tables:tables.length,columnsPerTable:tables[0].columns.length,totalRequestBytes:bytes(input),runtimeAssetsBytes:bytes(runtimeAssets),specificationBytes:bytes(spec),contractBytesIncludingCopies:contracts.reduce((n,c)=>n+bytes(c),0),columnBytesIncludingCopies:columns.reduce((n,c)=>n+bytes(c),0),uniqueContracts:contractUnique.size,uniqueColumnSets:columnUnique.size};
+ // Comparison only: content-addressed references preserve every table/source while removing exact duplicates.
+ const refs=Object.fromEntries(Object.entries(spec.tables).map(([name,t])=>[name,{source:t.source,contractSha256:createHash('sha256').update(JSON.stringify(t.contract)).digest('hex'),columnsSha256:createHash('sha256').update(JSON.stringify(t.columns)).digest('hex')}]));
+ const compact={...input,tables:refs,contractDocuments:Object.fromEntries(contractUnique),columnDocuments:Object.fromEntries(columnUnique)};
+ measured.hypotheticalDictionaryRequestBytes=bytes(compact);measured.hypotheticalDictionarySpecificationBytes=bytes({...compact,runtimeAssets:undefined});
+ const reviewPath=join(root,'build/studio/dev/flow_files/flows/flow_files/review.json');
+ if(name==='twenty-multilingual'){
+  const review=JSON.parse(readFileSync(reviewPath));measured.actualReviewBytes=readFileSync(reviewPath).length;measured.reviewSections=Object.fromEntries(Object.entries(review).map(([k,v])=>[k,bytes(v)]));
+ }
+ records.push(measured);
+}
+writeFileSync(join(b,'outputs/estate-boundary-measure-v1.json'),JSON.stringify({status:'passed',scope:'Read-only owning-source request analysis with a local configure echo and intercepted provider call; NOT installed acceptance or a production compact protocol. Twenty-table input equals the actual immutable Core53 generated specification; hundred-table request bytes equal its actual prior failure. Hypothetical dictionaries are comparison evidence only.',source:{path:file,sha256:sha(file)},records,decision:'Exact-duplicate compression helps reusable model estates, but cannot by itself prove a general wide-schema project journey. A bounded table-document/aggregate contract is required across preparation, runtime identity, review, approval and readers.'},null,2)+'\n');
+console.log(JSON.stringify(records));

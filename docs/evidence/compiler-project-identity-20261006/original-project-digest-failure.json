@@ -1,0 +1,13 @@
+{
+  "result": "passed",
+  "scope": "Read-only diagnostic of isolated synthetic generated project; no runtime/receipt mutation or retry",
+  "root": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/fixtures/review-readiness-unicode-wide-OBcfZs",
+  "comparison": {
+    "expected": "782f364cc7d433d488bd623ad8d0dbe817c6e1589ae57155639c8a35fa08b03f",
+    "currentAsciiEscaped": "fe99c8ab9457936f3bce4543ba7a71f7743336651289d4a7070fd08047e54797",
+    "utf8": "782f364cc7d433d488bd623ad8d0dbe817c6e1589ae57155639c8a35fa08b03f",
+    "utf8MatchesExpected": true,
+    "asciiMatchesExpected": false
+  },
+  "owner": "connectors/runtime/singer_bridge.py"
+}

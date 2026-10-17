@@ -118,3 +118,93 @@ not rewrite their connections or contracts.
 - [Apache Arrow Parquet reader](https://arrow.apache.org/docs/python/parquet.html)
 - Original adapter and retail fixtures: Apache-2.0, Otrera Limited. Upstream
   dependency licences remain attached to installed distributions.
+
+## Candidate folder inventory
+
+The private Files 1.5.3 candidate adds `connection_inventory` with an explicit
+`scope: {directory: "/absolute/folder", format: "all"}`. The directory must be
+local and contain no symlink or traversal components. Browsing reads names and
+file attributes, never records; it scans at most 10,000 immediate entries and
+returns up to 200 regular CSV, TSV, JSON, JSONL or Parquet files per page.
+Subdirectories and symlinks are excluded. Literal name search and format filters
+are bound to the returned continuation cursor; changing them starts a new page.
+A folder modified while it is listed fails with `ACCESS_CHANGED`.
+
+Select each returned `{path,format}` explicitly for metadata or samples. CSV/TSV
+metadata reads headers and Parquet metadata reads the footer. JSON/JSONL schemas
+still require explicit sampling or an authored contract: inventory does not infer
+them from business records. Samples and snapshot runs retain their existing file
+size, row and publication bounds. This candidate has no new official alias.
+
+Run the installed acceptance harness with `pnpm acceptance:files:inventory --cli
+<installed-cli> --core-archive <core.tgz> --cli-archive <cli.tgz> --connectors
+<source-owner> --provider <local-provider-owner> --cache <qualified-runtime-cache>
+--out <synthetic-directory> --proof <proof.json>`. It locks temporary source and
+provider snapshots and checks folder scope, all installed client paths, metadata
+without record reads, bounded samples, two-table quality, atomic failure and
+same-run recovery. The cache must match this platform and exact dependency locks;
+`--fresh true` explicitly prepares missing hash-locked dependencies.
+
+### Explicit JSON schema suggestions (private candidate 1.5.4)
+
+Folder browsing still reads no records. JSON/JSONL metadata can explicitly opt in
+with `options: {sampleRecords: true, limit: 20}`. The connector reads a prefix of
+one selected regular file, at most 1 MiB and 50 reviewed records plus one lookahead
+record. The limit defaults to 20. No nested paths, symlinks or recursive folders
+are followed. A file changed during the read fails; an oversized prefix or record
+fails instead of increasing the limit. The prefix must contain nonempty objects
+with matching field names and at most 100 fields.
+
+The returned columns and sample counts are schema suggestions, without record
+values. Every sampled field remains optional and has no inferred key. Nested,
+mixed, all-null, out-of-int64 or out-of-precision-38 values are left unsupported
+with a reason. Explicit scalar `source.types` mappings can resolve compatible
+values and all-null fields. Decimal drafts use precision 38 and the observed
+scale. Review skipped fields and types before binding the draft; the unread file
+suffix and later records have not been validated. Snapshot execution still reads
+and validates the complete selected file before publishing its output.
+
+Without options, JSON metadata continues to return `SAMPLING_REQUIRED`.
+CSV/TSV headers and Parquet footers keep their existing record-free path even when
+JSON sampling options are present. Remote file connectors do not gain inference
+through this local Files candidate. No new official alias is declared.
+
+### JSON business previews (private candidate 1.5.5)
+
+Request `connection_sample` for one selected JSON or JSONL file with a row limit
+from 1 to 50 and, optionally, up to 100 unique column names. JSON uses a root array
+of objects; JSONL uses one object per line. The connector reads at most 1 MiB
+plus a one-byte size probe and parses the requested prefix plus one lookahead
+record. Files may be up to 64 MiB. A larger unread suffix is not validated by a
+preview; full ingestion still validates the complete file.
+
+The sample returns scalar values, exact large integers as strings and decimals
+as strings. Cells are limited to 500 characters and the result to 500 KB. Nested
+values in selected columns fail the preview; select supported scalar columns
+when a record also contains nested fields. No partial sample is returned for a
+malformed prefix, mismatched record fields or a file changed during access.
+Samples and schema suggestions use the same descriptor and path checks. Business
+values appear only in the explicit sample response, never discovery receipts.
+
+### Stable file previews and metadata (private candidate 1.5.6)
+
+CSV, TSV and Parquet access uses the same non-symlink descriptor and before/after
+identity checks as JSON and JSONL. A source replaced or modified during access
+returns no partial metadata or business preview. CSV/TSV metadata consumes only
+the quoted header, up to 64 KiB. Parquet metadata reads the magic bytes and
+footer, up to 1 MiB, without fetching data pages; decimal precision and scale
+come from the declared schema. Every file in a selected metadata batch must
+succeed before the batch is returned.
+
+Business previews read at most 1 MiB plus a one-byte size probe, return at most
+50 rows and 100 selected columns, and cap cells at 500 characters and the result
+at 500 KB. CSV and TSV support quoted newlines. Parquet reads selected scalar
+columns with one thread, without prefetching, and limits selected row groups to
+8 MiB of declared uncompressed column data. Large Parquet pages can therefore
+require a smaller source file or row group before they can be previewed. These
+preview limits are separate from full ingestion. Supported Parquet fields remain
+flat scalar types; binary, temporal and nested mappings require separate support.
+
+### Indexed prepared project metadata
+
+The private Files1.5.13 candidate explicitly declares `ingestron.metadata-documents/v1` for prepared project tables. Complete contracts and column metadata use the source-owned document codec: exact hashes and byte counts, safe owned paths, at most100 documents,2MB per document and7MB per collection. Core and the selected provider must also support this format. Existing inline project locks remain supported. This opt-in reuses the existing locked runtime assets; it does not qualify current candidate source access, indexed discovery/review or installed ingestion until their separate acceptance checks pass.

@@ -1,0 +1,407 @@
+[
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-source-quality-v1.json",
+    "sourceSha256": "b9dc50185e90afc3ceb2194f4365509d84e5103e3a61685710ab0cb0e09c7519",
+    "copy": "unicode-project-identity-source-quality-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-runtime-parity-v1.json",
+    "sourceSha256": "0ec12dbaec9fa472234f7a4b42058ed67be524e26e6139573bd68feaa42dcfe6",
+    "copy": "unicode-project-identity-runtime-parity-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-qualified-v1.json",
+    "sourceSha256": "f84d81a32baa75cc3478468fd4e32a472822775683f1e95c186f6b0174d037e8",
+    "copy": "unicode-project-identity-wide-qualified-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-report-metrics-v3.json",
+    "sourceSha256": "44830c28dfa48c70fd39516902593d9ef37b9ca453d30c8df649c6df92318a98",
+    "copy": "unicode-project-identity-wide-report-metrics-v3.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-static-ui-parity-v1.json",
+    "sourceSha256": "5d02665d1d168a9af623719a8a54c1141b419ebcf1fbd3d2942934eafb056db8",
+    "copy": "unicode-project-identity-static-ui-parity-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-denials-v2.json",
+    "sourceSha256": "f2f79da7b74971d35e8d3eeaf69d57a8115d57a7a555061c920ef84a381c2ecd",
+    "copy": "unicode-project-identity-denials-v2.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-qualify-v1.log",
+    "sourceSha256": "da9905dd30af5868bb580e23a66e6743c3a0fe7835ea6ac7886afdb1ed8de1bd",
+    "copy": "unicode-project-identity-wide-qualify-v1.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-bundle-audit-v1.json",
+    "sourceSha256": "1f12c58d81029f83ff8af14fd1bd604dce07315a263d83ce28b475004c7239b8",
+    "copy": "unicode-project-identity-bundle-audit-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-matrix-freeze-v1.log",
+    "sourceSha256": "6b4a6c1382b43a27aa233f8951b5c40d61a8564dd630874902ee5212f90a1137",
+    "copy": "unicode-project-identity-matrix-freeze-v1.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-matrix-input-v1.json",
+    "sourceSha256": "6b4a6c1382b43a27aa233f8951b5c40d61a8564dd630874902ee5212f90a1137",
+    "copy": "unicode-project-identity-matrix-input-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-v1.json",
+    "sourceSha256": "4c66bddda680126539e74c65a8c441644000060bbedb6c10ec4c1e5fac02f799",
+    "copy": "unicode-project-identity-wide-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-report-parity-v1.json",
+    "sourceSha256": "3b835e4ee7ae420a6fa8ca358353e670024b2fd45028679ccf16967d17d53c5f",
+    "copy": "unicode-project-identity-wide-report-parity-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-connectors-gate-v1.log",
+    "sourceSha256": "d58c6776a876f2e0d499937257075b90058b93127823dd7e55fa4a8c4f3a4829",
+    "copy": "unicode-project-identity-connectors-gate-v1.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-connectors-gate-v2.log",
+    "sourceSha256": "6a9f9a5578dae2a1a07cecea98b07e5e315e872501c04bcea69031f9ccb6c95b",
+    "copy": "unicode-project-identity-connectors-gate-v2.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-before-v1.json",
+    "sourceSha256": "df024c15f505d0c0fb939b400944765d28b55e8c731d11c6070b97208dcd1b5d",
+    "copy": "unicode-project-identity-before-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-source-prepare-v1.log",
+    "sourceSha256": "57f8ed024a7549c1473dc5f970e034047ccd846f445c926b1b4007684b571a4a",
+    "copy": "unicode-project-identity-source-prepare-v1.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-review-bound-probe-v1.json",
+    "sourceSha256": "008116af9b0c9d569b6e53c76ae6b06d70a62bb65c7ba99642ead774a2f4080d",
+    "copy": "unicode-project-identity-review-bound-probe-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-v3.log",
+    "sourceSha256": "377320495a0244ad7a28f96b808a4148795ee7333ae1350678be81927d23b6c2",
+    "copy": "unicode-project-identity-wide-v3.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-denials-v2.log",
+    "sourceSha256": "65cac029f55c134c718ee284dc1c3c43b7de4660f60c68868185623248a85f1e",
+    "copy": "unicode-project-identity-denials-v2.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-programme-before-v1.json",
+    "sourceSha256": "eeaecc5cef83902d90327e578a4c3e96b71b3482022620dd87b9203836e4329b",
+    "copy": "unicode-project-identity-programme-before-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-v2.log",
+    "sourceSha256": "ec39619c9ea6b99b0a09bf07e9be2c63a0533274a432f4c32165518bebc684cf",
+    "copy": "unicode-project-identity-wide-v2.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-denials-v1.log",
+    "sourceSha256": "dd009d240882fd77b7d0c19d2f6423cbb5dc273289f657768d9ccbb251c2a830",
+    "copy": "unicode-project-identity-denials-v1.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-v1.log",
+    "sourceSha256": "3a39bf48d7ddb59996ac86b52f703342b4ac06ad4a214c52247d772988217f76",
+    "copy": "unicode-project-identity-wide-v1.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-failure-probe-v1.json",
+    "sourceSha256": "4314e5b197c944a3d333e9d7d6d338da928929e5f740589670007c62435168a7",
+    "copy": "unicode-project-identity-wide-failure-probe-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-source-status-v1.json",
+    "sourceSha256": "a1bdcd1ce0febcf3974aff0eae327dbdf94dcd7c8c3e9505dd27af597d023f36",
+    "copy": "unicode-project-identity-source-status-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-source-parity-v1.json",
+    "sourceSha256": "86926fd00843f36090baef0e20c7204ea6e545af32a193a26eadacb9764cddd6",
+    "copy": "unicode-project-identity-source-parity-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-private-versions-v2.json",
+    "sourceSha256": "3a175db71f6c6ec36a0542dbe321c9ead40137fd2f1f76811fd46d26e5252ca6",
+    "copy": "unicode-project-identity-private-versions-v2.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-focused-v1.log",
+    "sourceSha256": "e70fec2825d9bf206d27463a792768195039599cb39bcca66339f47283f84cce",
+    "copy": "unicode-project-identity-focused-v1.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-source-prepare-v1.json",
+    "sourceSha256": "0333c93f3358327409c41c515bc03db49b50a7ed401432f7dd253f0ce48af7e1",
+    "copy": "unicode-project-identity-source-prepare-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-focused-v2.log",
+    "sourceSha256": "3f9a28e55be21a6f06a8e54e9c75c605518d8a219082445ab36d8edb0d4303f3",
+    "copy": "unicode-project-identity-focused-v2.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-focused-v3.log",
+    "sourceSha256": "0ced14e09fac052c03d314109203624921c701179cb37335aa6ce059848b94aa",
+    "copy": "unicode-project-identity-focused-v3.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-source-quality-v1.log",
+    "sourceSha256": "e4ef020fe40bf87985f09bd9fd08ad38008f5867f4f2820c5e98f31386c7e7df",
+    "copy": "unicode-project-identity-source-quality-v1.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-report-parity-v2.json",
+    "sourceSha256": "76d6cf5da8a8575a549de3207dbbb8269b085e9d80b52a3937f85c4e4642c613",
+    "copy": "unicode-project-identity-wide-report-parity-v2.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-source-host-v1.log",
+    "sourceSha256": "ed789b3f3b82a21d79a9095375822f982d0f3b4b2904f6c5fff9dba486da51ad",
+    "copy": "unicode-project-identity-source-host-v1.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-report-parity-v1.log",
+    "sourceSha256": "d8c01d9106905a8d98072e8c954970f5b79fc358af6b7a519c61c4ca310e4234",
+    "copy": "unicode-project-identity-wide-report-parity-v1.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-report-parity-v3.log",
+    "sourceSha256": "f0c5ad2f7808db6b2c4cf5e2f99431abab398ec265b3d793b75dbe7d6833ccd7",
+    "copy": "unicode-project-identity-wide-report-parity-v3.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-denials-v1.json",
+    "sourceSha256": "92e112b6005077422682cb21b2c2b09fdb7952eb102e5049a12d9b4959a901ba",
+    "copy": "unicode-project-identity-denials-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-source-host-v1.json",
+    "sourceSha256": "ef6f43e34d2ed8a923ff3006d13f0cf87f847f0301271629daf0815e71cc1749",
+    "copy": "unicode-project-identity-source-host-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-report-parity-v2.log",
+    "sourceSha256": "33a30bfb8bad4a1617b44a37bbebb9bb724592ea8d0f92e36216b42490f4faaa",
+    "copy": "unicode-project-identity-wide-report-parity-v2.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-v2.json",
+    "sourceSha256": "0d5158ad53cf782f79cda1e4a07010be5bfd4fc0bd750f02c97c1e8af8f5c08f",
+    "copy": "unicode-project-identity-wide-v2.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-v3.json",
+    "sourceSha256": "ed9ed290f1ec4ab0a64315aabf48a78286ab8666aa39eecf1d7872dcb4fd66dd",
+    "copy": "unicode-project-identity-wide-v3.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-next-boundary-trace-v1.json",
+    "sourceSha256": "146e694bb14f6d3461ed6797246a7f200f7fccd301b87eaa687721628ea8c76e",
+    "copy": "unicode-project-identity-next-boundary-trace-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-preview-health-v1.json",
+    "sourceSha256": "dec8b47fb17b1643a2e50a6dba42e49dae73423c5b586ca4413cfb879535cd6d",
+    "copy": "unicode-project-identity-preview-health-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/unicode-project-identity-wide-report-parity-v3.json",
+    "sourceSha256": "fe3c5e5f58c8dc4334d2e35cc39ce349db0f57d9502b01c3a7106d3fd7d1cd5a",
+    "copy": "unicode-project-identity-wide-report-parity-v3.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-bundle-audit-v1.py",
+    "sourceSha256": "3980dba356085022f9aeeb978d479d6ec21e0401a322b7e5afc483533ff13282",
+    "copy": "harness/unicode-project-identity-bundle-audit-v1.py"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-private-versions-v1.mjs",
+    "sourceSha256": "86e09f4a64648dd5a2a49ea3b3b4e5abf6097c558ae67248ae0e5d33f65ab079",
+    "copy": "harness/unicode-project-identity-private-versions-v1.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-wide-v1.mjs",
+    "sourceSha256": "2f0dfa35ac98750d33bc738aa152361adc6955a0700b394aa1abcbaa229804b4",
+    "copy": "harness/unicode-project-identity-wide-v1.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-denials-v1.mjs",
+    "sourceSha256": "3050d1fcd7cc26152466d0b10fa671ed214585b5066a68367b9b0ddfbfacae1a",
+    "copy": "harness/unicode-project-identity-denials-v1.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/run-unicode-project-identity-source-v1.mjs",
+    "sourceSha256": "080731a848b74ef8631898468ad6d1c6a307945605839de2d93a5dddadc8315a",
+    "copy": "harness/run-unicode-project-identity-source-v1.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-runtime-parity-v1.py",
+    "sourceSha256": "3b66f9f5203b36e2cc685473541ce996d659b691f8b791467ffe41f927d7cb31",
+    "copy": "harness/unicode-project-identity-runtime-parity-v1.py"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-private-versions-v2.mjs",
+    "sourceSha256": "6a6cff2c6480b52769dd906976bb305e5311d06b7926e1e21fb8e3e882069f30",
+    "copy": "harness/unicode-project-identity-private-versions-v2.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-wide-v2.mjs",
+    "sourceSha256": "269f18ef4574ed7b143a48416846318497683767a4ce210a6c5729f0241a2ba7",
+    "copy": "harness/unicode-project-identity-wide-v2.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-denials-v2.mjs",
+    "sourceSha256": "5db6e610e71aa6177099702088621a119b09b0f6ab825764fcdab944f2b048a4",
+    "copy": "harness/unicode-project-identity-denials-v2.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-wide-v3.mjs",
+    "sourceSha256": "de45b7a02fc458ccb073278bccbc9bcc06ab62e17b43119e4b5280f764fa44cc",
+    "copy": "harness/unicode-project-identity-wide-v3.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/record-unicode-project-identity-evidence-v1.py",
+    "sourceSha256": "b7b69a83405bf17ce01398817849a910d329fd3a352904845060e7f688d2a935",
+    "copy": "harness/record-unicode-project-identity-evidence-v1.py"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/finalise-unicode-project-identity-evidence-v1.py",
+    "sourceSha256": "690a3216fd9a58d9c131b3fe9936011408c639a1a6681ed99192ad925265444b",
+    "copy": "harness/finalise-unicode-project-identity-evidence-v1.py"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/prepare-unicode-project-identity-matrix-v1.mjs",
+    "sourceSha256": "39506252bf0c455c99f2dd42c9de51f65565de99044a886ca3f29ceb97fd4ce0",
+    "copy": "harness/prepare-unicode-project-identity-matrix-v1.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/reconcile-unicode-project-identity-programme-v1.py",
+    "sourceSha256": "e293462d60f75adc85a776ee2a75de12f738c57c850fd02da0751c7ba9ac5e91",
+    "copy": "harness/reconcile-unicode-project-identity-programme-v1.py"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-wide-qualify-v1.mjs",
+    "sourceSha256": "c543d0595d7992ab20b066fd369236735a098cedd4b9895dc3abe9793648f5cf",
+    "copy": "harness/unicode-project-identity-wide-qualify-v1.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-wide-report-parity-v2.mjs",
+    "sourceSha256": "fca8b75941b53d8ac3d44127a5a2d0cd4c3b962f68fe1f938a45cc09496f9aa6",
+    "copy": "harness/unicode-project-identity-wide-report-parity-v2.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-wide-report-parity-v3.mjs",
+    "sourceSha256": "98c8b8341393b0e80b77527c6d0dbe422f2dc65feb88f999721ec89adbfbc4a9",
+    "copy": "harness/unicode-project-identity-wide-report-parity-v3.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-wide-report-parity-v1.mjs",
+    "sourceSha256": "cdf5c833b60e20c9b1400c671c55db5d6df01a359d8650ca313cc87581bc42e9",
+    "copy": "harness/unicode-project-identity-wide-report-parity-v1.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-source-parity-v1.mjs",
+    "sourceSha256": "32f0da042334f7d156ca8e0d092e8129b6f87abaf98673a9abbbab9dfb8832f3",
+    "copy": "harness/unicode-project-identity-source-parity-v1.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-root-check-v1.mjs",
+    "sourceSha256": "723ac3aaa033b2db84de57cd062b205ac98b5eb6b58a67db9fe64d894fa0bd24",
+    "copy": "harness/unicode-project-identity-root-check-v1.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/unicode-project-identity-matrix-harness-v1/runtime-matrix-acceptance.py",
+    "sourceSha256": "2fd96913cd44dc351b981af3cfbfe62556802991838a3fd22826d2fded45615e",
+    "copy": "harness/matrix-runtime-matrix-acceptance.py"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/unicode-project-identity-matrix-harness-v1/source-quality-host-acceptance.mjs",
+    "sourceSha256": "0b0b6250bb0d910bf1d66bef25b0e3668573ddb51970122ab54f997011276f79",
+    "copy": "harness/matrix-source-quality-host-acceptance.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/unicode-project-identity-matrix-harness-v1/runtime-matrix-prepare.mjs",
+    "sourceSha256": "d415a3f74db0dfc7f29e7e6d24d4b8543de16e9dd8a14995a016ffd52895abc0",
+    "copy": "harness/matrix-runtime-matrix-prepare.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/unicode-project-identity-matrix-harness-v1/checkpoint-upgrade-host-acceptance.mjs",
+    "sourceSha256": "454d991e336ca27afb461ca75857f1b6ddcc1b6697dc789f604699f75bbed592",
+    "copy": "harness/matrix-checkpoint-upgrade-host-acceptance.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/unicode-project-identity-matrix-harness-v1/runtime-matrix-mcp-acceptance.mjs",
+    "sourceSha256": "71b9c8b228f6152ccd821df0bd97212ff6c47ea8948ff3e1f83b5114ebe17caa",
+    "copy": "harness/matrix-runtime-matrix-mcp-acceptance.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/unicode-project-identity-matrix-harness-v1/inputs.json",
+    "sourceSha256": "d5c2e5d11f0744c74d0bda86ffe8fb579b1edc707c65d4e525887a9a5863b847",
+    "copy": "harness/matrix-inputs.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/unicode-project-identity-matrix-harness-v1/source-create-installed-matrix-v1.mjs",
+    "sourceSha256": "3747cee81ee71eec1a4511ddbc05caf7f5d166cb885d54aa8bdf8c0e88b4d459",
+    "copy": "harness/matrix-source-create-installed-matrix-v1.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/unicode-project-identity-matrix-harness-v1/compiler-installed.mjs",
+    "sourceSha256": "566e3868fd886be2defd18e142ca6ce6afd0a0011b0ea9ebe30d406a0849a297",
+    "copy": "harness/matrix-compiler-installed.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/unicode-project-identity-matrix-harness-v1/source-runtime-host-acceptance.mjs",
+    "sourceSha256": "273222c8af31706d2a19118baef69d1644ee906875f7732f65532b6590775b93",
+    "copy": "harness/matrix-source-runtime-host-acceptance.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/unicode-project-identity-matrix-harness-v1/native-assets-host-acceptance.mjs",
+    "sourceSha256": "252f9b730a062535b4f67702737e620655885092f001f585466a0d7f41b422ad",
+    "copy": "harness/matrix-native-assets-host-acceptance.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/review-readiness-host-v2/inputs.json",
+    "sourceSha256": "d5c2e5d11f0744c74d0bda86ffe8fb579b1edc707c65d4e525887a9a5863b847",
+    "copy": "immutable-inputs.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/review-readiness-ui-v1/provenance.json",
+    "sourceSha256": "4fa1b3ad96b816194c76eebee83457249ae1c6a9a348cff2154ce0e6b97caf08",
+    "copy": "static-ui-source-provenance.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/review-readiness-unicode-digest-comparison-v1.json",
+    "sourceSha256": "025f741d23a6a7d74fd4a832278d513ab41916b1b5c7d231b3919a899e92a599",
+    "copy": "original-project-digest-failure.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/review-readiness-unicode-wide-v2.json",
+    "sourceSha256": "5fa4ea31671beb2c8ec5b8bb200a932c8f82b1c33c53f851dc2098cb612c51ce",
+    "copy": "original-multilingual-pipeline-failure.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/review-readiness-unicode-bounded-report-v1.json",
+    "sourceSha256": "70255593979541429f89cb6000b942a8224b9595eedc74e834b6220884fd3005",
+    "copy": "report-helper-source-provenance.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/reconcile-unicode-project-identity-programme-v2.py",
+    "sourceSha256": "28f258944b5685af493ae28e7f93a8d1c2e4e9af4617c4bafaf1a2a9f77843b2",
+    "copy": "harness/reconcile-unicode-project-identity-programme-v2.py"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/unicode-project-identity-root-check-v2.mjs",
+    "sourceSha256": "75438e9ebe8f933b52527740103280cd67f7dc5fc54b0588ec0e47d42b398d44",
+    "copy": "harness/unicode-project-identity-root-check-v2.mjs.txt"
+  }
+]

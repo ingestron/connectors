@@ -16,7 +16,7 @@ from decimal import Decimal
 import re
 import tempfile
 from pathlib import Path
-from urllib.parse import quote, unquote, urlencode, urlsplit
+from urllib.parse import parse_qsl, quote, unquote, urlencode, urlsplit
 
 from files_reader import scan as scan_file, MAX_BYTES
 
@@ -140,6 +140,50 @@ def graph(access, target):
     return _json(data)
 
 
+def library_drive(access, site_id, host, library):
+    """One library resolved across at most 50 fenced metadata pages (10000 drives)."""
+    def check(condition, code='GRAPH_RESPONSE'):
+        if not condition: raise GraphError(code)
+    def identifier(value):
+        check(isinstance(value,str) and 0 < len(value) <= 512 and
+              all(ord(c) >= 32 and ord(c) != 127 for c in value) and
+              not any(c in value for c in '/\\?#%'))
+        return value
+    collection = f'/v1.0/sites/{quote(identifier(site_id),safe=",.")}/drives'
+    target = collection + '?' + urlencode({'$top':200, '$select':'id,name,webUrl'})
+    visited, identifiers, selected = set(), set(), None
+    for _ in range(50):
+        check(target not in visited)
+        visited.add(target)
+        page = graph(access,target)
+        values = page.get('value')
+        check(isinstance(values,list) and len(values) <= 200)
+        for entry in values:
+            check(isinstance(entry,dict))
+            value = identifier(entry.get('id'))
+            check(value not in identifiers)
+            identifiers.add(value)
+            web = entry.get('webUrl')
+            check(isinstance(web,str) and len(web) <= 2048)
+            url = urlsplit(web)
+            if url.scheme == 'https' and url.netloc == host and unquote(url.path.rstrip('/').rsplit('/',1)[-1]) == unquote(library):
+                check(selected is None)
+                selected = value
+        nxt = page.get('@odata.nextLink')
+        if nxt is None:
+            check(selected is not None,'GRAPH_NOT_FOUND')
+            return selected
+        check(isinstance(nxt,str) and len(nxt) <= 2048)
+        url = urlsplit(nxt)
+        check(url.scheme == 'https' and url.netloc == GRAPH and not url.fragment and unquote(url.path) == unquote(collection))
+        pairs = parse_qsl(url.query,keep_blank_values=True)
+        check(pairs and len(dict(pairs)) == len(pairs) and
+              all(k in ('$skiptoken','$skipToken','$top','$select','$orderby') for k,_ in pairs) and
+              any(k in ('$skiptoken','$skipToken') and v for k,v in pairs))
+        target = url.path + '?' + url.query
+    raise GraphError('GRAPH_TOO_LARGE')
+
+
 def drive(access, locator, path):
     """Return (drive id, path inside the drive)."""
     if locator[0] == 'user':
@@ -148,13 +192,7 @@ def drive(access, locator, path):
     site = graph(access, f'/v1.0/sites/{host}:/sites/{quote(name)}')
     library, _, rest = path.partition('/')
     require(rest, 'SharePoint paths start with the document library, such as Shared Documents/<folder>')
-    drives = graph(access, f"/v1.0/sites/{quote(str(site.get('id')), safe=',.')}/drives").get('value')
-    if not isinstance(drives, list): raise GraphError('GRAPH_RESPONSE')
-    for entry in drives:
-        url = entry.get('webUrl') if isinstance(entry, dict) else None
-        if isinstance(url, str) and unquote(urlsplit(url).path.rstrip('/').rsplit('/', 1)[-1]) == unquote(library):
-            return str(entry.get('id')), rest
-    raise GraphError('GRAPH_NOT_FOUND')
+    return library_drive(access, site.get('id'), host, library), rest
 
 
 def files(access, drive_id, path, fmt):
@@ -218,7 +256,7 @@ def _value(value, kind):
     return value if isinstance(value, str) else json.dumps(value, sort_keys=True, separators=(',', ':'))
 
 
-def scan_list(access, locator, table, emit=None):
+def scan_list(access, locator, table, emit=None, sample_limit=None):
     """Read a SharePoint list's items; selected fields must exist as list columns."""
     _, host, name = locator
     site = graph(access, f'/v1.0/sites/{host}:/sites/{quote(name)}')
@@ -232,7 +270,9 @@ def scan_list(access, locator, table, emit=None):
     schema = {'type': 'object', 'additionalProperties': False,
               'properties': {c: {'type': ['null', mapping[k]]} for c, k in sorted(selected.items())}}
     if emit is None: return schema
-    target, count = base + '/items?expand=fields(select=' + ','.join(sorted(selected)) + ')&$top=200', 0
+    if sample_limit is not None and (type(sample_limit) is not int or not 1 <= sample_limit <= 50):
+        raise ValueError('Sample limit must be 1..50')
+    target, count = base + '/items?expand=fields(select=' + ','.join(sorted(selected)) + ')&$top=' + str(sample_limit + 1 if sample_limit is not None else 200), 0
     while target:
         page = graph(access, target)
         items = page.get('value')

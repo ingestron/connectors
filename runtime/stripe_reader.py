@@ -99,11 +99,11 @@ def _status(status):
     raise StripeError('STRIPE_RESPONSE')
 
 
-def pages(key, obj):
+def pages(key, obj, limit=PAGE):
     """Yield each page's items; never follows redirects or echoes response bodies."""
     after = None
     while True:
-        query = {'limit': PAGE, **({'starting_after': after} if after else {})}
+        query = {'limit': limit, **({'starting_after': after} if after else {})}
         connection = None
         try:
             connection = http.client.HTTPSConnection(HOST, timeout=30)
@@ -149,8 +149,9 @@ def catalogue(settings, obj):
             for name, kind in catalogue_fields.items()]
 
 
-def scan(settings, table, emit=None):
+def scan(settings, table, emit=None, sample_limit=None):
     """Return the JSON Schema of the selected fields; when emit is given, read every record."""
+    if sample_limit is not None and (type(sample_limit) is not int or not 1 <= sample_limit <= 50): raise ValueError('Sample limit must be 1-50')
     key, obj, columns = api_key(settings), table['object'], table['columns']
     catalogue = fields(obj)
     schema = {'type': 'object', 'additionalProperties': False,
@@ -158,7 +159,7 @@ def scan(settings, table, emit=None):
     expected = CATALOGUE[obj][0]
     count = 0
     # Discovery reads one page so access and field shapes are checked before review.
-    for items in pages(key, obj):
+    for items in pages(key, obj, min(PAGE, sample_limit + 1) if sample_limit else PAGE):
         for item in items:
             if not (isinstance(item, dict) and item.get('object') == expected
                     and all(c in item and _matches(item[c], catalogue[c]) for c in columns)):

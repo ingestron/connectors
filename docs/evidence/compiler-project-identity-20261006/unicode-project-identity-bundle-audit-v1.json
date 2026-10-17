@@ -1,0 +1,166 @@
+{
+  "result": "passed",
+  "sources": [
+    {
+      "id": "azure-blob",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "files",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "gcs",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "github",
+      "changedRuntimeFiles": [
+        "singer_bridge.py",
+        "singer_runtime.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "hubspot",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "jira",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "mysql",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "onedrive",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "oracle",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "postgresql",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "s3",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "salesforce",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "sftp",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "sharepoint",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "sql-server",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    },
+    {
+      "id": "stripe",
+      "changedRuntimeFiles": [
+        "snapshot_runtime.py",
+        "singer_bridge.py",
+        "runtime.lock.json"
+      ],
+      "unchangedUpstreamLocks": true,
+      "unchangedLegacyCodec": true
+    }
+  ],
+  "scope": "Generated source-owned bundles: only project hashing/identity and their asset digests change; source readers, requirements, row/checkpoint codec unchanged"
+}

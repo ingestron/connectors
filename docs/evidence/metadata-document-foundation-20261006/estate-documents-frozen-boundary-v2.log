@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/estate-documents-frozen-boundary-v1.py", line 20, in <module>
+    identity=workflow.runtime_identity(config,root)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/estate-documents-sources-v1/files/runtime/snapshot_runtime.py", line 144, in runtime_identity
+    inventory(lock)
+  File "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/estate-documents-sources-v1/files/runtime/singer_inventory.py", line 22, in inventory
+    if dist.version != required: raise ValueError('Installed dependency differs from lock')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Installed dependency differs from lock

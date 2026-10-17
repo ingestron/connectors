@@ -1,0 +1,97 @@
+[
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-boundary-measure-v1.json",
+    "sourceSha256": "f2664ad403cabf8d8f0dac48fc0bb358cd5b9d5e12c48884315a778dc5c0c9c7",
+    "copy": "estate-boundary-measure-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-boundary-measure-v3.log",
+    "sourceSha256": "4d881cc7ab02f2e41fedcb20428aa46801a1f013c1a19ac85ae23759db3ee14a",
+    "copy": "estate-boundary-measure-v3.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-documents-before-v1.json",
+    "sourceSha256": "5ce5af29962a0412f018d490ceab2443f818d6fae21f11d9c47a5ecd56aee6a3",
+    "copy": "estate-documents-before-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-documents-private-source-versions-v1.json",
+    "sourceSha256": "5f0be7453cf5be56e83495b114710dd3d2adb29040524aea8e75dcea5c6c9dae",
+    "copy": "estate-documents-private-source-versions-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-documents-focused-v2.log",
+    "sourceSha256": "f1cebebf1e239f3684342233cbf3e209ae56891b7c129813a2e690a18982daa8",
+    "copy": "estate-documents-focused-v2.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-documents-indexed-focused-v1.log",
+    "sourceSha256": "f85d711eaf428d670e35db8ac29e3e91357aa90d88c000700440d1bc567662b5",
+    "copy": "estate-documents-indexed-focused-v1.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-documents-runtime-focused-v1.log",
+    "sourceSha256": "4d56aa8511a586b2e07841b05a658b7a18cb1d81902e89f631d91fb53899c2b7",
+    "copy": "estate-documents-runtime-focused-v1.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-documents-connectors-gate-v1.log",
+    "sourceSha256": "bf34a218882d99d25aa108d8bdd400c779075aaa9b4898bb605f884e8f62bd83",
+    "copy": "estate-documents-connectors-gate-v1.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-documents-connectors-gate-v2.log",
+    "sourceSha256": "ca2b67b5524cdaf836c318e528a76d60c823a0d60133ce7302469ce330865a58",
+    "copy": "estate-documents-connectors-gate-v2.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-documents-scaffold-focused-v2.log",
+    "sourceSha256": "997b5974fe85dc49003c895dfe00411a37a87cb702e0816839b435bd2b47729f",
+    "copy": "estate-documents-scaffold-focused-v2.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-documents-frozen-inputs-v1.json",
+    "sourceSha256": "ef49dd4b7f7ae1d570b29ca8c84e18bbe47273b8363d06813e0715e0fd5ded1a",
+    "copy": "estate-documents-frozen-inputs-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-documents-frozen-boundary-v2.log",
+    "sourceSha256": "ef85fda52e6be0f1796e8a45845aec9fd9f6738284339ad9386107ee05a66d8b",
+    "copy": "estate-documents-frozen-boundary-v2.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-documents-frozen-boundary-v3.log",
+    "sourceSha256": "80d9d850eb9291811209605328d9c6fc3cf8953492e105f4cec458f9ae967e1d",
+    "copy": "estate-documents-frozen-boundary-v3.log"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-documents-frozen-boundary-v1.json",
+    "sourceSha256": "9fef430b0817ed92d6d79d669221bd05e7916982130c2a6b1cc62fb71002082a",
+    "copy": "estate-documents-frozen-boundary-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/outputs/estate-documents-archive-v1.json",
+    "sourceSha256": "b8b384f999d9214cdcc45587838b4a33d92f9896332a31d2e72ee3ae5af31e8a",
+    "copy": "estate-documents-archive-v1.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/estate-documents-sources-v1/provenance.json",
+    "sourceSha256": "2a0d34c98e25f7d6ee42e9398fb5a240fcaba9dff614389ab8087548bb49965c",
+    "copy": "frozen-source-provenance.json"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/estate-boundary-measure-v1.mjs",
+    "sourceSha256": "4b710f83225b4876177d76f7124f58be1e5077a67177c977f5a8e9c421aa45c7",
+    "copy": "harness/estate-boundary-measure-v1.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/estate-documents-freeze-v1.mjs",
+    "sourceSha256": "ef39c1c1908eb2b5370d88cb59f9d8c07fe3185b6aeaa5c7f8178306460af132",
+    "copy": "harness/estate-documents-freeze-v1.mjs.txt"
+  },
+  {
+    "source": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/scripts/estate-documents-frozen-boundary-v1.py",
+    "sourceSha256": "58619095b9d1bb4a68c35700862c76f2f10d6e5e9dfb90eacfe7d90e421faabd",
+    "copy": "harness/estate-documents-frozen-boundary-v1.py"
+  }
+]

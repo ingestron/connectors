@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: oracle
-version: 1.1.0
+version: 1.1.9
 description: Reviewed local snapshots from Oracle tables
 connector: singer:oracle@26.0.1
 documentation: https://github.com/ingestron/connectors/blob/main/docs/oracle.md
@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/oracle/runtime.json
-  sha256: 9a77e1af452fec0412e703eabf737d085bc71728bdb75b87ad0eae25e3eeb630
+  sha256: a428c779f5ca01f3889c6c560798ca1472e3c8d77358c4dd9125251b2a107afa
   contract: ingestron.snapshot/python/v1
 quality:
   library:
@@ -78,7 +78,7 @@ definition:
               $secret:
                 type: object
                 properties:
-                  env: &a2
+                  env:
                     type: string
                     minLength: 1
                 required:
@@ -106,7 +106,9 @@ definition:
     additionalProperties:
       type: object
       properties:
-        name: *a2
+        name:
+          type: string
+          minLength: 1
         fields:
           type: object
           additionalProperties:
@@ -121,6 +123,8 @@ definition:
                   - number
                   - decimal
                   - json
+                  - date
+                  - timestamp
               nullable:
                 type: boolean
               target:
@@ -143,6 +147,27 @@ definition:
     properties:
       schema: *a1
       table: *a1
+      incremental:
+        type: object
+        properties:
+          watermark: *a1
+          initial:
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          batchSize:
+            type: integer
+            minimum: 1
+            maximum: 1000000
+          consistency:
+            type: string
+            enum:
+              - ordered-committed-append
+        required:
+          - watermark
+          - initial
+          - consistency
+        additionalProperties: false
     required:
       - schema
       - table
@@ -154,3 +179,11 @@ execution:
     evidence:
       Bounded read-only table snapshot; conformance suite against synthetic
       fakes and local containers
+sourceAccess:
+  apiVersion: ingestron.source-access/v1
+  entryPoint: source_access.py
+  actions:
+    - test
+    - sample
+    - inventory
+    - metadata

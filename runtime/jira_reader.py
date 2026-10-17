@@ -87,7 +87,7 @@ def _issues(host, headers, table, columns, emit):
     fields = [c for c in columns if c not in ('id', 'key')]
     token, count, tokens, ids = None, 0, set(), set()
     while True:
-        body = {'jql': table.get('jql') or DEFAULT_JQL, 'fields': fields or ['id'], 'maxResults': 100,
+        body = {'jql': table.get('jql') or DEFAULT_JQL, 'fields': fields or ['id'], 'maxResults': min(100, table['_sample_limit'] + 1) if table.get('_sample_limit') else 100,
                 **({'nextPageToken': token} if token else {})}
         page = call('JIRA', host, 'POST', '/rest/api/3/search/jql',
                     {**headers, 'Content-Type': 'application/json'}, json.dumps(body))
@@ -110,7 +110,7 @@ def _issues(host, headers, table, columns, emit):
 def _fixed(host, headers, path, paged, table, columns, emit):
     start, count = 0, 0
     while True:
-        target = path + ('?' + urlencode({'startAt': start, 'maxResults': 50}) if paged else '')
+        target = path + ('?' + urlencode({'startAt': start, 'maxResults': min(50, table['_sample_limit'] + 1) if table.get('_sample_limit') else 50}) if paged else '')
         page = call('JIRA', host, 'GET', target, headers)
         values = page.get('values') if isinstance(page, dict) else page
         if not isinstance(values, list): raise ApiError('JIRA_RESPONSE')
@@ -132,7 +132,9 @@ def catalogue(settings, obj):
              **({'key': True} if n == key else {})} for n, k in fields.items()]
 
 
-def scan(settings, table, emit=None):
+def scan(settings, table, emit=None, sample_limit=None):
+    if sample_limit is not None and (type(sample_limit) is not int or not 1 <= sample_limit <= 50): raise ValueError('Sample limit must be 1-50')
+    table = {**table, **({'_sample_limit':sample_limit} if sample_limit else {})}
     host, headers = settings_for(settings)
     obj, columns = table['object'], table['columns']
     fields = issue_fields(host, headers) if obj == 'issues' else TABLES[obj][2]

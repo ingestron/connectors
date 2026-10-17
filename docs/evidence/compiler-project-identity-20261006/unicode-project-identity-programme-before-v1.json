@@ -1,0 +1,14 @@
+[
+  {
+    "path": "docs/product/phase-status.md",
+    "sha256": "8e323a0acacc4f3c1742e1f9f34514fba4018964b88a12f8a89878fa4f276a78"
+  },
+  {
+    "path": "docs/solution/shared-studio-delivery.md",
+    "sha256": "44e11c38aa5e4bf67aeabfee85ccafc5c1e9da8942704ba005a9b2d053b08990"
+  },
+  {
+    "path": "docs/solution/product-finalisation-acceptance.json",
+    "sha256": "1a8824d93590e9efa8365706635298fbbdd5836ca82cf5d6d61e10b0013e0a56"
+  }
+]

@@ -1,0 +1,448 @@
+{
+  "result": "passed",
+  "phase": "execute",
+  "candidate": {
+    "cli": "0.17.18",
+    "core": "0.12.43",
+    "declaredCore": "0.12.14",
+    "privateOverride": true
+  },
+  "provider": "ingestron/provider-local/plugin/provider.yaml@0.4.14",
+  "archives": {
+    "CORE_ARCHIVE": {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/source-stream-runtime-v1/ingestron-core-0.12.43.tgz",
+      "sha256": "5da86c78e07a4cd8477073e35edf81e98f4fe7b8cd7039eb7ed903c07adafd92"
+    },
+    "CLI_ARCHIVE": {
+      "path": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/checkpoint-runtime-v2/ingestron-0.17.18.tgz",
+      "sha256": "f5c60ff22d0e9ffc73f90d44b1594ca0e1e045a992936ddd7d69ba82d35d85c6"
+    }
+  },
+  "sources": [
+    {
+      "id": "azure-blob",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/azure-blob/connector.yaml@2.1.7",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "synthetic loopback HTTP",
+      "metadataCode": null,
+      "inventoryCode": null
+    },
+    {
+      "id": "files",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/files/connector.yaml@1.5.9",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "local files",
+      "metadataCode": null,
+      "inventoryCode": null
+    },
+    {
+      "id": "gcs",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/gcs/connector.yaml@0.1.7",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "synthetic loopback HTTP",
+      "metadataCode": null,
+      "inventoryCode": null
+    },
+    {
+      "id": "github",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/github/connector.yaml@1.36.7",
+      "rows": 2,
+      "outputFiles": 2,
+      "transport": "synthetic loopback HTTP",
+      "metadataCode": "DECLARED_SCHEMA",
+      "inventoryCode": "DECLARED_OBJECTS"
+    },
+    {
+      "id": "hubspot",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/hubspot/connector.yaml@0.1.5",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "synthetic loopback HTTP",
+      "metadataCode": null,
+      "inventoryCode": "DECLARED_OBJECTS"
+    },
+    {
+      "id": "jira",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/jira/connector.yaml@0.1.5",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "synthetic loopback HTTP",
+      "metadataCode": null,
+      "inventoryCode": "DECLARED_OBJECTS"
+    },
+    {
+      "id": "mysql",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/mysql/connector.yaml@1.1.6",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "DB-API stand-in; no real driver/engine",
+      "metadataCode": null,
+      "inventoryCode": null
+    },
+    {
+      "id": "onedrive",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/onedrive/connector.yaml@0.1.8",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "synthetic loopback HTTP",
+      "metadataCode": null,
+      "inventoryCode": null
+    },
+    {
+      "id": "oracle",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/oracle/connector.yaml@1.1.6",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "DB-API stand-in; no real driver/engine",
+      "metadataCode": null,
+      "inventoryCode": null
+    },
+    {
+      "id": "postgresql",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/postgresql/connector.yaml@1.1.7",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "DB-API stand-in; no real driver/engine",
+      "metadataCode": null,
+      "inventoryCode": null
+    },
+    {
+      "id": "s3",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/s3/connector.yaml@1.0.7",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "synthetic loopback HTTP",
+      "metadataCode": null,
+      "inventoryCode": null
+    },
+    {
+      "id": "salesforce",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/salesforce/connector.yaml@0.1.5",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "synthetic loopback HTTP",
+      "metadataCode": null,
+      "inventoryCode": "DECLARED_OBJECTS"
+    },
+    {
+      "id": "sftp",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/sftp/connector.yaml@1.0.8",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "OpenSSH transport stand-in; no SSH server",
+      "metadataCode": null,
+      "inventoryCode": null
+    },
+    {
+      "id": "sharepoint",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/sharepoint/connector.yaml@0.1.8",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "synthetic loopback HTTP",
+      "metadataCode": null,
+      "inventoryCode": null
+    },
+    {
+      "id": "sql-server",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/sql-server/connector.yaml@1.5.6",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "DB-API stand-in; no real driver/engine",
+      "metadataCode": null,
+      "inventoryCode": null
+    },
+    {
+      "id": "stripe",
+      "result": "passed",
+      "reference": "ingestron/connectors/connectors/stripe/connector.yaml@0.1.5",
+      "rows": 3,
+      "outputFiles": 2,
+      "transport": "synthetic loopback HTTP",
+      "metadataCode": "DECLARED_SCHEMA",
+      "inventoryCode": "DECLARED_OBJECTS"
+    }
+  ],
+  "checks": [
+    {
+      "source": "azure-blob",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "azure-blob",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "azure-blob",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "azure-blob",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "files",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "files",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "files",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "files",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "gcs",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "gcs",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "gcs",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "gcs",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "github",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "github",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "github",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "hubspot",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "hubspot",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "hubspot",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "hubspot",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "jira",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "jira",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "jira",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "jira",
+      "check": "Repeated Jira source ID rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "mysql",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "mysql",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "mysql",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "mysql",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "onedrive",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "onedrive",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "onedrive",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "onedrive",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "oracle",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "oracle",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "oracle",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "oracle",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "postgresql",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "postgresql",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "postgresql",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "postgresql",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "s3",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "s3",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "s3",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "s3",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "salesforce",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "salesforce",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "salesforce",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "salesforce",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "sftp",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "sftp",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "sftp",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "sftp",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "sharepoint",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "sharepoint",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "sharepoint",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "sharepoint",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "sql-server",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "sql-server",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "sql-server",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "sql-server",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    },
+    {
+      "source": "stripe",
+      "check": "Explicit connection test, inventory and metadata contain no row values"
+    },
+    {
+      "source": "stripe",
+      "check": "Bounded explicit sample; invalid limit refused; no output writes"
+    },
+    {
+      "source": "stripe",
+      "check": "Reviewed Parquet exact projection/count/key values, unapproved denial and unchanged source-free retry"
+    },
+    {
+      "source": "stripe",
+      "check": "Duplicate contract key rejected before publication; corrected same-run retry"
+    }
+  ],
+  "matrixSize": 16,
+  "selectedSize": 16,
+  "liveAccounts": false,
+  "vendorQualified": false,
+  "browserInteraction": false,
+  "config": "repo/.studio-finalisation-20261005/fixtures/source-runtime-matrix-AkE3CV/acceptance.json",
+  "transportFixtureSha256": "ce67ebc1f766ca984cb4668b5d807ead3b85034b25dd7f3aa2852141cdf33282",
+  "fixtureHooksRemoved": true,
+  "transportRequests": 239,
+  "allSixteenComplete": true,
+  "updatedAt": "2026-10-05T08:14:14Z"
+}

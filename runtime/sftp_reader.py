@@ -11,6 +11,8 @@ codes and never echoed.
 import os
 import re
 import shutil
+import selectors
+import time
 import stat
 import subprocess
 import tempfile
@@ -68,6 +70,49 @@ def table_path(path):
     return path
 
 
+def bounded_process(args, folder, limit, timeout):
+    """Drain both pipes without retaining unlimited client output."""
+    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                               env={'PATH': os.environ.get('PATH', '/usr/bin:/bin')}, cwd=folder)
+    selector = selectors.DefaultSelector()
+    streams = {'stdout': bytearray(), 'stderr': bytearray()}
+    deadline = time.monotonic() + timeout
+    try:
+        for name, pipe in (('stdout', process.stdout), ('stderr', process.stderr)):
+            os.set_blocking(pipe.fileno(), False)
+            selector.register(pipe, selectors.EVENT_READ, name)
+        while selector.get_map():
+            remaining = deadline - time.monotonic()
+            if remaining <= 0: raise SftpError('SFTP_NETWORK')
+            for key, _ in selector.select(min(remaining, 1)):
+                data = os.read(key.fileobj.fileno(), 65536)
+                if not data:
+                    selector.unregister(key.fileobj)
+                    continue
+                out = streams[key.data]
+                cap = limit if key.data == 'stdout' else 8192
+                if len(out) + len(data) > cap: raise SftpError('SFTP_TOO_LARGE')
+                out.extend(data)
+        remaining = deadline - time.monotonic()
+        if remaining <= 0: raise SftpError('SFTP_NETWORK')
+        try:
+            code = process.wait(timeout=remaining)
+        except subprocess.TimeoutExpired:
+            raise SftpError('SFTP_NETWORK') from None
+        try:
+            stdout = streams['stdout'].decode('utf-8')
+        except UnicodeDecodeError:
+            raise SftpError('SFTP_RESPONSE') from None
+        return subprocess.CompletedProcess(args, code, stdout, streams['stderr'].decode('utf-8', errors='replace'))
+    finally:
+        selector.close()
+        if process.poll() is None:
+            process.kill()
+        process.wait()
+        process.stdout.close()
+        process.stderr.close()
+
+
 class OpenSsh:
     """One sftp batch command per call; credentials in private temporary files."""
 
@@ -77,7 +122,7 @@ class OpenSsh:
         self.client = shutil.which('sftp')
         if not self.client: raise SftpError('SFTP_CLIENT')
 
-    def run(self, commands):
+    def run(self, commands, output_limit=None, timeout=900):
         with tempfile.TemporaryDirectory(prefix='ingestron-sftp-') as folder:
             base = Path(folder)
             key, known, batch = base / 'key', base / 'known_hosts', base / 'batch'
@@ -92,8 +137,9 @@ class OpenSsh:
                     '-o', 'IdentityAgent=none', '-o', 'ConnectTimeout=30', '-o', 'LogLevel=ERROR',
                     f"{self.settings['user']}@{self.host}"]
             try:
-                result = subprocess.run(args, capture_output=True, text=True, timeout=900,
-                                        env={'PATH': os.environ.get('PATH', '/usr/bin:/bin')}, cwd=folder)
+                result = (bounded_process(args, folder, output_limit, timeout) if output_limit is not None
+                          else subprocess.run(args, capture_output=True, text=True, timeout=timeout,
+                                              env={'PATH': os.environ.get('PATH', '/usr/bin:/bin')}, cwd=folder))
             except subprocess.TimeoutExpired:
                 raise SftpError('SFTP_NETWORK') from None
             if result.returncode != 0:

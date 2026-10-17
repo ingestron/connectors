@@ -22,6 +22,7 @@ const files = {
   "snapshot_runtime.py": read("runtime/singer_runtime.py"),
   "files_reader.py": read("runtime/files_reader.py"),
   "singer_bridge.py": read("runtime/singer_bridge.py"),
+  "temporal_types.py": read("runtime/temporal_types.py"),
   "connector_kit.py": read("runtime/connector_kit.py"),
   "quality_rules.py": read("runtime/quality_rules.py"),
   "singer_inventory.py": read("runtime/singer_inventory.py"),

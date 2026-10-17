@@ -49,11 +49,31 @@ class RuntimeTests(unittest.TestCase):
         authored['orders']['schema'][0]['properties'][1]['primaryKey'] = True
         result = review(DISCOVERY, SELECT, authored)
         self.assertEqual(result['contracts'], authored)
+        self.assertEqual(result['contractSource'], 'project')
+        self.assertNotIn('authoredContracts', result)
         result['status'] = 'approved'
         accepted(result, DISCOVERY['identity'])
         authored['orders']['schema'][0]['properties'][1]['required'] = False
         with self.assertRaises(ValueError): review(DISCOVERY, SELECT, authored)
 
+
+
+    def test_compact_authored_review_and_legacy_review_preserve_the_same_projection(self):
+        authored = review(DISCOVERY, SELECT)['contracts']
+        current = review(DISCOVERY, SELECT, authored)
+        current['status'] = 'approved'
+        legacy = copy.deepcopy(current)
+        del legacy['contractSource']
+        legacy['authoredContracts'] = copy.deepcopy(authored)
+        self.assertEqual(accepted(current, DISCOVERY['identity']),
+                         accepted(legacy, DISCOVERY['identity']))
+        for changed in [dict(current, contractSource='unknown'),
+                        dict(current, authoredContracts=authored)]:
+            with self.assertRaisesRegex(ValueError, 'contract source'):
+                accepted(changed, DISCOVERY['identity'])
+        changed = copy.deepcopy(current)
+        changed['contracts']['orders']['schema'][0]['properties'][0]['name'] = 'foreign'
+        with self.assertRaises(ValueError): accepted(changed, DISCOVERY['identity'])
 
     def test_project_secrets_resolve_only_at_runtime(self):
         reference = {'password': {'$secret': {'env':'SYNTHETIC_PASSWORD'}}}

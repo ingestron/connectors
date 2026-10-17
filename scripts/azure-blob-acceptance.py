@@ -29,6 +29,12 @@ with tempfile.TemporaryDirectory() as tmp:
   path=ROOT/name
   if path.is_file():
    target=origin/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(path,target)
+ if not PUBLIC:
+  # This retail archive pins a CLI that predates source-access declarations.
+  manifest=origin/'connectors/azure-blob/connector.yaml'
+  source=yaml.safe_load(manifest.read_text())
+  source.pop('sourceAccess',None)
+  manifest.write_text(yaml.safe_dump(source,sort_keys=False))
  for args in [['git','init','-q'],['git','add','.'],['git','-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','fixture'],['git','tag',f'azure-blob-{SOURCE_VERSION}']]:command(args,origin)
  for fmt in ['csv','tsv','json','jsonl','parquet']:
   project=WORK/fmt;project.mkdir()

@@ -12,6 +12,7 @@ import { sources } from "../src/sources.mjs";
 const sha = (v) => createHash("sha256").update(v).digest("hex");
 const singerFiles = [
   "singer_bridge.py",
+  "temporal_types.py",
   "quality_rules.py",
   "github_tap.py",
   "singer_runtime.py",
@@ -98,6 +99,16 @@ for (const entry of singerCatalogue.filter((e) => e.prepared)) {
     definition: {
       settingsSchema: settings[ecosystem + ":" + entry.id],
       selectionSchema,
+      ...(name === "github"
+        ? {
+            tableSourceSchema: {
+              type: "object",
+              properties: { stream: { type: "string", enum: ["issues"] } },
+              required: ["stream"],
+              additionalProperties: false,
+            },
+          }
+        : {}),
     },
     execution: {
       local: {
@@ -120,6 +131,7 @@ await import("./build-azure-blob.mjs");
 await import("./build-sql-server.mjs");
 await import("./build-database.mjs");
 await import("./build-apps.mjs");
+await import("./build-source-access.mjs");
 
 if (process.env.GITHUB_REF_TYPE === "tag") {
   const tag = process.env.GITHUB_REF_NAME;

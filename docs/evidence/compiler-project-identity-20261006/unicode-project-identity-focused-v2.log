@@ -1,0 +1,22 @@
+test_changed_and_malformed_project_locks_fail_closed (test_project_identity.ProjectIdentity.test_changed_and_malformed_project_locks_fail_closed) ... ok
+test_compiler_json_matches_unicode_keys_strings_and_number_tokens (test_project_identity.ProjectIdentity.test_compiler_json_matches_unicode_keys_strings_and_number_tokens) ... ok
+test_existing_unicode_receipt_decimal_json_and_checkpoint_hashes_are_unchanged (test_project_identity.ProjectIdentity.test_existing_unicode_receipt_decimal_json_and_checkpoint_hashes_are_unchanged) ... ok
+test_runtime_identity_checks_exact_compiler_hash_and_lock_before_source_access (test_project_identity.ProjectIdentity.test_runtime_identity_checks_exact_compiler_hash_and_lock_before_source_access) ... ERROR
+
+======================================================================
+ERROR: test_runtime_identity_checks_exact_compiler_hash_and_lock_before_source_access (test_project_identity.ProjectIdentity.test_runtime_identity_checks_exact_compiler_hash_and_lock_before_source_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/connectors/test/runtime/test_project_identity.py", line 85, in test_runtime_identity_checks_exact_compiler_hash_and_lock_before_source_access
+    self.assertEqual(singer_runtime.runtime_identity(config, root)['projectSpecSha256'], result['sha'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/connectors/runtime/singer_runtime.py", line 82, in runtime_identity
+    check(config.get('apiVersion') == 'ingestron.singer/v1', 'Unsupported runtime configuration')
+  File "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/connectors/runtime/singer_runtime.py", line 42, in check
+    raise ValueError(message)
+ValueError: Unsupported runtime configuration
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.185s
+
+FAILED (errors=1)

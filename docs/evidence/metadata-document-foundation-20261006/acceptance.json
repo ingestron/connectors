@@ -1,0 +1,75 @@
+{
+  "apiVersion": "ingestron.metadata-document-foundation-acceptance/v1",
+  "date": "2026-10-06",
+  "status": "passed",
+  "completionState": "source-foundation-only",
+  "verification": {
+    "codecTestsPassed": 7,
+    "indexedProjectTestsPassed": 3,
+    "legacyRuntimeFocusedPassed": 16,
+    "connectorNodeTestsPassed": 5,
+    "connectorPythonTestsPassed": 303,
+    "componentFullGatePassed": true,
+    "frozenGeneratedSourcePackages": 16,
+    "frozenFilesVersion": "1.5.12",
+    "tableCount": 100,
+    "fieldsPerTable": 200,
+    "distinctContractIds": 100,
+    "totalMetadataDocumentBytes": 5668100,
+    "singleDocumentLimit": 2000000,
+    "collectionLimit": 7000000,
+    "indexBytes": 20459,
+    "completeSourceProjectionAndContracts": true,
+    "realPinnedDependencyInventoryVerified": true,
+    "actualRuntimeIdentityAndChangedTableRefusal": true,
+    "noRowReadsOrPublication": true
+  },
+  "candidateVersions": {
+    "azure-blob": "2.1.10",
+    "files": "1.5.12",
+    "gcs": "0.1.10",
+    "github": "1.36.10",
+    "hubspot": "0.1.8",
+    "jira": "0.1.8",
+    "mysql": "1.1.9",
+    "onedrive": "0.1.11",
+    "oracle": "1.1.9",
+    "postgresql": "1.1.10",
+    "s3": "1.0.10",
+    "salesforce": "0.1.8",
+    "sftp": "1.0.11",
+    "sharepoint": "0.1.11",
+    "sql-server": "1.5.9",
+    "stripe": "0.1.8"
+  },
+  "archive": {
+    "status": "passed",
+    "archive": "/Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/.studio-finalisation-20261005/artifacts/estate-source-documents-v1.tgz",
+    "archiveSha256": "b9e7262d972131f51217ac1bcada782e997c48d31f0f5af6e5320073da76f4b7",
+    "archiveBytes": 1305986,
+    "frozenPackages": 16,
+    "scope": "Generated source runtime maps/manifests and one extracted Files bundle; source-layer boundary proof only, not CLI/provider pipeline qualification"
+  },
+  "scope": {
+    "manuallyConstructedSourceLock": true,
+    "coreCanonicalHashHelperIsFrozen": true,
+    "coreProviderPreparationQualified": false,
+    "reviewApprovalRunQualified": false,
+    "full16SourceJourneyQualified": false,
+    "mountedInteraction": false,
+    "nativeVendorExecution": false,
+    "enterpriseComplete": false
+  },
+  "remaining": [
+    "Compiler/provider opt-in, bounded preparation batches and composition without whole-payload expansion",
+    "Indexed discovery/review/selection, exact complete approval and SDK/CLI/MCP/Studio/editor readers",
+    "Safe collection-limit propagation through provider acknowledgement, core and UI",
+    "New immutable installed current-candidate full16source and repeated-change/denial/recovery matrix",
+    "Full enterprise acceptance ledger"
+  ],
+  "repairs": [
+    "Scaffold initially omitted the new imported helper; its generated source and locked asset map now include it and standalone conformance passes",
+    "Sandbox blocked existing loopback HTTP fixtures; authorised outside-sandbox component gate passes",
+    "Initial frozen identity run used the Github test environment with a different dependency lock; the final run uses the existing exact Files environment with real inventory verification"
+  ]
+}

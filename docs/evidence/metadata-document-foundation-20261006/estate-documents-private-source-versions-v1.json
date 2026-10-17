@@ -1,0 +1,41 @@
+{
+  "status": "candidate-build-only",
+  "before": {
+    "azure-blob": "2.1.9",
+    "files": "1.5.11",
+    "gcs": "0.1.9",
+    "github": "1.36.9",
+    "hubspot": "0.1.7",
+    "jira": "0.1.7",
+    "mysql": "1.1.8",
+    "onedrive": "0.1.10",
+    "oracle": "1.1.8",
+    "postgresql": "1.1.9",
+    "s3": "1.0.9",
+    "salesforce": "0.1.7",
+    "sftp": "1.0.10",
+    "sharepoint": "0.1.10",
+    "sql-server": "1.5.8",
+    "stripe": "0.1.7"
+  },
+  "after": {
+    "azure-blob": "2.1.10",
+    "files": "1.5.12",
+    "gcs": "0.1.10",
+    "github": "1.36.10",
+    "hubspot": "0.1.8",
+    "jira": "0.1.8",
+    "mysql": "1.1.9",
+    "onedrive": "0.1.11",
+    "oracle": "1.1.9",
+    "postgresql": "1.1.10",
+    "s3": "1.0.10",
+    "salesforce": "0.1.8",
+    "sftp": "1.0.11",
+    "sharepoint": "0.1.11",
+    "sql-server": "1.5.9",
+    "stripe": "0.1.8"
+  },
+  "publicCatalogueChanged": false,
+  "installedQualification": false
+}

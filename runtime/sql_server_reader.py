@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, time
+from temporal_types import TemporalError
 from decimal import Decimal
 import math
 import re
@@ -99,7 +100,20 @@ def source_object(settings):
     return schema, table, columns
 
 
+def temporal_type(type_name, scale):
+    kind = type_name.lower()
+    if kind == 'date': return 'date'
+    if kind in ('datetime', 'smalldatetime'): return 'timestamp'
+    if kind == 'datetime2':
+        # Driver datetime values cannot retain SQL Server's seventh fractional digit.
+        if scale is None or not 0 <= int(scale) <= 6:
+            raise TemporalError('TEMPORAL_PRECISION')
+        return 'timestamp'
+    return 'string'  # datetimeoffset/time need a separate reviewed policy.
+
+
 def column_type(type_name, precision, scale):
+    temporal_type(type_name, scale)
     kind = type_name.lower()
     if kind in {"tinyint", "smallint", "int", "bigint"}: return "integer"
     if kind == "bit": return "boolean"
@@ -175,10 +189,13 @@ def catalogue(settings, connect=None):
             raise SQLSourceError("SQL_TABLE", "SQL table absent or metadata not visible to this identity")
         columns = []
         for column, type_name, precision, scale, nullable, key in rows:
-            entry = {"name": column, "nullable": bool(nullable), "sourceType": str(type_name)}
+            entry = {"name": column, "nullable": bool(nullable), "sourceType": f"{type_name}({int(scale)})" if str(type_name).lower() == "datetime2" and scale is not None else str(type_name)}
             try:
                 kind = column_type(type_name, precision, scale)
-                entry["type"] = kind
+                temporal = temporal_type(type_name, scale)
+                entry["type"] = temporal if temporal != "string" else kind
+                if str(type_name).lower() == "datetime2":
+                    entry["sourceType"] = f"{type_name}({int(scale)})"
                 if str(type_name).lower() in ("decimal", "numeric", "money", "smallmoney"):
                     entry.update(type="decimal", precision=int(precision), scale=int(scale))
             except ValueError:

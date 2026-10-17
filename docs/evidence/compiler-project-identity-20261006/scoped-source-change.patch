@@ -1,0 +1,456 @@
+--- before/connectors/runtime/singer_bridge.py
++++ after/connectors/runtime/singer_bridge.py
+@@ -42,6 +42,66 @@
+ 
+ def digest(value):
+     return hashlib.sha256(canonical(value).encode()).hexdigest()
++
++
++class _CompilerNumber(str):
++    """A number token already serialised by the compiler's JSON writer."""
++
++
++def project_specification_digest(text):
++    """Hash a compiler-written project lock without changing runtime hashes.
++
++    The compiler sorts keys using UTF-16 and writes UTF-8 JSON. Preserve its
++    number tokens rather than rounding/reformatting them through Python floats.
++    Runtime receipts, schema hashes and checkpoints retain their existing codec.
++    """
++    def invalid_constant(value):
++        raise ValueError('Invalid compiler JSON number')
++
++    def unique_object(pairs):
++        result = {}
++        for key, value in pairs:
++            if key in result:
++                raise ValueError('Duplicate project lock key')
++            result[key] = value
++        return result
++
++    project = json.loads(text, parse_int=_CompilerNumber,
++                         parse_float=_CompilerNumber, parse_constant=invalid_constant,
++                         object_pairs_hook=unique_object)
++    if not isinstance(project, dict):
++        raise ValueError('Project lock must be an object')
++    project.pop('specificationSha256')
++
++    def string(value):
++        encoded = json.dumps(value, ensure_ascii=False, allow_nan=False)
++        # JSON.stringify escapes unpaired surrogates, while valid pairs arrive
++        # as Unicode code points from the compiler's UTF-8 JSON file.
++        return ''.join('\\u%04x' % ord(c) if 0xd800 <= ord(c) <= 0xdfff else c
++                       for c in encoded)
++
++    def ordered_keys(value):
++        indices, other = [], []
++        for key in value:
++            if (len(key) <= 10 and re.fullmatch(r'0|[1-9][0-9]*', key)
++                    and int(key) < 4294967295):
++                indices.append(key)
++            else:
++                other.append(key)
++        return (sorted(indices, key=int)
++                + sorted(other, key=lambda k: k.encode('utf-16-be', 'surrogatepass')))
++
++    def serialise(value):
++        if isinstance(value, _CompilerNumber):
++            return str(value)
++        if isinstance(value, dict):
++            return '{' + ','.join(string(k) + ':' + serialise(value[k])
++                                  for k in ordered_keys(value)) + '}'
++        if isinstance(value, list):
++            return '[' + ','.join(serialise(v) for v in value) + ']'
++        return string(value)
++
++    return hashlib.sha256(serialise(project).encode('utf8')).hexdigest()
+ 
+ 
+ def file_digest(path):
+--- before/connectors/runtime/singer_runtime.py
++++ after/connectors/runtime/singer_runtime.py
+@@ -12,7 +12,7 @@
+ import tempfile
+ import threading
+ from decimal import Decimal
+-from singer_bridge import canonical, digest, file_digest, safe_name, arrow_type, snapshot, CheckpointError, preview_checkpoint_migration, apply_checkpoint_migration
++from singer_bridge import canonical, digest, project_specification_digest, file_digest, safe_name, arrow_type, snapshot, CheckpointError, preview_checkpoint_migration, apply_checkpoint_migration
+ from quality_rules import QualityFailed
+ from temporal_types import TemporalError, MESSAGES as TEMPORAL_MESSAGES
+ 
+@@ -107,8 +107,9 @@
+         project = dict(config['projectLock'])
+         check(project.get('runtimeContract') == 'ingestron.snapshot/python/v1', 'Unsupported project runtime contract')
+         expected = project.pop('specificationSha256')
+-        check(digest(project) == expected, 'Project specification hash mismatch')
+-        check(load(folder / 'project-connection.lock.json') == config['projectLock'], 'Project lock changed')
++        project_text = (folder / 'project-connection.lock.json').read_text()
++        check(project_specification_digest(project_text) == expected, 'Project specification hash mismatch')
++        check(json.loads(project_text) == config['projectLock'], 'Project lock changed')
+         check(config['sourceSettings'] == project['settings'], 'Connection settings differ from project lock')
+         check(config['connector'] == project['connector'].split(':',1)[-1] and config['sourceId'] == project['sourceId'] and config['tenantId'] == project['tenantId'] and config['timeoutSeconds'] == project['timeoutSeconds'], 'Runtime differs from project lock')
+         check(load(folder / 'selection.json') == project_selection(project), 'Selection differs from project lock')
+--- before/connectors/scripts/build-source-access.mjs
++++ after/connectors/scripts/build-source-access.mjs
+@@ -5,22 +5,22 @@
+ import { format } from "prettier";
+ import { selectionSchema } from "../src/connection-contract.mjs";
+ const candidateVersions = {
+-  "azure-blob": "2.1.7",
+-  files: "1.5.9",
+-  gcs: "0.1.7",
+-  github: "1.36.7",
+-  hubspot: "0.1.5",
+-  jira: "0.1.5",
+-  mysql: "1.1.6",
+-  onedrive: "0.1.8",
+-  oracle: "1.1.6",
+-  postgresql: "1.1.7",
+-  s3: "1.0.7",
+-  salesforce: "0.1.5",
+-  sftp: "1.0.8",
+-  sharepoint: "0.1.8",
+-  "sql-server": "1.5.6",
+-  stripe: "0.1.5",
++  "azure-blob": "2.1.8",
++  files: "1.5.10",
++  gcs: "0.1.8",
++  github: "1.36.8",
++  hubspot: "0.1.6",
++  jira: "0.1.6",
++  mysql: "1.1.7",
++  onedrive: "0.1.9",
++  oracle: "1.1.7",
++  postgresql: "1.1.8",
++  s3: "1.0.8",
++  salesforce: "0.1.6",
++  sftp: "1.0.9",
++  sharepoint: "0.1.9",
++  "sql-server": "1.5.7",
++  stripe: "0.1.6",
+ };
+ const jsonSchemaOptions = {
+   type: "object",
+--- before/connectors/docs/runtime-matrix.md
++++ after/connectors/docs/runtime-matrix.md
+@@ -77,6 +77,16 @@
+ cases. It does not qualify browser or webview interaction, native delivery or the
+ sixteen broader product workflows.
+ 
++## Compiler project identity
++
++The runtime checks compiler-written project locks using a separate UTF-8 codec.
++It preserves the compiler's number tokens and key ordering; data, receipts and
++checkpoints retain their existing JSON format. The private current-candidate
++harness and bounded multilingual journey are recorded in
++[compiler project identity evidence](evidence/compiler-project-identity-20261006/README.md).
++Its newer archive pair is qualified by the recorded frozen harness; the commands
++above describe the separately versioned owning harness.
++
+ ## Interpret the proof
+ 
+ Files are actual local files. API and object-storage sources use loopback HTTP
+--- before/connectors/connectors/postgresql/connector.yaml
++++ after/connectors/connectors/postgresql/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: postgresql
+-version: 1.1.7
++version: 1.1.8
+ description: Reviewed local snapshots from PostgreSQL tables
+ connector: singer:postgresql@1.31.5
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/postgresql.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/postgresql/runtime.json
+-  sha256: 5f974c146073a2030ce08f9459fcf64db2ad41fa01fa068d682fede22d81ce32
++  sha256: 3321cc9e745b0ff7f918c42a7dc37c3e1cbe794f6897976122379a0161b6c9e3
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/s3/connector.yaml
++++ after/connectors/connectors/s3/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: s3
+-version: 1.0.7
++version: 1.0.8
+ description: Reviewed local snapshots of Amazon S3 objects
+ connector: singer:s3@23.0.1
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/s3.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/s3/runtime.json
+-  sha256: 78bae6c14015ec1af0ef798232912233882a7e71cc5394c5cc8f7fcebd4f6cff
++  sha256: 63f7e5cd3da43331b6878c222e4dd079c1ea104ff301900b4e098d3580cc3642
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/onedrive/connector.yaml
++++ after/connectors/connectors/onedrive/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: onedrive
+-version: 0.1.8
++version: 0.1.9
+ description: Reviewed local snapshots of OneDrive files through Microsoft Graph
+ connector: singer:onedrive@23.0.1
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/onedrive.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/onedrive/runtime.json
+-  sha256: c07798b75140a56fdb57ddc3171f9c896cfdd15a00b298863823bc4209098c77
++  sha256: 1bc0712c64ea2817250177a1c55bfe4b4463e32ff64d6dd88533a8530200e636
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/oracle/connector.yaml
++++ after/connectors/connectors/oracle/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: oracle
+-version: 1.1.6
++version: 1.1.7
+ description: Reviewed local snapshots from Oracle tables
+ connector: singer:oracle@26.0.1
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/oracle.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/oracle/runtime.json
+-  sha256: 12182d9623e8fd935b87325ddea24b6fa53c243d9e2eadfe8d2801b30d6f7c36
++  sha256: 7a5a13af6430bf65c76614ad2b5320a21b5d4cddf1816fcee8c8be472d07d9de
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/sftp/connector.yaml
++++ after/connectors/connectors/sftp/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: sftp
+-version: 1.0.8
++version: 1.0.9
+ description: Reviewed local snapshots of files on SFTP servers
+ connector: singer:sftp@23.0.1
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/sftp.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/sftp/runtime.json
+-  sha256: 01da25689552910702029b81e569625a7f93dd43389a93a2ef303ad031c891d0
++  sha256: 010092f01517d1e2018a1c9f6c3d0890531b58b8579d59ec20fb5a5c2824dd1e
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/hubspot/connector.yaml
++++ after/connectors/connectors/hubspot/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: hubspot
+-version: 0.1.5
++version: 0.1.6
+ description: Reviewed local snapshots of HubSpot CRM objects
+ connector: singer:hubspot@23.0.1
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/hubspot.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/hubspot/runtime.json
+-  sha256: 648976bcaedc2d64c81c0f4aae28411f43fcfa262092a4a2a7f84284111de35d
++  sha256: 74a772c7af88d436f924001ab851ba82052114adee2850beae7deff07cfa41a3
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/jira/connector.yaml
++++ after/connectors/connectors/jira/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: jira
+-version: 0.1.5
++version: 0.1.6
+ description: Reviewed local snapshots of Jira Cloud issues and projects
+ connector: singer:jira@23.0.1
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/jira.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/jira/runtime.json
+-  sha256: f259cd45bc9e69388daad03bab3b2bc2674e71d5f52bb2b20178813108db3206
++  sha256: 2b9c814ab12426a9b41b46a92c52a0ec2f6a9611ae80509662436f4615f2afd3
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/github/connector.yaml
++++ after/connectors/connectors/github/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: github
+-version: 1.36.7
++version: 1.36.8
+ description: github customer-operated full snapshot connector
+ connector: singer:github@1.29.2
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/github.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/github/runtime.json
+-  sha256: 0a9a25c629d8016c404078d8bbfc3eea1e07170a92edf6ab0aec66878c81b714
++  sha256: 9a126ff1b89caddcf7df993070add8621b32cfc7d39fc37c98fb3d4f3246093f
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/sql-server/connector.yaml
++++ after/connectors/connectors/sql-server/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: sql-server
+-version: 1.5.6
++version: 1.5.7
+ description: Reviewed local snapshots from multiple SQL Server or Azure SQL tables
+ connector: singer:sql-server@1.15.0
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/sql-server.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/sql-server/runtime.json
+-  sha256: 1babd275baa05ca92f0c44a5e1556e575a84f958c9e972825d0608f59c4cb635
++  sha256: 26a098abfcce398d975583751d9b7c111e4520180963d5f959dd9e504467506d
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/mysql/connector.yaml
++++ after/connectors/connectors/mysql/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: mysql
+-version: 1.1.6
++version: 1.1.7
+ description: Reviewed local snapshots from MySQL and MariaDB tables
+ connector: singer:mysql@1.2.3
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/mysql.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/mysql/runtime.json
+-  sha256: b167c8d11854e4e3f3c8a5d1d5a55406dc2787e667f5cb4dc849e36800cb4704
++  sha256: 4be1d7d6ddb5b872c4238122d246a2560c0cf77cf0328340bd2dad37b8ec6771
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/azure-blob/connector.yaml
++++ after/connectors/connectors/azure-blob/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: azure-blob
+-version: 2.1.7
++version: 2.1.8
+ description: Reviewed local snapshots from Azure Blob or ADLS Gen2 files
+ connector: singer:azure-blob@23.0.1
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/azure-blob.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/azure-blob/runtime.json
+-  sha256: 9b136b82a28b0aa85c2c21b1d03caba248132e7938527ebf0182ab37c0baa98d
++  sha256: c640dececaec667a0ea2384ce8fd94816c7c15bd499223b006014ec4687acb7f
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/sharepoint/connector.yaml
++++ after/connectors/connectors/sharepoint/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: sharepoint
+-version: 0.1.8
++version: 0.1.9
+ description: Reviewed local snapshots of SharePoint files through Microsoft Graph
+ connector: singer:sharepoint@23.0.1
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/sharepoint.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/sharepoint/runtime.json
+-  sha256: a20080f09a6556fc50b6ccb031cfffae35c19f30fbe5fb9bd39ba9b0d10557d3
++  sha256: 323d1d3c6cc44e510a2baf1eace1398a87b0003937b8cb84bd0e4ffd22dff3f5
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/files/connector.yaml
++++ after/connectors/connectors/files/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: files
+-version: 1.5.9
++version: 1.5.10
+ description: Reviewed snapshots from local CSV, TSV, JSON, JSONL and Parquet files
+ connector: singer:files@23.0.1
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/files.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/files/runtime.json
+-  sha256: 87af49c5c623825551036b603c42bfd12646f4168cad98188620c370c00f3e89
++  sha256: 18c50245a71867c9dfc5ec5095e06c7fc1cb68860038152e916a57992d1441c9
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/salesforce/connector.yaml
++++ after/connectors/connectors/salesforce/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: salesforce
+-version: 0.1.5
++version: 0.1.6
+ description: Reviewed local snapshots of Salesforce objects
+ connector: singer:salesforce@23.0.1
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/salesforce.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/salesforce/runtime.json
+-  sha256: 1b97645ca5357b268ca2a681202bf5075978c6b5c6b8c7cbef8202f69cfd8a37
++  sha256: 523e9d43215642ba8b33f44491631f0e7404c4fc3717376d3f1887cf29accc53
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/stripe/connector.yaml
++++ after/connectors/connectors/stripe/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: stripe
+-version: 0.1.5
++version: 0.1.6
+ description: Reviewed local snapshots of Stripe objects
+ connector: singer:stripe@23.0.1
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/stripe.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/stripe/runtime.json
+-  sha256: 9d55c40ad6394df9101a16f1ff352145bf2f4d214efcef626a6d00a70a15a87e
++  sha256: b1bae5be3fe776ebbf443c3f92a17bae46ef0931a6ebec2524b1d45a81ad0a17
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:
+--- before/connectors/connectors/gcs/connector.yaml
++++ after/connectors/connectors/gcs/connector.yaml
+@@ -1,6 +1,6 @@
+ apiVersion: ingestron.connector/v1
+ id: gcs
+-version: 0.1.7
++version: 0.1.8
+ description: Reviewed local snapshots of Google Cloud Storage objects
+ connector: singer:gcs@23.0.1
+ documentation: https://github.com/ingestron/connectors/blob/main/docs/gcs.md
+@@ -15,7 +15,7 @@
+   licenceStatus: evidenced
+ runtime:
+   path: connectors/gcs/runtime.json
+-  sha256: 175c0e8b9118de09133541895c86274e3380c6b21da9e8a2565cb35790ae0020
++  sha256: bc073eeecea9fd3bd53cd62429c04042a2a69cb4cfd33f0d22b3a3f468d0c38a
+   contract: ingestron.snapshot/python/v1
+ quality:
+   library:

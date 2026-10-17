@@ -1,0 +1,6 @@
+
+> @ingestron/connectors@0.3.0 format:check /Users/sacode/sa.projects/intentlabs/repo/ingestron/repo/connectors
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!

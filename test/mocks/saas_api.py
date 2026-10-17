@@ -72,7 +72,7 @@ class SalesforceApi(Base):
         if parts[-1] == 'query' or '/query/' in url.path:
             if parts[-1] == 'query':
                 soql = parse_qs(url.query)['q'][0]
-                obj = soql.rsplit(' FROM ', 1)[1]
+                obj = soql.rsplit(' FROM ', 1)[1].split(' LIMIT ', 1)[0]
                 start = 0
             else:
                 obj, start = parts[-1].split('-')

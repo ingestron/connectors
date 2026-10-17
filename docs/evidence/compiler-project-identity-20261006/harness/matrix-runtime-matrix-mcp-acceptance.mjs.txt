@@ -1,0 +1,558 @@
+/** Installed SDK/CLI/MCP adapter for the source-owned synthetic runtime matrix.
+ * Input is private fixture configuration; output contains no sampled row values.
+ * All product imports resolve from the immutable installed CLI package.
+ */
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { readFileSync, readdirSync, realpathSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname, join, relative, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+
+const { config, source } = JSON.parse(readFileSync(0, "utf8"));
+assert.ok(
+  ["0.17.18/0.12.43", "0.17.20/0.12.47", "0.17.21/0.12.51"].includes(
+    config.candidate.cli + "/" + config.candidate.core,
+  ),
+);
+const cliPackage = resolve(config.cli, "../../../..");
+const installed = createRequire(join(cliPackage, "package.json"));
+const corePackage = realpathSync(join(dirname(cliPackage), "@ingestron/core"));
+assert.equal(corePackage, realpathSync(config.core));
+// Core has import-only exports; CommonJS require.resolve cannot resolve its root.
+const coreManifest = JSON.parse(
+  readFileSync(join(corePackage, "package.json"), "utf8"),
+);
+const coreEntry = resolve(corePackage, coreManifest.exports["."].import);
+assert.equal(realpathSync(resolve(coreEntry, "../../..")), corePackage);
+const core = await import(pathToFileURL(coreEntry).href);
+const { Client } = await import(
+  pathToFileURL(installed.resolve("@modelcontextprotocol/sdk/client/index.js"))
+    .href
+);
+const { StdioClientTransport } = await import(
+  pathToFileURL(installed.resolve("@modelcontextprotocol/sdk/client/stdio.js"))
+    .href
+);
+assert.equal(core.version, config.candidate.core);
+const environment = {
+  PATH: dirname(config.python) + ":" + process.env.PATH,
+  ...Object.fromEntries(
+    Object.entries(process.env).filter(([key]) =>
+      /^INGESTRON_MATRIX_[A-Z0-9_]+$/.test(key),
+    ),
+  ),
+};
+const privateValues = [
+  "MATRIX_PRIVATE_ROW",
+  "MATRIX_UNSELECTED_PRIVATE",
+  "secret-row-value",
+  "secret-value",
+  "secret-tempauth",
+  ...config.records
+    .filter((item) => item.id !== "files")
+    .map((item) => environment[item.secretName]),
+].filter(Boolean);
+const digest = (file) =>
+  createHash("sha256").update(readFileSync(file)).digest("hex");
+function tree(folder, include = () => true, descend = () => true) {
+  const files = {};
+  function visit(path) {
+    for (const entry of readdirSync(path, { withFileTypes: true })) {
+      const next = join(path, entry.name);
+      if (entry.isDirectory() && descend(next)) visit(next);
+      else if (entry.isFile() && include(next))
+        files[relative(config.root, next)] = digest(next);
+    }
+  }
+  try {
+    visit(folder);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  return files;
+}
+const equal = (a, b, message) =>
+  assert.ok(JSON.stringify(a) === JSON.stringify(b), message);
+const privateReceipt = (value) =>
+  assert.ok(
+    !privateValues.some((secret) => JSON.stringify(value).includes(secret)),
+    "Rows or credentials appeared in a durable result",
+  );
+const receipts = () => tree(join(config.root, ".ingestron/source-access"));
+const outputs = () => tree(join(config.root, "build"));
+const authored = () =>
+  Object.fromEntries(
+    Object.entries(
+      tree(
+        config.root,
+        (file) => /\.ya?ml$/.test(file),
+        (path) =>
+          ![".ingestron", "build"].includes(relative(config.root, path)),
+      ),
+    ).filter(
+      ([file]) => !file.startsWith(".ingestron/") && !file.startsWith("build/"),
+    ),
+  );
+const before = {
+  receipts: receipts(),
+  outputs: outputs(),
+  authored: authored(),
+};
+const selection = { connection: source.id, executor: config.provider };
+const sampleRequest = {
+  ...selection,
+  source: source.source,
+  columns: source.columns,
+  limit: 1,
+};
+const context = {
+  root: config.root,
+  environment: "dev",
+  allowWrite: true,
+  allowExecute: true,
+  allowNetwork: false,
+};
+const checks = [],
+  clients = [];
+let stage = "connect",
+  result = "failed",
+  failure;
+const record = (message) => checks.push(message);
+function requireOk(value, operation) {
+  assert.equal(
+    value.ok,
+    true,
+    "Installed operation failed: " +
+      operation +
+      "; codes=" +
+      value.diagnostics?.map((item) => item.code).join(","),
+  );
+  return value.result;
+}
+const sdk = async (operation, request, overrides = {}) =>
+  core.executeAsync({ ...context, ...overrides }, operation, request);
+function cli(
+  operation,
+  request,
+  permissions = ["--allow-write", "--allow-execute"],
+) {
+  let stdout;
+  try {
+    stdout = execFileSync(
+      process.execPath,
+      [
+        config.cli,
+        "--project",
+        config.root,
+        "--env",
+        "dev",
+        "--json",
+        "--no-input",
+        "operation",
+        operation,
+        ...permissions,
+      ],
+      {
+        input: JSON.stringify(request),
+        encoding: "utf8",
+        env: environment,
+        timeout: 180000,
+        stdio: ["pipe", "pipe", "pipe"],
+      },
+    );
+  } catch (error) {
+    stdout = error.stdout;
+  }
+  assert.ok(stdout, "Installed CLI returned no structured result");
+  return JSON.parse(stdout);
+}
+async function connect(label, flags) {
+  const client = new Client({ name: "matrix-" + label, version: "1.0.0" });
+  const transport = new StdioClientTransport({
+    command: process.execPath,
+    args: [
+      config.cli,
+      "--project",
+      config.root,
+      "--env",
+      "dev",
+      "advanced",
+      "mcp",
+      "serve",
+      ...flags,
+    ],
+    env: environment,
+    stderr: "pipe",
+  });
+  transport.stderr?.resume();
+  const handle = { client, transport, label, pid: undefined };
+  clients.push(handle);
+  await client.connect(transport);
+  handle.pid = transport.pid;
+  assert.ok(handle.pid, "Installed MCP child has no process identity");
+  return handle;
+}
+async function tool(handle, operation, request) {
+  const value = await handle.client.callTool(
+    { name: "ingestron_" + operation, arguments: request },
+    undefined,
+    { timeout: 180000 },
+  );
+  const text = value.content.find((item) => item.type === "text")?.text;
+  assert.ok(text, "MCP returned no structured operation result");
+  return JSON.parse(text);
+}
+async function refuses(handle, operation, request) {
+  const state = { receipts: receipts(), outputs: outputs() };
+  let refused = false;
+  try {
+    const response = await handle.client.callTool(
+      { name: "ingestron_" + operation, arguments: request },
+      undefined,
+      { timeout: 180000 },
+    );
+    refused = response.isError === true;
+  } catch (error) {
+    refused = typeof error.code === "number" && error.code === -32602;
+  }
+  assert.ok(
+    refused,
+    "MCP accepted an unavailable or malformed source operation",
+  );
+  equal(
+    receipts(),
+    state.receipts,
+    "Denied MCP request wrote a private receipt",
+  );
+  equal(
+    outputs(),
+    state.outputs,
+    "Denied MCP request changed generated output",
+  );
+}
+const withoutReceipt = ({ receipt, ...value }) => value;
+try {
+  stage = "permissions";
+  for (const [label, flags] of [
+    ["read-only", []],
+    ["write-only", ["--allow-write"]],
+    ["execute-only", ["--allow-execute"]],
+  ]) {
+    const handle = await connect(label, flags);
+    const catalogue = (await handle.client.listTools()).tools;
+    assert.ok(
+      catalogue.some((item) => item.name === "ingestron_connection_access"),
+      "Static source capabilities missing from MCP",
+    );
+    for (const name of [
+      "connection_sample",
+      "connection_test",
+      "connection_inventory",
+      "connection_metadata",
+      "connection_runtime_prepare",
+    ])
+      assert.ok(
+        !catalogue.some((item) => item.name === "ingestron_" + name),
+        "Source execution exposed without both MCP permissions",
+      );
+    await refuses(handle, "connection_sample", sampleRequest);
+  }
+  for (const overrides of [{ allowWrite: false }, { allowExecute: false }]) {
+    const denied = await sdk("connection_sample", sampleRequest, overrides);
+    assert.equal(
+      denied.ok,
+      false,
+      "SDK accepted source access without explicit permissions",
+    );
+    assert.ok(
+      denied.diagnostics.some((item) => item.code === "PERMISSION"),
+      "SDK denial lost its permission diagnostic",
+    );
+  }
+  for (const flags of [[], ["--allow-write"], ["--allow-execute"]]) {
+    const denied = cli("connection_sample", sampleRequest, flags);
+    assert.equal(
+      denied.ok,
+      false,
+      "CLI accepted source access without both permissions",
+    );
+    assert.ok(
+      denied.diagnostics.some((item) => item.code === "PERMISSION"),
+      "CLI denial lost its permission diagnostic",
+    );
+  }
+  equal(receipts(), before.receipts, "Permission denial created a receipt");
+  record(
+    "Read-only, write-only and execute-only MCP sessions hide and refuse source reads; SDK and CLI require both explicit permissions without receipt or output writes",
+  );
+  const handle = await connect("source-access", [
+    "--allow-write",
+    "--allow-execute",
+  ]);
+  const tools = (await handle.client.listTools()).tools;
+  for (const name of [
+    "connection_sample",
+    "connection_test",
+    "connection_inventory",
+    "connection_metadata",
+    "connection_runtime_prepare",
+  ]) {
+    const item = tools.find((item) => item.name === "ingestron_" + name);
+    assert.ok(item, "Explicit source tool missing from MCP");
+    assert.equal(item.annotations.readOnlyHint, false);
+    assert.equal(item.annotations.openWorldHint, true);
+  }
+  stage = "static-capabilities";
+  const info = requireOk(
+    await sdk("connection_access", selection),
+    "connection_access",
+  );
+  equal(
+    requireOk(cli("connection_access", selection, []), "connection_access"),
+    info,
+    "CLI static capabilities differ from the installed SDK",
+  );
+  equal(
+    requireOk(
+      await tool(handle, "connection_access", selection),
+      "connection_access",
+    ),
+    info,
+    "MCP static capabilities differ from the installed SDK",
+  );
+  equal(
+    info.actions,
+    source.actions,
+    "Installed source actions differ from the frozen manifest",
+  );
+  assert.equal(info.executor, config.provider);
+  assert.match(info.fingerprint, /^[a-f0-9]{64}$/);
+  equal(
+    receipts(),
+    before.receipts,
+    "Static capabilities performed a source read",
+  );
+  privateReceipt(info);
+  record(
+    "Installed SDK, CLI and actual stdio MCP return identical locked capabilities, source fingerprint and exact execution provider without reading records",
+  );
+  stage = "validation";
+  for (const patch of [
+    { limit: 0 },
+    { limit: 51 },
+    { limit: "1" },
+    { root: "/foreign-project" },
+    { environment: "prod" },
+    { sql: "SELECT * FROM foreign" },
+  ]) {
+    const request = { ...sampleRequest, ...patch };
+    for (const value of [
+      await sdk("connection_sample", request),
+      cli("connection_sample", request),
+    ]) {
+      assert.equal(value.ok, false, "Malformed source request accepted");
+      assert.ok(
+        value.diagnostics.some((item) => item.code === "SCHEMA"),
+        "Malformed source request lost schema diagnostic",
+      );
+    }
+    await refuses(handle, "connection_sample", request);
+  }
+  equal(receipts(), before.receipts, "Malformed selection wrote a receipt");
+  const deniedPrepare = await tool(handle, "connection_runtime_prepare", {
+    ...selection,
+    python: config.python,
+  });
+  assert.equal(
+    deniedPrepare.ok,
+    false,
+    "Runtime preparation accepted without network authority",
+  );
+  assert.ok(
+    deniedPrepare.diagnostics.some((item) => item.code === "PERMISSION"),
+    "Runtime preparation lost network permission diagnostic",
+  );
+  record(
+    "All three installed entry points refuse malformed bounds and caller root, environment or SQL fields; MCP runtime preparation separately requires network authority",
+  );
+  stage = "source-access";
+  for (const [operation, request] of [
+    ["connection_test", { ...selection, source: source.source }],
+    [
+      "connection_inventory",
+      {
+        ...selection,
+        limit: 1,
+        ...(source.scope ? { scope: source.scope } : {}),
+      },
+    ],
+    ["connection_metadata", { ...selection, tables: [source.source] }],
+  ]) {
+    const reference = requireOk(await sdk(operation, request), operation);
+    const cliResult = requireOk(cli(operation, request), operation);
+    const mcpResult = requireOk(
+      await tool(handle, operation, request),
+      operation,
+    );
+    equal(
+      withoutReceipt(cliResult),
+      withoutReceipt(reference),
+      "CLI selected source metadata differs from SDK: " + operation,
+    );
+    equal(
+      withoutReceipt(mcpResult),
+      withoutReceipt(reference),
+      "MCP selected source metadata differs from SDK: " + operation,
+    );
+    privateReceipt(reference);
+    privateReceipt(cliResult);
+    privateReceipt(mcpResult);
+    if (operation === "connection_metadata") {
+      assert.equal(reference.tables.length, 1);
+      assert.ok(
+        source.columns.every((name) =>
+          reference.tables[0].columns.some((column) => column.name === name),
+        ),
+        "Reviewed fields missing from selected metadata",
+      );
+    }
+    if (operation === "connection_inventory")
+      assert.ok(
+        reference.tables.length > 0,
+        "Selected source inventory is empty",
+      );
+  }
+  record(
+    "SDK, CLI and MCP dispatch actual source test, bounded inventory and selected metadata to the same locked runtime and return identical metadata apart from independent receipt identifiers",
+  );
+  stage = "sample";
+  const reference = requireOk(
+    await sdk("connection_sample", sampleRequest),
+    "connection_sample",
+  );
+  const cliResult = requireOk(
+    cli("connection_sample", sampleRequest),
+    "connection_sample",
+  );
+  const mcpResult = requireOk(
+    await tool(handle, "connection_sample", sampleRequest),
+    "connection_sample",
+  );
+  equal(
+    withoutReceipt(cliResult),
+    withoutReceipt(reference),
+    "CLI bounded sample differs from installed SDK",
+  );
+  equal(
+    withoutReceipt(mcpResult),
+    withoutReceipt(reference),
+    "MCP bounded sample differs from installed SDK",
+  );
+  equal(
+    reference.sample.columns,
+    source.columns,
+    "Sample projection differs from selected fields",
+  );
+  assert.equal(reference.sample.rows.length, 1);
+  assert.equal(reference.sample.truncated, true);
+  assert.ok(
+    reference.sample.rows[0].length === source.columns.length,
+    "Sample grid shape differs from its fields",
+  );
+  record(
+    "Identical immediate scalar samples across SDK, CLI and stdio MCP preserve explicit source and field selection, one-row bounds and truncation; row values are omitted from proof",
+  );
+  stage = "privacy";
+  const after = receipts();
+  const changed = Object.keys(after).filter(
+    (file) => after[file] !== before.receipts[file],
+  );
+  assert.ok(
+    changed.length >= 12,
+    "Successful source operations did not record independent receipts",
+  );
+  for (const file of changed) {
+    const receipt = JSON.parse(readFileSync(join(config.root, file), "utf8"));
+    privateReceipt(receipt);
+    assert.equal(
+      receipt.status,
+      "succeeded",
+      "Source receipt did not record success",
+    );
+    if (receipt.result?.sample) {
+      assert.ok(
+        !Object.hasOwn(receipt.result.sample, "rows"),
+        "Sample receipt persisted business rows",
+      );
+      assert.equal(receipt.result.sample.rowCount, 1);
+    }
+  }
+  equal(
+    outputs(),
+    before.outputs,
+    "Source access changed generated assets or committed output",
+  );
+  equal(
+    authored(),
+    before.authored,
+    "Source access changed the authored project",
+  );
+  record(
+    "Source access leaves authored YAML and all existing generated output byte-identical; new receipts contain counts and metadata without sampled rows or synthetic credentials",
+  );
+  result = "passed";
+} catch (error) {
+  failure =
+    error instanceof assert.AssertionError
+      ? error.message
+      : "Installed client operation failed; private details withheld";
+} finally {
+  stage = result === "passed" ? "close" : stage;
+  for (const handle of clients.reverse()) {
+    try {
+      await handle.client.close();
+      await handle.transport.close();
+      if (handle.pid) {
+        let alive = false;
+        try {
+          process.kill(handle.pid, 0);
+          alive = true;
+        } catch (error) {
+          if (error.code !== "ESRCH") throw error;
+        }
+        assert.equal(
+          alive,
+          false,
+          "Acceptance-owned MCP process remained after closing its transport",
+        );
+      }
+      record(
+        "Acceptance-owned " +
+          handle.label +
+          " stdio MCP transport closed and its identified process exited",
+      );
+    } catch {
+      result = "failed";
+      failure = "Acceptance-owned MCP transport failed to close";
+    }
+  }
+}
+console.log(
+  JSON.stringify({
+    id: source.id,
+    reference: source.reference,
+    result,
+    stage,
+    ...(failure ? { failure } : {}),
+    checks,
+    candidate: config.candidate,
+    provider: config.provider,
+    rowsInProof: false,
+    liveAccounts: false,
+    vendorQualified: false,
+    browserInteraction: false,
+  }),
+);
+process.exitCode = result === "passed" ? 0 : 1;

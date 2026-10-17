@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: azure-blob
-version: 2.1.0
+version: 2.1.11
 description: Reviewed local snapshots from Azure Blob or ADLS Gen2 files
 connector: singer:azure-blob@23.0.1
 documentation: https://github.com/ingestron/connectors/blob/main/docs/azure-blob.md
@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/azure-blob/runtime.json
-  sha256: 7ff01d5f60ebad702e8b2c7d09fd517b3c5d7b72c9fe28b5c7d5480eaa45c6cb
+  sha256: cd3e15e1c0e8bf73b2e8eb22ae844df6685661a09f39f1ce572ba28432ebb7ea
   contract: ingestron.snapshot/python/v1
 quality:
   library:
@@ -70,7 +70,7 @@ definition:
           $secret:
             type: object
             properties:
-              env: &a1
+              env:
                 type: string
                 minLength: 1
             required:
@@ -89,7 +89,9 @@ definition:
     additionalProperties:
       type: object
       properties:
-        name: *a1
+        name:
+          type: string
+          minLength: 1
         fields:
           type: object
           additionalProperties:
@@ -104,6 +106,8 @@ definition:
                   - number
                   - decimal
                   - json
+                  - date
+                  - timestamp
               nullable:
                 type: boolean
               target:
@@ -146,3 +150,52 @@ execution:
       - local
     evidence: Bounded Azure Blob reads into local snapshots, several tables per
       connection; source-only HTTPS SAS access
+sourceAccess:
+  apiVersion: ingestron.source-access/v1
+  entryPoint: remote_file_access.py
+  inventoryScopeSchema:
+    type: object
+    properties:
+      prefix:
+        type: string
+        maxLength: 1024
+        title: Object prefix
+        description:
+          List files whose paths begin with this literal prefix, including
+          subfolders.
+      format:
+        type: string
+        enum:
+          - all
+          - csv
+          - tsv
+          - json
+          - jsonl
+          - parquet
+        title: File format
+    additionalProperties: false
+  metadataOptionsSchema:
+    type: object
+    description: Explicitly read JSON/JSONL records to suggest a draft schema.
+      Samples do not prove required fields, keys or full-file validity. No
+      record values are saved in discovery receipts.
+    properties:
+      sampleRecords:
+        type: boolean
+        enum:
+          - true
+        title: Sample JSON records
+      limit:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+        title: Record limit
+    required:
+      - sampleRecords
+    additionalProperties: false
+  actions:
+    - test
+    - sample
+    - inventory
+    - metadata

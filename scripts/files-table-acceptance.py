@@ -23,7 +23,9 @@ PROJECT.mkdir()
 
 
 def command(args, cwd=PROJECT):
-    return subprocess.check_output(args, cwd=cwd, text=True, timeout=1200)
+    proc = subprocess.run(args, cwd=cwd, text=True, capture_output=True, timeout=1200)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    return proc.stdout
 
 
 def cli(*args):
@@ -109,6 +111,13 @@ with tempfile.TemporaryDirectory(prefix='files-candidate-') as temporary:
             target = origin / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
+    if not PUBLIC:
+        # The pinned public CLI predates the source-access manifest field.
+        fixture_manifest = origin / 'connectors/files/connector.yaml'
+        fixture_source = yaml.safe_load(fixture_manifest.read_text())
+        fixture_source.pop('sourceAccess', None)
+        fixture_source['runtime'].pop('metadataDocuments', None)
+        fixture_manifest.write_text(yaml.safe_dump(fixture_source, sort_keys=False))
     for args in [['git', 'init', '-q'], ['git', 'add', '.'],
                  ['git', '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
                   'commit', '-qm', 'fixture'], ['git', 'tag', f'files-{FILES_VERSION}']]:

@@ -1,6 +1,6 @@
 apiVersion: ingestron.connector/v1
 id: gcs
-version: 0.1.0
+version: 0.1.10
 description: Reviewed local snapshots of Google Cloud Storage objects
 connector: singer:gcs@23.0.1
 documentation: https://github.com/ingestron/connectors/blob/main/docs/gcs.md
@@ -15,7 +15,7 @@ upstream:
   licenceStatus: evidenced
 runtime:
   path: connectors/gcs/runtime.json
-  sha256: 089693bb0fb8a9bd43708d2989f437ebad7a526ca50f9c3169876eea851a8cd8
+  sha256: 77918a15b322fc94add58dd7f8fb871f637377ecbd268b9a744aa16e7d3e9884
   contract: ingestron.snapshot/python/v1
 quality:
   library:
@@ -73,7 +73,7 @@ definition:
           $secret:
             type: object
             properties:
-              env: &a1
+              env:
                 type: string
                 minLength: 1
             required:
@@ -92,7 +92,9 @@ definition:
     additionalProperties:
       type: object
       properties:
-        name: *a1
+        name:
+          type: string
+          minLength: 1
         fields:
           type: object
           additionalProperties:
@@ -107,6 +109,8 @@ definition:
                   - number
                   - decimal
                   - json
+                  - date
+                  - timestamp
               nullable:
                 type: boolean
               target:
@@ -148,3 +152,52 @@ execution:
     modes:
       - local
     evidence: HMAC-signed Cloud Storage XML API reads; conformance suite against a mock
+sourceAccess:
+  apiVersion: ingestron.source-access/v1
+  entryPoint: remote_file_access.py
+  inventoryScopeSchema:
+    type: object
+    properties:
+      prefix:
+        type: string
+        maxLength: 1024
+        title: Object prefix
+        description:
+          List files whose paths begin with this literal prefix, including
+          subfolders.
+      format:
+        type: string
+        enum:
+          - all
+          - csv
+          - tsv
+          - json
+          - jsonl
+          - parquet
+        title: File format
+    additionalProperties: false
+  metadataOptionsSchema:
+    type: object
+    description: Explicitly read JSON/JSONL records to suggest a draft schema.
+      Samples do not prove required fields, keys or full-file validity. No
+      record values are saved in discovery receipts.
+    properties:
+      sampleRecords:
+        type: boolean
+        enum:
+          - true
+        title: Sample JSON records
+      limit:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+        title: Record limit
+    required:
+      - sampleRecords
+    additionalProperties: false
+  actions:
+    - test
+    - sample
+    - inventory
+    - metadata

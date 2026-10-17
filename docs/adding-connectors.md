@@ -7,13 +7,35 @@ connectors. Core owns the common package and operation schemas.
 ## Start from the scaffold
 
 ```sh
-pnpm connector:new <id> --label "Display name"
-pnpm runtime:test
+pnpm connector:new demo-source --label "Demo source" --out ../demo-source
 ```
 
-The scaffold creates a working example connector (one JSON Lines file per table),
-a conformance test and a documentation page. The example passes the conformance
-suite as generated; replace it with the real source and keep the suite passing.
+The destination must be new. The scaffold builds a complete standalone package:
+its manifest, runtime asset map and digests, hash-locked dependencies, original
+and upstream notices, source access methods, fixture and conformance suite. It
+registers no official catalogue alias. Existing directories are refused before
+any package files are written.
+
+The starter reads JSON Lines inside a configured absolute directory. Each file
+has a sibling `<file>.schema.json` with its declared scalar fields. Metadata
+reads the sidecar schema; it does not read record values. Inventory is paged,
+and data samples are explicit and bounded. Source paths cannot escape the
+configured directory through traversal or symlinks.
+
+Read the generated `README.md` to prepare Python 3.12 from the pinned hashes,
+rebuild and run the eleven starter tests. Adapt its source methods, settings,
+source schema and fixtures together. Keep the shared publication runtime intact.
+After recording a reviewed immutable Git snapshot, install its explicit manifest
+reference; for a local acceptance fixture:
+
+```sh
+ingestron connector install owner/repository/connector.yaml@0.1.0 --from-git /absolute/reviewed/checkout
+```
+
+This caches and locks the source package. A project still names it in `packages`
+and selects that alias in its connection. Installed source/provider acceptance
+must pass before releasing an adapted connector. The scaffold's preview status
+does not qualify a vendor service.
 
 ## The connector interface
 
@@ -82,8 +104,8 @@ pnpm test:containers        # Docker required; synthetic data only
 Each `docs/<id>.md` uses the same sections: a one-paragraph summary, a table of
 package, kind, maturity, licence and cost, then **Install**, **Connection**
 (with a `connections` and `flows` example), **Tables** (the `source` keys),
-**Types**, **Behaviour and limits**, **Evidence** and **References**. The
-scaffold creates this outline.
+**Types**, **Behaviour and limits**, **Evidence** and **References**. The standalone scaffold supplies a complete starter README; use these sections
+when documenting its adapted source.
 
 ## API mocks
 
@@ -122,3 +144,20 @@ INGESTRON_TEST_CLI=$(pnpm -s local-stack --print) pnpm acceptance:files:tables
 `pnpm local-stack` packs core and the CLI from the sibling checkouts and installs
 them together, with the CLI declaring exactly that core, so installed gates run
 without publishing to npm.
+
+## Installed custom starter acceptance
+
+`pnpm acceptance:custom` takes `--cli`, `--core-archive`, `--cli-archive`,
+`--connectors`, `--provider`, `--cache`, `--out` and `--proof`. Supply installed
+CLI/core archives and the local provider checkout. The harness creates its own
+immutable local source/provider Git snapshots and synthetic two-table project.
+It checks source access and metadata without row reads, exact bounded samples
+through SDK/CLI/MCP, private receipts, reviewed snapshot publication, required
+key quality rejection and same-run recovery. It changes no catalogue alias.
+
+The cache must contain a qualified ready runtime for the exact hashes and current
+platform. Use `--fresh true` to prepare official dependencies from the pinned
+hashes when testing first use; this permits dependency downloads. `--python`
+selects a Python 3.12 executable; otherwise the harness uses `python3.12`. Source
+access and generated flow execution prepare their respective runtimes. No vendor
+account, customer data or cloud target is exercised by this harness.

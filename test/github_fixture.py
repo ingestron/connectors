@@ -29,7 +29,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header('Content-Type','application/json');self.end_headers();self.wfile.write(b'{"message":"synthetic"}');return
         if url.path in ('/repos/'+self.server.repository+'/issues','/repositories/1/issues'):
             page='2' if 'after' in parse_qs(url.query) else '1'
-            value=[] if scenario == 'empty' else [{'id':int(page),'number':int(page),'title':'Issue '+page,'state':'open','type':None,'body':None,'updated_at':'2026-01-01T00:00:00Z'}]
+            title = 'Repeated issue title' if scenario == 'contract-quality' else 'Issue ' + page
+            value=[] if scenario == 'empty' else [{'id':int(page),'number':int(page),'title':title,'state':'open','type':None,'body':None,'updated_at':'2026-01-01T00:00:00Z'}]
             self.send_response(200)
             if page=='1' and scenario != 'empty': self.send_header('Link',f'<http://127.0.0.1:{self.server.server_port}/repos/{self.server.repository}/issues?after=next>; rel="next"')
         elif url.path=='/rate_limit':

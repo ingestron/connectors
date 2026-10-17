@@ -1,0 +1,61 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,cpSync,mkdtempSync,realpathSync,existsSync,readdirSync} from 'node:fs';
+import {resolve,join,relative} from 'node:path';
+import {createRequire} from 'node:module';
+import {pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
+const base=resolve(process.argv[2]),proofPath=resolve(process.argv[3]);
+const input=JSON.parse(readFileSync(join(base,'artifacts/review-readiness-matrix-harness-v1/inputs.json')));
+const seed=JSON.parse(readFileSync(join(base,'outputs/review-readiness-matrix-input-v1.json'))),config=JSON.parse(readFileSync(seed.configPath));
+const oldCli=realpathSync(join(base,'fixtures/installed-runtime-v3/node_modules/ingestron'));
+const oldCore=realpathSync(join(oldCli,'../@ingestron/core'));
+const old=await import(pathToFileURL(join(oldCore,'dist/sdk/index.js'))),current=await import(pathToFileURL(join(input.core,'dist/sdk/index.js')));
+assert.equal(old.version,'0.12.43');assert.equal(current.version,'0.12.51');
+assert.equal(JSON.parse(readFileSync(join(oldCli,'package.json'))).version,'0.17.18');
+const {parse,stringify}=createRequire(join(input.cli,'package.json'))('yaml');
+const root=mkdtempSync(join(base,'fixtures/compiler-switch-review-readiness-'));
+cpSync(config.root,root,{recursive:true,filter:p=>!['build','runs','runtimes','scheduler','studio-jobs','source-access','.local'].includes(p.split('/').at(-1))});
+const projectPath=join(root,'project.yaml'),project=parse(readFileSync(projectPath,'utf8'));
+project.id='compiler_switch_current';project.connections={files:project.connections.files};project.flows=project.flows.filter(f=>f.id==='flow_files');
+project.flows[0].tables.records.source.path=join(root,'data/orders.csv');writeFileSync(projectPath,stringify(project));
+const flow='flow_files',from='build/studio/dev/'+flow,context={root,environment:'dev',allowExecute:true,allowNetwork:true,allowWrite:true};
+const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex');
+const originalInputs={project:hash(projectPath),lock:hash(join(root,'packages.lock.yaml')),data:hash(join(root,'data/orders.csv'))};
+const walk=p=>!existsSync(p)?[]:readdirSync(p,{withFileTypes:true}).flatMap(d=>d.isDirectory()?walk(join(p,d.name)):[join(p,d.name)]);
+const frozen=p=>Object.fromEntries(walk(p).map(f=>[relative(root,f),hash(f)]));
+process.env.INGESTRON_ACCEPTANCE_STUDIO_HOST=join(base,'artifacts/review-readiness-host-v1/shared/host.cjs');
+const {createHost}=await import(pathToFileURL(join(base,'artifacts/review-readiness-matrix-harness-v1/checkpoint-upgrade-host-acceptance.mjs')));
+const options={project:root,flow,baseline:'unused',record:()=>{},python:config.python,sourceAdapter:config.provider};
+let host,result='failed',stage='open',failure;const checks=[],details={root,old:{cli:oldCli,core:oldCore},current:{cli:input.cli,core:input.core}};
+async function start(operation,request,expected='succeeded'){let job=await host.request('start',{environment:'dev',operation,request});const end=Date.now()+180000;while(job.status==='running'&&Date.now()<end){await new Promise(done=>setTimeout(done,50));job=(await host.request('jobs')).find(x=>x.id===job.id);assert.ok(job);}assert.equal(job.status,expected,operation+': '+JSON.stringify(job.error??job.result));return job;}
+async function sdk(operation,args){const r=await current.executeAsync(context,operation,args);assert.equal(r.ok,true,operation+': '+JSON.stringify(r));return r.result;}
+try{
+ host=await createHost({...options,cli:oldCli});stage='old-prepare';const oldState=await host.request('snapshot',{environment:'dev'});assert.equal(oldState.compilerIdentity.version,'0.12.43');
+ await start('test_prepare',{flow,revision:oldState.revision,runtimeConsent:true});
+ const oldReview=await host.request('discovery',{environment:'dev',flow});assert.match(oldReview.reviewDigest,/^[a-f0-9]{64}$/);assert.ok(oldReview.review&&!oldReview.reviewError);
+ stage='old-run';const oldJob=await start('test_run',{flow,revision:oldState.revision,reviewDigest:oldReview.reviewDigest});
+ const runStage=oldJob.result.stages.find(s=>s.operation==='run'&&s.action==='run');assert.ok(runStage);const runId=runStage.result.id;assert.ok(runId);
+ const oldEvidence=await old.executeAsync(context,'execution_evidence',{flow,from,id:runId});assert.equal(oldEvidence.ok,true);assert.equal(oldEvidence.result.build.current,true);
+ const oldPreview=await host.request('run.preview',{environment:'dev',flow,id:oldJob.id,stream:'records'});assert.equal(oldPreview.totalRows,3);
+ const dataFiles=frozen(join(root,from,'data')),oldReceipts=frozen(join(root,'.ingestron/runs'));assert.ok(Object.keys(dataFiles).length);checks.push('The genuine old installed pair prepares, reviews and publishes three rows on this root; exact compiler identity and current-build evidence agree.');
+ details.oldJob=oldJob.id;details.oldRun=runId;details.oldRevision=oldState.revision;details.oldReviewDigest=oldReview.reviewDigest;details.oldBuild=oldEvidence.result.build;details.originalData=dataFiles;details.originalRunReceipts=oldReceipts;
+ await host.close();host=undefined;stage='new-open';host=await createHost({...options,cli:input.cli});const state=await host.request('snapshot',{environment:'dev'});assert.equal(state.compilerIdentity.version,'0.12.51');assert.notEqual(state.revision,oldState.revision);
+ const historical=await sdk('execution_evidence',{flow,from,id:runId});assert.equal(historical.build.current,false);assert.equal(historical.build.compiler.version,'0.12.43');assert.equal(historical.compiler.version,'0.12.51');assert.equal(historical.original.id,runId);
+ await assert.rejects(()=>host.request('run.preview',{environment:'dev',flow,id:oldJob.id,stream:'records'}),/Run results changed/);await assert.rejects(()=>host.request('run.preview',{environment:'dev',flow,id:oldJob.id,stream:'records',historical:true}),/Run results changed/);for(const [p,h] of Object.entries(dataFiles))assert.equal(hash(join(root,p)),h);for(const [p,h] of Object.entries(oldReceipts))assert.equal(hash(join(root,p)),h);assert.ok((await host.request('jobs')).some(j=>j.id===oldJob.id&&j.status==='succeeded'));
+ checks.push('Switching only the installed compiler/CLI changes the Studio revision; original successful job receipts remain visible and committed files remain identical; execution evidence reports current false. Both current and explicit historical row preview refuse the stale revision.');
+ stage='stale-refusals';await assert.rejects(()=>host.request('start',{environment:'dev',operation:'test_run',request:{flow,revision:oldState.revision,reviewDigest:oldReview.reviewDigest}}),/STALE/);
+ const newDiscovery=await host.request('discovery',{environment:'dev',flow});assert.ok(newDiscovery.review&&!newDiscovery.reviewError);
+ const priorJobs=(await host.request('jobs')).length;assert.equal(newDiscovery.preparation.status,'out-of-date');await assert.rejects(host.request('start',{environment:'dev',operation:'test_run',request:{flow,revision:state.revision,reviewDigest:newDiscovery.reviewDigest}}),/STALE/);assert.equal((await host.request('jobs')).length,priorJobs);details.compilerPreflight={status:newDiscovery.preparation.status,message:newDiscovery.preparation.message,noJobCreated:true};
+ for(const [op,args] of [['run',{flow,from,action:'run'}],['runtime_prepare',{flow,from,python:config.python}]]){const r=await current.executeAsync(context,op,args);assert.equal(r.ok,false);assert.match(JSON.stringify(r),/Compiler changed since generation/);}
+ assert.deepEqual(frozen(join(root,from,'data')),dataFiles);for(const [p,h] of Object.entries(oldReceipts))assert.equal(hash(join(root,p)),h);
+ checks.push('Old Studio revision, current-revision execution of the preserved old review, direct fresh run and runtime setup are refused before changing committed output or original run receipts. The saved review remains readable as historical evidence.');
+ stage='new-prepare';await start('test_prepare',{flow,revision:state.revision,runtimeConsent:true});const review=await host.request('discovery',{environment:'dev',flow});assert.ok(review.review&&!review.reviewError);assert.match(review.reviewDigest,/^[a-f0-9]{64}$/);assert.equal(review.reviewStatus,'draft');
+ const newEvidence=await sdk('execution_evidence',{flow,from});assert.equal(newEvidence.build.current,true);assert.equal(newEvidence.build.compiler.version,'0.12.51');
+ await assert.rejects(()=>host.request('start',{environment:'dev',operation:'test_run',request:{flow,revision:state.revision,reviewDigest:'0'.repeat(64)}}),/STALE/);
+ checks.push('Preparing with the new pair adopts its compiler/build/runtime boundary and resets review to draft; a mismatched digest is refused. The same semantic review may retain its digest, with the new compiler revision still required.');
+ stage='new-run';const newJob=await start('test_run',{flow,revision:state.revision,reviewDigest:review.reviewDigest});assert.ok(newJob.result.stages.some(s=>s.operation==='run'&&s.action==='approve'&&s.status==='succeeded'));const preview=await host.request('run.preview',{environment:'dev',flow,id:newJob.id,stream:'records'});assert.equal(preview.totalRows,3);assert.deepEqual(preview.rows,oldPreview.rows);
+ assert.equal(hash(projectPath),originalInputs.project);assert.equal(hash(join(root,'packages.lock.yaml')),originalInputs.lock);assert.equal(hash(join(root,'data/orders.csv')),originalInputs.data);for(const [p,h] of Object.entries(oldReceipts))assert.equal(hash(join(root,p)),h);
+ details.newJob=newJob.id;details.newRevision=state.revision;details.newReviewDigest=review.reviewDigest;details.semanticReviewDigestUnchanged=review.reviewDigest===oldReview.reviewDigest;details.newBuild=newEvidence.build;details.historicalEvidence=historical;details.originalInputs=originalInputs;
+ checks.push('New reviewed execution commits the expected rows while authored project, lock, source data and original durable receipts remain byte-identical.');
+ result='passed';
+}catch(e){failure=e.stack;process.exitCode=1;}finally{if(host)await host.close();writeFileSync(proofPath,JSON.stringify({result,stage,...(failure?{failure}:{}),checks,details,hostSha256:hash(process.env.INGESTRON_ACCEPTANCE_STUDIO_HOST),scope:'Actual immutable old/new installed packages and packaged Studio host on one synthetic local Files project; no browser/editor interaction, vendor qualification or cloud execution.'},null,2)+'\n');}
